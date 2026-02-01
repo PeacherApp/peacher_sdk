@@ -31,7 +31,7 @@ mod form;
 use std::fmt::Display;
 use std::io::Cursor;
 
-use crate::multipart::form::Form;
+use crate::peanut::multipart::form::Form;
 
 #[derive(Debug, Default)]
 pub struct MultipartForm {

@@ -21,10 +21,15 @@ ahash = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
 utoipa = { version = "5.4", optional = true, features = ["chrono", "uuid", "url"] }
 serde_qs = { version = "0.15" }
+serde_urlencoded = "0.7.1"
 tracing = { version = "0.1" }
 clap = { version = "4.5", optional = true, features = ["derive"] }
 anyhow = "1.0"
+bytes = "1.11"
 http = "1.4"
+futures-core = "0.3.31"
+rand = "0.9"
+futures-util = { version = "0.3.31", features = ["io"] }
 reqwest = { version = "0.12", features = [
   "json",
   "cookies",
@@ -38,6 +43,7 @@ dialoguer = { version = "0.12", optional = true }
 thiserror = {version = "2"}
 strum = { version = "0.27", features = ["derive"] }
 uuid = { version = "1.6", features = ["v4"] }
+mime = "0.3.17"
 
 [dev-dependencies]
 pretty_assertions = {version = "1.4"}

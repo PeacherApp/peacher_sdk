@@ -22,7 +22,7 @@ use futures_util::{
 };
 use http::{HeaderName, header};
 
-use crate::multipart::{
+use crate::peanut::multipart::{
     error::Error,
     form::{Inner, Part},
 };
@@ -166,7 +166,7 @@ impl<'a> Stream for Body<'a> {
 #[cfg(test)]
 mod tests {
     use super::Body;
-    use crate::multipart::{error::Error, form::Form};
+    use crate::peanut::multipart::{error::Error, form::Form};
     use bytes::BytesMut;
     use futures_util::TryStreamExt;
     use std::io::Cursor;
@@ -206,7 +206,7 @@ mod tests {
     }
 
     struct FixedBoundary;
-    impl crate::multipart::boundary::BoundaryGenerator for FixedBoundary {
+    impl crate::peanut::multipart::boundary::BoundaryGenerator for FixedBoundary {
         fn generate_boundary() -> String {
             "boundary".to_owned()
         }

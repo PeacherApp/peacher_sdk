@@ -13,7 +13,7 @@ use bytes::BytesMut;
 use http::{HeaderName, HeaderValue};
 use mime::Mime;
 
-use crate::multipart::{
+use crate::peanut::multipart::{
     body::Body,
     boundary::{BoundaryGenerator, RandomAsciiGenerator},
 };

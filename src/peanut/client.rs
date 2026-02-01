@@ -5,7 +5,7 @@ use reqwest::Request;
 use serde::de::DeserializeOwned;
 use url::Url;
 
-use crate::request::BodyError;
+use crate::peanut::request::BodyError;
 
 pub trait Client {
     type Error: fmt::Debug + Send + Sync + 'static;

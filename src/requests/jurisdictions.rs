@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use crate::prelude::*;
-use peanut::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// List jurisdictions with optional filters

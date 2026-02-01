@@ -1,4 +1,7 @@
-use crate::prelude::*;
+use crate::{
+    peanut::query::{Query as _, QueryError},
+    prelude::*,
+};
 use reqwest::header::{AUTHORIZATION, HeaderValue};
 use url::Url;
 

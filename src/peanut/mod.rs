@@ -11,11 +11,11 @@ pub mod request;
 mod axum_test;
 
 pub mod prelude {
-    pub use crate::client::*;
-    pub use crate::error::*;
-    pub use crate::handler::*;
-    pub use crate::method::*;
-    pub use crate::request::*;
+    pub use crate::peanut::client::*;
+    pub use crate::peanut::error::*;
+    pub use crate::peanut::handler::*;
+    pub use crate::peanut::method::*;
+    pub use crate::peanut::request::*;
 }
 
 use std::{
@@ -23,7 +23,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use crate::error::SdkResult;
+use crate::peanut::error::SdkResult;
 
 pub(crate) struct DoNothing;
 impl Future for DoNothing {

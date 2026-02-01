@@ -58,7 +58,7 @@ pub trait Handler: Send {
     fn headers(&self, headers: &mut HeaderMap) {}
 
     fn after_response(&self) -> impl Future<Output = SdkResult<()>> {
-        crate::DoNothing
+        crate::peanut::DoNothing
     }
 }
 
@@ -113,7 +113,7 @@ pub trait GetHandler: Send {
     fn headers(&self, headers: &mut HeaderMap) {}
 
     fn after_response(&self) -> impl Future<Output = SdkResult<()>> {
-        crate::DoNothing
+        crate::peanut::DoNothing
     }
 }
 

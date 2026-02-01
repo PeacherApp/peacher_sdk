@@ -1,10 +1,7 @@
 use axum_test::{TestResponse, TestServer};
 use serde::de::DeserializeOwned;
 
-use crate::{
-    client::{Client, PeanutResponse},
-    request::BodyError,
-};
+use crate::peanut::prelude::*;
 
 impl Client for TestServer {
     type Error = anyhow::Error;

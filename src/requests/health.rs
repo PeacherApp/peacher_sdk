@@ -1,4 +1,4 @@
-use peanut::prelude::*;
+use crate::peanut::prelude::*;
 use serde::{Deserialize, Serialize};
 
 pub struct GetHealthCheck;

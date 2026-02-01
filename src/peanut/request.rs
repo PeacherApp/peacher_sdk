@@ -3,7 +3,7 @@ use std::{borrow::Cow, error::Error};
 use serde::Serialize;
 use thiserror::Error;
 
-use crate::multipart::MultipartForm;
+use crate::peanut::multipart::MultipartForm;
 
 #[derive(Error, Debug)]
 pub enum BodyError {
@@ -22,12 +22,6 @@ impl BodyBuilder {
         match serde_json::to_vec(json) {
             Ok(body) => {
                 self.inner = Some(Ok(("application/json".into(), body)));
-
-                // if !req.headers().contains_key(CONTENT_TYPE) {
-                //     req.headers_mut()
-                //         .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-                // }
-                // *req.body_mut() = Some(body.into());
             }
             Err(err) => self.inner = Some(Err(BodyError::Serialize(Box::new(err)))),
         }
@@ -40,12 +34,6 @@ impl BodyBuilder {
                     "application/x-www-form-urlencoded".into(),
                     body.into(),
                 )));
-
-                // if !req.headers().contains_key(CONTENT_TYPE) {
-                //     req.headers_mut()
-                //         .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-                // }
-                // *req.body_mut() = Some(body.into());
             }
             Err(err) => self.inner = Some(Err(BodyError::Serialize(Box::new(err)))),
         }
