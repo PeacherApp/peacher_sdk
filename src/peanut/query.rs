@@ -45,10 +45,6 @@ where
             None => {}
         }
 
-        // let new_req: http::Request<reqwest::Body> = request
-        //     .try_into()
-        //     .map_err(|e| QueryError::Body(BodyError::Serialize(Box::new(e))))?;
-
         let response = client.execute(request).await.map_err(QueryError::Client)?;
 
         let status = response.status();

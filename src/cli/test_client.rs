@@ -9,7 +9,6 @@ pub async fn test_client<C: ExternalClient>(client: C, api_config: PeacherClient
 
 pub struct ClientTest<C> {
     sync: ApiSync<C>,
-    //api_url: Url,
     legislation: Vec<ExternalLegislation>,
 }
 

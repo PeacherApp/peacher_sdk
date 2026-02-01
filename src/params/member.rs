@@ -29,11 +29,9 @@ impl MemberParams {
     }
     pub fn order(&self) -> Ordering {
         self.order
-        // Ordering::from_str(&self.order).unwrap_or_default()
     }
     pub fn order_by(&self) -> MemberOrder {
         self.order_by
-        // MemberOrder::from_str(&self.order_by).unwrap_or_default()
     }
 }
 

@@ -1,5 +1,4 @@
 pub mod client;
-// pub mod clients;
 pub mod error;
 pub mod handler;
 pub mod method;
