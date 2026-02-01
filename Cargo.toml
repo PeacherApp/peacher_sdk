@@ -2,6 +2,12 @@
 name = "peacher_sdk"
 version = "0.1.0"
 edition = "2024"
+authors = ["Daniel Gallups <dan@peacher.app>"]
+description = "The rust request, response, and parameter types used by the peacher API"
+keywords = ["sdk"]
+repository = "https://github.com/PeacherApp/peacher_sdk"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
 
 
 [features]

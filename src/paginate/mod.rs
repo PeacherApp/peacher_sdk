@@ -1,9 +1,6 @@
 mod paginated;
 pub use paginated::*;
 
-// mod params;
-// pub use params::*;
-
 pub trait PaginatedParams {
     /// the page field of the actual param (should be 1 minimum)
     fn param_page(&self) -> u64 {

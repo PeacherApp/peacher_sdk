@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 use strum::{Display, EnumString};
 
 #[derive(
@@ -14,6 +15,47 @@ pub enum LegislationType {
     Bill,
     #[default]
     Other,
+}
+
+/// Outcome of legislation - tracks what ultimately happened to a bill
+#[derive(
+    Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default, Display, EnumString,
+)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub enum LegislationOutcome {
+    ///Still in progress
+    #[default]
+    Pending,
+    /// Passed legislature, awaiting executive action
+    Passed,
+    /// Did not pass (voted down, died in committee, etc.)
+    Failed,
+    /// Signed into law by executive
+    Signed,
+    /// Vetoed by executive
+    Vetoed,
+    /// Veto overridden by legislature
+    VetoOverridden,
+
+    /// Sponsor withdrew the legislation
+    Withdrawn,
+}
+
+impl LegislationOutcome {
+    /// Returns true if this outcome represents an active/in-progress state
+    pub fn is_active(&self) -> bool {
+        matches!(self, LegislationOutcome::Pending)
+    }
+
+    /// Returns true if this outcome represents a terminal state
+    pub fn is_terminal(&self) -> bool {
+        !self.is_active()
+    }
+
+    /// Parse from optional string, returning None for null values
+    pub fn from_opt_str(s: Option<&str>) -> Option<Self> {
+        s.and_then(|s| Self::from_str(s).ok())
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

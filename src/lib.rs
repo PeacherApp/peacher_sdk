@@ -3,9 +3,7 @@ pub mod paginate;
 pub mod params;
 pub mod peanut;
 pub mod requests;
-pub mod sdk;
 pub mod sync;
-pub mod types;
 pub mod views;
 
 // #[cfg(feature = "cli")]
@@ -20,6 +18,5 @@ pub mod prelude {
     pub use crate::peanut::prelude::*;
     pub use crate::requests::*;
     pub use crate::sync::*;
-    pub use crate::types::*;
     pub use crate::views::*;
 }

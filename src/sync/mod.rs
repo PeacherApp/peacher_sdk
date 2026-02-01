@@ -2,7 +2,7 @@ mod client;
 
 pub use client::*;
 
-// Note: legislation_sync module kept for reference but not currently used
+// Note: legislation_sync module kept for reference but not currently used. Needs to be removed soon.
 // mod legislation_sync;
 // use legislation_sync::*;
 

@@ -1,3 +1,5 @@
+// this code smells bad and is bad and I should not be trusting machines to write code. I will enable the cli feature soon once I write it myself.
+
 use std::path::PathBuf;
 
 use anyhow::Context;
