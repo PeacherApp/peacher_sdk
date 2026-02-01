@@ -15,7 +15,6 @@ use thiserror::Error;
 
 use crate::prelude::*;
 use chrono::NaiveDate;
-use peanut::error::SdkError;
 use tracing::{error, info};
 
 /// Result of syncing jurisdiction and its chambers
