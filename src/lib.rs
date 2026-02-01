@@ -1,14 +1,24 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub mod client;
+pub mod paginate;
+pub mod params;
+pub mod requests;
+pub mod sdk;
+pub mod sync;
+pub mod types;
+pub mod views;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(feature = "cli")]
+// pub mod cli;
+// #[cfg(feature = "cli")]
+// pub use cli::{cli, cli_with_client};
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub mod prelude {
+    pub use crate::client::*;
+    pub use crate::paginate::*;
+    pub use crate::params::*;
+    pub use crate::requests::*;
+    pub use crate::sync::*;
+    pub use crate::types::*;
+    pub use crate::views::*;
+    pub use peanut::prelude::*;
 }
