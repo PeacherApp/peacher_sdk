@@ -51,7 +51,7 @@ impl Default for ListChambers {
 }
 
 impl GetHandler for ListChambers {
-    type ResponseBody = Paginated<ChamberResponse>;
+    type ResponseBody = Paginated<ListChamberResponse>;
 
     fn path(&self) -> Cow<'_, str> {
         "/api/chambers".into()
@@ -80,7 +80,7 @@ impl GetHandler for ListChambers {
 pub struct GetChamber(pub i32);
 
 impl GetHandler for GetChamber {
-    type ResponseBody = ChamberView;
+    type ResponseBody = GetChamberResponse;
     fn path(&self) -> Cow<'_, str> {
         format!("/api/chambers/{}", self.0).into()
     }
@@ -158,7 +158,7 @@ impl CreateChamber {
 }
 
 impl Handler for CreateChamber {
-    type ResponseBody = ChamberResponse;
+    type ResponseBody = ListChamberResponse;
 
     fn method(&self) -> Method {
         Method::Post
@@ -216,7 +216,7 @@ impl UpdateChamber {
 }
 
 impl Handler for UpdateChamber {
-    type ResponseBody = ChamberResponse;
+    type ResponseBody = ListChamberResponse;
 
     fn method(&self) -> Method {
         Method::Patch

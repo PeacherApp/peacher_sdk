@@ -86,6 +86,10 @@ impl LegislationView {
         sponsors: impl IntoIterator<Item = LegislationViewSponsor>,
     ) -> DetailedLegislationView {
         DetailedLegislationView {
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            introduced_at: self.introduced_at,
+            resolved_at: self.resolved_at,
             id: self.id,
             name_id: self.name_id,
             title: self.title,
@@ -104,6 +108,10 @@ impl LegislationView {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DetailedLegislationView {
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+    pub introduced_at: Option<DateTime<FixedOffset>>,
+    pub resolved_at: Option<DateTime<FixedOffset>>,
     pub id: i32,
     pub name_id: String,
     pub title: String,
@@ -118,6 +126,26 @@ pub struct DetailedLegislationView {
     pub external: Option<ExternalOwner>,
     pub votes: Vec<LegislationViewVote>,
     pub sponsors: Vec<LegislationViewSponsor>,
+}
+
+impl DetailedLegislationView {
+    pub fn into_legislation_view(self) -> LegislationView {
+        LegislationView {
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            introduced_at: self.introduced_at,
+            resolved_at: self.resolved_at,
+            id: self.id,
+            name_id: self.name_id,
+            title: self.title,
+            summary: self.summary,
+            legislation_type: self.legislation_type,
+            outcome: self.outcome,
+            is_active: self.is_active,
+            status: self.status,
+            external: self.external,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

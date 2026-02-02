@@ -41,6 +41,18 @@ impl ListSessionMembers {
     }
 }
 
+pub struct DeleteSession(pub i32);
+
+impl Handler for DeleteSession {
+    type ResponseBody = NoResponse;
+    fn method(&self) -> Method {
+        Method::Delete
+    }
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/sessions/{}", self.0).into()
+    }
+}
+
 impl GetHandler for ListSessionMembers {
     type ResponseBody = ChamberSessionView;
     fn path(&self) -> Cow<'_, str> {

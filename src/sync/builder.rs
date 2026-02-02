@@ -3,17 +3,18 @@ use tracing::info;
 use crate::prelude::*;
 
 /// Builder for ApiSync that handles initial jurisdiction resolution.
-pub struct ApiSyncBuilder<'a, E> {
+pub struct ApiSyncBuilder<'a, E, P = PeacherClient> {
     external: E,
-    peacher: &'a PeacherClient,
+    peacher: &'a P,
     dangerously_create: bool,
 }
 
-impl<'a, E> ApiSyncBuilder<'a, E>
+impl<'p, E, P> ApiSyncBuilder<'p, E, P>
 where
     E: ExternalClient,
+    P: Client,
 {
-    pub fn new(external_client: E, peacher_client: &'a PeacherClient) -> Self {
+    pub fn new(external_client: E, peacher_client: &'p P) -> Self {
         Self {
             external: external_client,
             peacher: peacher_client,
@@ -34,7 +35,7 @@ where
     ///
     /// If the jurisdiction doesn't exist and `dangerously_create` is not set,
     /// this will return an error.
-    pub async fn build(self) -> Result<ApiSync<'a, E>, SyncError> {
+    pub async fn build(self) -> Result<ApiSync<'p, E, P>, SyncError> {
         let ext_jurisdiction = self.external.get_jurisdiction();
 
         info!(

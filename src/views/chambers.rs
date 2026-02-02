@@ -17,10 +17,29 @@ pub struct ChamberView {
     pub name: String,
     pub jurisdiction: BasicJurisdictionView,
 }
+impl ChamberView {
+    pub fn into_get_chamber_response(self, external: Option<ExternalOwner>) -> GetChamberResponse {
+        GetChamberResponse {
+            id: self.id,
+            name: self.name,
+            jurisdiction: self.jurisdiction,
+            external,
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ChamberResponse {
+pub struct GetChamberResponse {
+    pub id: i32,
+    pub name: String,
+    pub jurisdiction: BasicJurisdictionView,
+    pub external: Option<ExternalOwner>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ListChamberResponse {
     pub id: i32,
     pub name: String,
     pub external: Option<ExternalOwner>,
