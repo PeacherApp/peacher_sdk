@@ -1,7 +1,7 @@
 use chrono::{DateTime, FixedOffset, NaiveDate};
 use serde::{Deserialize, Serialize};
 
-use crate::views::{ChamberResponse, ExternalOwner, SmallChamberView};
+use crate::views::{ExternalOwner, ListChamberResponse, SmallChamberView};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -21,7 +21,7 @@ pub struct GetJurisdictionResponse {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub external: Option<ExternalOwner>,
-    pub chambers: Vec<ChamberResponse>,
+    pub chambers: Vec<ListChamberResponse>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

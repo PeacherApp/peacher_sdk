@@ -23,8 +23,8 @@ pub struct JurisdictionAndChambersSyncResult {
     pub jurisdiction_id: i32,
     pub jurisdiction_name: String,
     pub jurisdiction_created: bool,
-    pub chambers_created: Vec<ChamberResponse>,
-    pub chambers_updated: Vec<ChamberResponse>,
+    pub chambers_created: Vec<ListChamberResponse>,
+    pub chambers_updated: Vec<ListChamberResponse>,
 }
 
 /// Result of syncing sessions
@@ -106,10 +106,6 @@ pub struct SyncChamberSessionView {
     pub chamber: ChamberSessionView,
 }
 
-// ============================================================================
-// ApiSync - Main Sync Coordinator
-// ============================================================================
-
 /// Coordinates synchronization between an external data source and the Peacher API.
 ///
 /// # Design Principles
@@ -153,6 +149,9 @@ impl<'p, E: ExternalClient, P> ApiSync<'p, E, P> {
     pub fn config_mut(&mut self) -> &mut ExternalClientConfig {
         &mut self.ext_config
     }
+    pub fn config(&self) -> &ExternalClientConfig {
+        &self.ext_config
+    }
 }
 
 impl<'p, E: ExternalClient> ApiSync<'p, E> {
@@ -166,7 +165,7 @@ where
     E: ExternalClient,
     P: Client,
 {
-    pub fn builder(external_client: E, peacher_client: &'p PeacherClient) -> ApiSyncBuilder<'p, E> {
+    pub fn builder(external_client: E, peacher_client: &'p P) -> ApiSyncBuilder<'p, E, P> {
         ApiSyncBuilder::new(external_client, peacher_client)
     }
 
@@ -219,6 +218,21 @@ where
     pub async fn resolve_jurisdiction(&self, ext_id: &ExternalId) -> Result<i32, SyncError> {
         let jurisdictions = ListJurisdictions::default()
             .with_external_id(ext_id.val_str())
+            .request(self.peacher)
+            .await?;
+
+        jurisdictions
+            .data
+            .first()
+            .map(|j| j.id)
+            .ok_or(SyncError::JurisdictionNotFound)
+    }
+
+    /// helper to resolve the current jurisdiction based on the external client
+    pub async fn resolve_internal_jurisdiction(&self) -> Result<i32, SyncError> {
+        let jurisdiction = self.external.get_jurisdiction();
+        let jurisdictions = ListJurisdictions::default()
+            .with_external_id(jurisdiction.external_id.val_str())
             .request(self.peacher)
             .await?;
 
@@ -353,13 +367,16 @@ where
                 .request(self.peacher)
                 .await?;
 
-        let existing_ext_ids: HashSet<String> = existing_sessions
+        let existing_ext_ids: HashMap<String, GetSessionResponse> = existing_sessions
             .data
             .iter()
             .filter_map(|s| {
-                s.external
+                let ext_id = s
+                    .external
                     .as_ref()
-                    .map(|e| e.external_id.val_str().to_string())
+                    .map(|e| e.external_id.val_str().to_string())?;
+
+                Some((ext_id, s.clone()))
             })
             .collect();
 
@@ -378,73 +395,79 @@ where
         for ext_session in external_sessions {
             let ext_id_str = ext_session.external_id.val_str().to_string();
 
-            if existing_ext_ids.contains(&ext_id_str) {
-                // Session exists
-                if let Some(existing) = existing_sessions.data.iter().find(|s| {
-                    s.external
-                        .as_ref()
-                        .is_some_and(|e| e.external_id.val_str() == ext_id_str)
-                }) {
-                    // Could call PATCH here - for now just note it
-                    updated.push(existing.clone());
-                }
-            } else {
-                // Create session
-                let mut session_req = CreateSessionRequest::new(&ext_session.name);
-                if let Some(starts_at) = ext_session.starts_at {
-                    session_req = session_req.starts_at(starts_at);
-                }
-                if let Some(ends_at) = ext_session.ends_at {
-                    session_req = session_req.ends_at(ends_at);
-                }
-
-                let mut ext_metadata = ExternalMetadata::new(ext_session.external_id.clone());
-                if let Some(ref url) = ext_session.url {
-                    ext_metadata.set_url(url.clone());
-                }
-                session_req = session_req.external_metadata(ext_metadata);
-
-                let response = CreateSession::new(jurisdiction_id, session_req)
-                    .request(self.peacher)
-                    .await?;
-
-                info!(
-                    "Created session '{}' (id: {}, ext_id: {})",
-                    response.name, response.id, ext_id_str
-                );
-
-                // Link session to all chambers in the jurisdiction
-                // This is required because legislation and member_sessions have foreign key
-                // constraints on (chamber_id, session_id) referencing chamber_sessions
-                for chamber in &chambers.data {
-                    match LinkChamberToSession::new(
-                        response.id,
-                        LinkSessionToChamberRequest::new(chamber.id),
+            match existing_ext_ids.get(&ext_id_str) {
+                Some(id) => {
+                    println!("here");
+                    let response = UpdateSession::new(
+                        id.id,
+                        UpdateSessionRequest {
+                            name: Some(ext_session.name),
+                            starts_at: ext_session.starts_at,
+                            ends_at: ext_session.ends_at,
+                        },
                     )
-                    .request(self.peacher)
-                    .await
-                    {
-                        Ok(_) => {
-                            info!(
-                                "Linked session {} to chamber {} ('{}')",
-                                response.id, chamber.id, chamber.name
-                            );
-                        }
-                        Err(SdkError::Status(status, _)) if status == 409 => {
-                            // Already linked, this is fine
-                            info!(
-                                "Session {} already linked to chamber {} ('{}')",
-                                response.id, chamber.id, chamber.name
-                            );
-                        }
-                        Err(e) => {
-                            // Fail on actual errors - if linking fails, downstream operations will also fail
-                            return Err(SyncError::Sdk(e));
+                    .request(self.peacher())
+                    .await?;
+                    updated.push(response);
+                }
+                None => {
+                    // Create session
+                    let mut session_req = CreateSessionRequest::new(&ext_session.name);
+                    if let Some(starts_at) = ext_session.starts_at {
+                        session_req = session_req.starts_at(starts_at);
+                    }
+                    if let Some(ends_at) = ext_session.ends_at {
+                        session_req = session_req.ends_at(ends_at);
+                    }
+
+                    let mut ext_metadata = ExternalMetadata::new(ext_session.external_id.clone());
+                    if let Some(ref url) = ext_session.url {
+                        ext_metadata.set_url(url.clone());
+                    }
+                    session_req = session_req.external_metadata(ext_metadata);
+
+                    let response = CreateSession::new(jurisdiction_id, session_req)
+                        .request(self.peacher)
+                        .await?;
+
+                    info!(
+                        "Created session '{}' (id: {}, ext_id: {})",
+                        response.name, response.id, ext_id_str
+                    );
+
+                    // Link session to all chambers in the jurisdiction
+                    // This is required because legislation and member_sessions have foreign key
+                    // constraints on (chamber_id, session_id) referencing chamber_sessions
+                    for chamber in &chambers.data {
+                        match LinkChamberToSession::new(
+                            response.id,
+                            LinkSessionToChamberRequest::new(chamber.id),
+                        )
+                        .request(self.peacher)
+                        .await
+                        {
+                            Ok(_) => {
+                                info!(
+                                    "Linked session {} to chamber {} ('{}')",
+                                    response.id, chamber.id, chamber.name
+                                );
+                            }
+                            Err(SdkError::Status(status, _)) if status == 409 => {
+                                // Already linked, this is fine
+                                info!(
+                                    "Session {} already linked to chamber {} ('{}')",
+                                    response.id, chamber.id, chamber.name
+                                );
+                            }
+                            Err(e) => {
+                                // Fail on actual errors - if linking fails, downstream operations will also fail
+                                return Err(SyncError::Sdk(e));
+                            }
                         }
                     }
-                }
 
-                created.push(response);
+                    created.push(response);
+                }
             }
         }
 
@@ -629,7 +652,7 @@ where
         );
 
         // Get all existing legislation external_ids for this session
-        let mut existing_ext_ids: HashSet<String> = HashSet::default();
+        let mut existing_ext_ids: HashMap<String, LegislationView> = HashMap::default();
         let mut page = 1u64;
         loop {
             let params = LegislationParams {
@@ -640,14 +663,18 @@ where
             };
 
             let result = params.request(self.peacher).await?;
+            let is_empty = result.data.is_empty();
 
-            for leg in &result.data {
+            for leg in result.data {
                 if let Some(ref ext) = leg.external {
-                    existing_ext_ids.insert(ext.external_id.val_str().to_string());
+                    existing_ext_ids.insert(
+                        ext.external_id.val_str().to_string(),
+                        leg.into_legislation_view(),
+                    );
                 }
             }
 
-            if result.page >= result.num_pages || result.data.is_empty() {
+            if result.page >= result.num_pages || is_empty {
                 break;
             }
             page += 1;
@@ -659,7 +686,7 @@ where
         );
 
         let mut created = Vec::new();
-        let updated = Vec::new();
+        let mut updated = Vec::new();
         let mut ext_page = 1u64;
         let page_size = 50u64;
         let mut consecutive_known = 0;
@@ -678,43 +705,49 @@ where
             for ext_leg in batch.data {
                 let ext_id_str = ext_leg.external_id.val_str().to_string();
 
-                if existing_ext_ids.contains(&ext_id_str) {
-                    consecutive_known += 1;
-                    // If ordering is Latest, we can stop early when hitting known items
-                    if config.legislation_order == ExtOrder::Latest && consecutive_known > 10 {
-                        info!(
-                            "Hit {} consecutive known items, stopping early",
-                            consecutive_known
-                        );
-                        stopped_early = true;
-                        break;
+                match existing_ext_ids.get(&ext_id_str) {
+                    Some(leg) => {
+                        consecutive_known += 1;
+                        // TODO: we actually should update the legislation if possible.
+                        // if no changes were made, then we will increase consecutive_known by 1.
+                        updated.push(leg.clone());
+                        // If ordering is Latest, we can stop early when hitting known items
+                        if config.legislation_order == ExtOrder::Latest && consecutive_known > 10 {
+                            info!(
+                                "Hit {} consecutive known items, stopping early",
+                                consecutive_known
+                            );
+                            stopped_early = true;
+                            break;
+                        }
                     }
-                } else {
-                    consecutive_known = 0;
+                    None => {
+                        consecutive_known = 0;
 
-                    // Get chamber ID for this legislation
-                    let chamber_id = if let Some(ref chamber_ext_id) = ext_leg.chamber_id {
-                        self.resolve_chamber(chamber_ext_id).await?
-                    } else {
-                        // Default to first chamber or fail
-                        return Err(SyncError::MissingReference(
-                            "chamber",
-                            ext_leg.external_id.clone(),
-                        ));
-                    };
+                        // Get chamber ID for this legislation
+                        let chamber_id = if let Some(ref chamber_ext_id) = ext_leg.chamber_id {
+                            self.resolve_chamber(chamber_ext_id).await?
+                        } else {
+                            // Default to first chamber or fail
+                            return Err(SyncError::MissingReference(
+                                "chamber",
+                                ext_leg.external_id.clone(),
+                            ));
+                        };
 
-                    let req = ext_leg.into_create_legislation_request();
+                        let req = ext_leg.into_create_legislation_request();
 
-                    // Create legislation
-                    let leg = CreateLegislation::new(chamber_id, session_id, req)
-                        .request(self.peacher)
-                        .await?;
+                        // Create legislation
+                        let leg = CreateLegislation::new(chamber_id, session_id, req)
+                            .request(self.peacher)
+                            .await?;
 
-                    info!(
-                        "Created legislation '{}' (id: {}, ext_id: {})",
-                        leg.name_id, leg.id, ext_id_str
-                    );
-                    created.push(leg);
+                        info!(
+                            "Created legislation '{}' (id: {}, ext_id: {})",
+                            leg.name_id, leg.id, ext_id_str
+                        );
+                        created.push(leg);
+                    }
                 }
             }
 

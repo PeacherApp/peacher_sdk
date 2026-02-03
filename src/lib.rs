@@ -6,10 +6,10 @@ pub mod requests;
 pub mod sync;
 pub mod views;
 
-// #[cfg(feature = "cli")]
-// pub mod cli;
-// #[cfg(feature = "cli")]
-// pub use cli::{cli, cli_with_client};
+#[cfg(feature = "cli")]
+pub mod cli;
+#[cfg(feature = "cli")]
+pub use cli::{cli, cli_with_client};
 
 pub mod prelude {
     pub use crate::client::*;

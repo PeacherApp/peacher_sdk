@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{
     peanut::query::{Query as _, QueryError},
     prelude::*,
@@ -5,12 +7,43 @@ use crate::{
 use reqwest::header::{AUTHORIZATION, HeaderValue};
 use url::Url;
 
+impl Default for PeacherClient {
+    fn default() -> Self {
+        Self {
+            base: Url::from_str("https://api.peacher.app/").unwrap(),
+            api_key: None,
+            client: reqwest::Client::new(),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct PeacherClient {
+    /// The URL where peacher is located
     pub base: Url,
     /// API key for bearer token authentication (required)
-    pub api_key: String,
+    pub api_key: Option<String>,
     pub client: reqwest::Client,
+}
+
+impl PeacherClient {
+    /// Create a new PeacherClient with the given API key.
+    ///
+    /// If you do not have an API key, use [`PeacherClient::default`]
+    pub fn new(api_key: impl Into<String>) -> Self {
+        let client = reqwest::Client::new();
+        Self {
+            base: Url::parse("https://api.peacher.app").unwrap(),
+            api_key: Some(api_key.into()),
+            client,
+        }
+    }
+
+    /// Set a custom base URL
+    pub fn with_base_url(mut self, url: Url) -> Self {
+        self.base = url;
+        self
+    }
 }
 
 impl Client for PeacherClient {
@@ -26,12 +59,13 @@ impl Client for PeacherClient {
         mut request: reqwest::Request,
     ) -> Result<reqwest::Response, reqwest::Error> {
         // Add Authorization: Bearer {api_key} header
-        let auth_value = format!("Bearer {}", self.api_key);
-        request.headers_mut().insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&auth_value).expect("Invalid auth header value"),
-        );
-
+        if let Some(api_key) = &self.api_key {
+            let auth_value = format!("Bearer {}", api_key);
+            request.headers_mut().insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&auth_value).expect("Invalid auth header value"),
+            );
+        }
         self.client.execute(request).await
     }
 }
@@ -60,23 +94,5 @@ where
             QueryError::Headers(e) => SdkError::message(format!("Header error: {}", e)),
             QueryError::Client(c) => SdkError::message(format!("Client Errored: {c:?}")),
         })
-    }
-}
-
-impl PeacherClient {
-    /// Create a new PeacherClient with the given API key
-    pub fn new(api_key: impl Into<String>) -> Self {
-        let client = reqwest::Client::new();
-        Self {
-            base: Url::parse("https://peacher.app").unwrap(),
-            api_key: api_key.into(),
-            client,
-        }
-    }
-
-    /// Set a custom base URL
-    pub fn with_base_url(mut self, url: Url) -> Self {
-        self.base = url;
-        self
     }
 }
