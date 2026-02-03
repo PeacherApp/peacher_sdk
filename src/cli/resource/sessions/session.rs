@@ -202,7 +202,11 @@ impl SessionAction {
                             }
                         }
                         Details::OnlyKnownLegislation => {
-                            sync.sync_known_legislation_details(session_id).await?;
+                            sync.sync_known_legislation_details(
+                                session_id,
+                                start_at_page.unwrap_or(1),
+                            )
+                            .await?;
 
                             //todo
                         }

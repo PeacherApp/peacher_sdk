@@ -644,8 +644,13 @@ where
     }
 
     /// This will call `get_legislation` for all known legislation
-    pub async fn sync_known_legislation_details(&self, session_id: i32) -> Result<(), SyncError> {
-        let mut page = 1u64;
+    pub async fn sync_known_legislation_details(
+        &self,
+        session_id: i32,
+        start_at_page: u64,
+    ) -> Result<(), SyncError> {
+        info!("syncing with legislation details");
+        let mut page = start_at_page;
         loop {
             let params = LegislationParams {
                 session_id: Some(session_id),
@@ -682,7 +687,7 @@ where
         let config = self.external.config();
 
         info!(
-            "Syncing legislation for session {} (ext_id: {})",
+            "Syncing legislation for session {} (ext_id: {}) page {start_at_page}",
             session_id,
             session_ext_id.val_str()
         );
