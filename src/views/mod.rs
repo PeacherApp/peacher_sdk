@@ -1,6 +1,9 @@
 mod address;
 pub use address::*;
 
+mod slug;
+pub use slug::*;
+
 mod categories;
 pub use categories::*;
 

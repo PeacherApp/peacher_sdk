@@ -206,7 +206,7 @@ pub struct MemberRow {
     #[tabled(rename = "Name")]
     pub display_name: String,
     #[tabled(rename = "Handle")]
-    pub handle: String,
+    pub handle: Slug,
     #[tabled(rename = "Party")]
     pub party: String,
 }
