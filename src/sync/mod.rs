@@ -637,6 +637,37 @@ where
         Ok(member.id)
     }
 
+    /// This will call `get_legislation` for all known legislation
+    pub async fn sync_known_legislation_details(
+        &self,
+        session_id: i32,
+        session_ext_id: &ExternalId,
+    ) -> Result<(), SyncError> {
+        let mut page = 1u64;
+        loop {
+            let params = LegislationParams {
+                session_id: Some(session_id),
+                page: Some(page),
+                page_size: Some(100),
+                ..Default::default()
+            };
+            let result = params.request(self.peacher).await?;
+            let is_empty = result.data.is_empty();
+            for leg in result.data {
+                let Some(ext) = leg.external else {
+                    continue;
+                };
+                todo!()
+            }
+
+            if result.page >= result.num_pages || is_empty {
+                break;
+            }
+            page += 1;
+        }
+        Ok(())
+    }
+
     /// Sync legislation for a session.
     pub async fn sync_legislation(
         &self,
@@ -693,11 +724,12 @@ where
         let mut stopped_early = false;
 
         loop {
-            let batch = self
-                .external
-                .fetch_legislation(session_ext_id, ext_page, page_size)
-                .await?;
-
+            let batch = attempt_request(3, |val| {
+                *val = format!("External Fetch Legislation Request for {session_ext_id}, (page: {ext_page}, page_size: {page_size})");
+                self.external
+                    .fetch_legislation(session_ext_id, ext_page, page_size)
+            })
+            .await?;
             if batch.data.is_empty() {
                 break;
             }
@@ -707,12 +739,17 @@ where
 
                 match existing_ext_ids.get(&ext_id_str) {
                     Some(leg) => {
+                        info!(
+                            "Found existing '{}' (id: {}, ext_id: {})",
+                            leg.name_id, leg.id, ext_id_str
+                        );
                         consecutive_known += 1;
                         // TODO: we actually should update the legislation if possible.
                         // if no changes were made, then we will increase consecutive_known by 1.
                         updated.push(leg.clone());
                         // If ordering is Latest, we can stop early when hitting known items
-                        if config.legislation_order == ExtOrder::Latest && consecutive_known > 10 {
+                        if config.legislation_order == ExtOrder::Latest && consecutive_known > 5000
+                        {
                             info!(
                                 "Hit {} consecutive known items, stopping early",
                                 consecutive_known
@@ -737,10 +774,12 @@ where
 
                         let req = ext_leg.into_create_legislation_request();
 
-                        // Create legislation
-                        let leg = CreateLegislation::new(chamber_id, session_id, req)
-                            .request(self.peacher)
-                            .await?;
+                        let leg = attempt_request(3, |name| {
+                            *name = format!("Creating legislation for {chamber_id}, {req:?}");
+                            CreateLegislation::new(chamber_id, session_id, req.clone())
+                                .request(self.peacher)
+                        })
+                        .await?;
 
                         info!(
                             "Created legislation '{}' (id: {}, ext_id: {})",
@@ -921,5 +960,32 @@ where
         );
 
         Ok(VotesSyncResult { created, updated })
+    }
+}
+
+async fn attempt_request<F, Fut, T, E>(retries: u32, mut request: F) -> Result<T, E>
+where
+    F: FnMut(&mut String) -> Fut,
+    Fut: Future<Output = Result<T, E>>,
+    E: std::fmt::Debug,
+{
+    let mut retry_count = 0;
+    loop {
+        let mut value = String::new();
+
+        match request(&mut value).await {
+            Ok(result) => return Ok(result),
+            Err(e) => {
+                retry_count += 1;
+
+                tracing::error!("Error performing request({value}): {e:?}");
+
+                if retry_count >= retries {
+                    return Err(e);
+                }
+
+                //todo
+            }
+        };
     }
 }

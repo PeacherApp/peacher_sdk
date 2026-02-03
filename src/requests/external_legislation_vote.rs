@@ -3,6 +3,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
 
+/// The external interface for identifying a legislative vote on some piece of legislation.
+///
+/// **IMPORTANT**
+/// Most apis do not provide unique identifiers for their id. You will, most likely, need
+/// to derive an external id from the legislation id and the vote id.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExternalLegislationVote {
     pub vote_name: String,
@@ -24,7 +29,10 @@ pub struct ExternalMemberVote {
     pub vote: Vote,
 }
 impl ExternalMemberVote {
-    pub fn new(member_id: ExternalId, vote: Vote) -> Self {
-        Self { member_id, vote }
+    pub fn new(member_id: impl Into<ExternalId>, vote: Vote) -> Self {
+        Self {
+            member_id: member_id.into(),
+            vote,
+        }
     }
 }
