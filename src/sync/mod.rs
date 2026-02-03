@@ -50,6 +50,12 @@ pub struct LegislationSyncResult {
     pub stopped_early: bool,
 }
 
+#[derive(Debug)]
+pub struct LegislationDetailSyncResult {
+    pub legislation: LegislationView,
+    pub votes: Option<VotesSyncResult>,
+}
+
 /// Result of syncing votes
 #[derive(Debug)]
 pub struct VotesSyncResult {
@@ -813,7 +819,7 @@ where
         &self,
         legislation_id: i32,
         legislation_ext_id: &ExternalId,
-    ) -> Result<VotesSyncResult, SyncError> {
+    ) -> Result<LegislationDetailSyncResult, SyncError> {
         info!(
             "Syncing votes for legislation {} (ext_id: {})",
             legislation_id,
@@ -833,18 +839,24 @@ where
             self.external.get_legislation(legislation_ext_id)
         })
         .await?;
-        if let Some(external_votes) = external_legislation.votes.clone() {
-            sync_leg_votes(self, legislation_id, external_votes).await?;
+
+        let votes_sync_result = match external_legislation.votes.clone() {
+            Some(external_votes) => {
+                Some(sync_leg_votes(self, legislation_id, external_votes).await?)
+            }
+            None => None,
         };
 
-        UpdateLegislation::new(
+        let result = UpdateLegislation::new(
             legislation_id,
             external_legislation.into_update_legislation_request(),
         )
         .request(self.peacher)
         .await?;
-
-        todo!()
+        Ok(LegislationDetailSyncResult {
+            legislation: result,
+            votes: votes_sync_result,
+        })
     }
 }
 

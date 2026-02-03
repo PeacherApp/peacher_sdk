@@ -173,7 +173,9 @@ impl SessionAction {
                                         .await
                                     {
                                         Ok(result) => {
-                                            result.print();
+                                            if let Some(votes) = result.votes {
+                                                votes.print();
+                                            }
                                         }
                                         Err(e) => {
                                             println!(
