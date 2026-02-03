@@ -12,8 +12,8 @@ use tabled::{
 
 use crate::prelude::*;
 use crate::sync::{
-    JurisdictionAndChambersSyncResult, LegislationSyncResult, MembersSyncResult, SessionsSyncResult,
-    VotesSyncResult,
+    JurisdictionAndChambersSyncResult, LegislationSyncResult, MembersSyncResult,
+    SessionsSyncResult, VotesSyncResult,
 };
 
 pub trait AsTable {
@@ -464,12 +464,20 @@ impl VotesSyncResult {
 
         if !self.created.is_empty() {
             println!();
-            println!("Created {} vote(s): {}", self.created.len(), dim(&format!("{:?}", self.created)));
+            println!(
+                "Created {} vote(s): {}",
+                self.created.len(),
+                dim(&format!("{:?}", self.created))
+            );
         }
 
         if !self.updated.is_empty() {
             println!();
-            println!("Existing {} vote(s): {}", self.updated.len(), dim(&format!("{:?}", self.updated)));
+            println!(
+                "Existing {} vote(s): {}",
+                self.updated.len(),
+                dim(&format!("{:?}", self.updated))
+            );
         }
 
         if self.created.is_empty() && self.updated.is_empty() {
