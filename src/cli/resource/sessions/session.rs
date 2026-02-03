@@ -166,7 +166,10 @@ impl SessionAction {
                             for legislation in result.created.into_iter().chain(result.updated) {
                                 if let Some(external) = legislation.external {
                                     match sync
-                                        .sync_votes(legislation.id, &external.external_id)
+                                        .sync_legislation_details(
+                                            legislation.id,
+                                            &external.external_id,
+                                        )
                                         .await
                                     {
                                         Ok(result) => {
