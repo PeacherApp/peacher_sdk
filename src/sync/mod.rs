@@ -638,11 +638,7 @@ where
     }
 
     /// This will call `get_legislation` for all known legislation
-    pub async fn sync_known_legislation_details(
-        &self,
-        session_id: i32,
-        session_ext_id: &ExternalId,
-    ) -> Result<(), SyncError> {
+    pub async fn sync_known_legislation_details(&self, session_id: i32) -> Result<(), SyncError> {
         let mut page = 1u64;
         loop {
             let params = LegislationParams {
@@ -657,7 +653,8 @@ where
                 let Some(ext) = leg.external else {
                     continue;
                 };
-                todo!()
+
+                self.sync_votes(leg.id, &ext.external_id).await?;
             }
 
             if result.page >= result.num_pages || is_empty {
@@ -825,12 +822,16 @@ where
         // Get existing votes from Peacher
         // Note: We'd need external vote IDs to check existence
         // For now, we create all votes (API handles duplicates via external_id)
-        let _existing_votes = GetLegislationVotes(legislation_id)
-            .request(self.peacher)
-            .await?;
+        // let _existing_votes = GetLegislationVotes(legislation_id)
+        //     .request(self.peacher)
+        //     .await?;
 
         // Fetch votes from external source
-        let external_legislation = self.external.get_legislation(legislation_ext_id).await?;
+        let external_legislation = attempt_request(3, |name| {
+            *name = format!("`get_legislation` for {legislation_ext_id}");
+            self.external.get_legislation(legislation_ext_id)
+        })
+        .await?;
         let Some(external_votes) = external_legislation.votes else {
             return Err(SyncError::NoVotes(legislation_ext_id.clone()));
         };

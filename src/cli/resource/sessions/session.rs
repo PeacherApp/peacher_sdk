@@ -183,13 +183,7 @@ impl SessionAction {
                             }
                         }
                         Details::OnlyKnownLegislation => {
-                            let mut page = 1u64;
-                            let params = LegislationParams {
-                                session_id: Some(session_id),
-                                page: Some(page),
-                                page_size: Some(100),
-                                ..Default::default()
-                            };
+                            sync.sync_known_legislation_details(session_id).await?;
 
                             //todo
                         }
