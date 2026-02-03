@@ -677,6 +677,7 @@ where
         &self,
         session_id: i32,
         session_ext_id: &ExternalId,
+        start_at_page: u64,
     ) -> Result<LegislationSyncResult, SyncError> {
         let config = self.external.config();
 
@@ -688,7 +689,7 @@ where
 
         // Get all existing legislation external_ids for this session
         let mut existing_ext_ids: HashMap<String, LegislationView> = HashMap::default();
-        let mut page = 1u64;
+        let mut page = start_at_page;
         loop {
             let params = LegislationParams {
                 session_id: Some(session_id),
@@ -826,13 +827,6 @@ where
             legislation_ext_id.val_str()
         );
 
-        // Get existing votes from Peacher
-        // Note: We'd need external vote IDs to check existence
-        // For now, we create all votes (API handles duplicates via external_id)
-        // let _existing_votes = GetLegislationVotes(legislation_id)
-        //     .request(self.peacher)
-        //     .await?;
-
         // Fetch votes from external source
         let external_legislation = attempt_request(3, |name| {
             *name = format!("`get_legislation` for {legislation_ext_id}");
@@ -847,6 +841,7 @@ where
             None => None,
         };
 
+        info!("Updating legislation details...");
         let result = UpdateLegislation::new(
             legislation_id,
             external_legislation.into_update_legislation_request(),
@@ -988,7 +983,7 @@ where
             }
             Err(e) => {
                 info!(
-                    "Failed to create vote '{}': {} (may already exist)",
+                    "Failed to create vote '{}': {} (may already exist).",
                     vote_name, e
                 );
                 if sync.ext_config.behavior_when_legislation_vote_exists == LegVoteAction::Update
@@ -996,6 +991,7 @@ where
                     && let Ok(err) = serde_json::from_str::<ErrorResponse>(&val)
                     && let Ok(id) = err.description.parse()
                 {
+                    info!("Updating vote");
                     let req = UpdateVoteRequest {
                         name: Some(ext_vote.vote_name),
                         occurred_at: ext_vote.date_occurred,
@@ -1006,7 +1002,6 @@ where
                         .request(sync.peacher())
                         .await?;
 
-                    info!("here in update");
                     updated.push(id);
                     //we can update
                 }

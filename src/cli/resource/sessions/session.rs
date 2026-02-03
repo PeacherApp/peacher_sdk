@@ -26,11 +26,17 @@ pub enum SyncType {
         /// Also sync the detailed information of the legislation
         #[arg(short, long)]
         details: Details,
+        /// Determine which legislation ID to start at
+        #[arg(short, long)]
+        start_at_page: Option<u64>,
     },
     /// Sync both members and legislation
     All {
         #[arg(short, long)]
         legislation_details: Details,
+        /// Determine which legislation ID to start at
+        #[arg(short, long)]
+        start_at_page: Option<u64>,
     },
 }
 
@@ -129,11 +135,19 @@ impl SessionAction {
                 match sync_type {
                     SyncType::All {
                         legislation_details: details,
+                        start_at_page,
                     }
-                    | SyncType::Legislation { details } => match details {
+                    | SyncType::Legislation {
+                        details,
+                        start_at_page,
+                    } => match details {
                         Details::All | Details::None => {
                             let result = match sync
-                                .sync_legislation(session_id, &session_ext_id)
+                                .sync_legislation(
+                                    session_id,
+                                    &session_ext_id,
+                                    start_at_page.unwrap_or_default(),
+                                )
                                 .await
                             {
                                 Ok(result) => {
