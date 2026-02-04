@@ -127,6 +127,30 @@ impl ExternalLegislation {
 
         req
     }
+
+    pub fn into_update_legislation_request(self) -> UpdateLegislationRequest {
+        let mut req = UpdateLegislationRequest {
+            name_id: self.name_id,
+            title: self.title,
+            summary: self.summary,
+            legislation_type: self.legislation_type,
+            status: self.status,
+            ..Default::default()
+        };
+        if let Some(introduced_at) = self.introduced_at {
+            req.introduced_at_set = true;
+            req.introduced_at = introduced_at;
+        }
+        if let Some(outcome) = self.outcome {
+            req.outcome_set = true;
+            req.outcome = outcome;
+        }
+        if let Some(resolved_at) = self.resolved_at {
+            req.resolved_at_set = true;
+            req.resolved_at = resolved_at;
+        }
+        req
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]

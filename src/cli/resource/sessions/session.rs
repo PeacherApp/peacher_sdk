@@ -2,6 +2,21 @@ use crate::{cli::fmt, prelude::*};
 use anyhow::{Context, Result};
 use clap::{Subcommand, ValueEnum};
 
+#[derive(ValueEnum, Debug, Clone, Copy)]
+pub enum Details {
+    /// Only fetch Legislation from the endpoint, but don't look for details
+    None,
+    /// fetch Legislation from the endpoint, and sync details by calling each
+    /// legislative item individually
+    ///
+    /// Note: this will not apply if your config does not identify `get_legislation`
+    /// as having more information
+    All,
+
+    /// Fetch legislation details from the endpoint only for legislation peacher knows about.
+    OnlyKnownLegislation,
+}
+
 #[derive(Subcommand, Debug, Clone, Copy)]
 pub enum SyncType {
     /// Sync only members
@@ -9,20 +24,30 @@ pub enum SyncType {
     /// Sync only legislation
     Legislation {
         /// Also sync the detailed information of the legislation
-        #[arg(short, long, default_value_t = true)]
-        details: bool,
+        #[arg(short, long)]
+        details: Details,
+        /// Determine which legislation ID to start at
+        #[arg(short, long)]
+        start_at_page: Option<u64>,
     },
     /// Sync both members and legislation
     All {
-        #[arg(short, long, default_value_t = true)]
-        details: bool,
+        #[arg(short, long)]
+        legislation_details: Details,
+        /// Determine which legislation ID to start at
+        #[arg(short, long)]
+        start_at_page: Option<u64>,
     },
 }
 
 #[derive(Subcommand, Debug)]
 pub enum SessionAction {
+    /// Delete this session. May fail if you already have members and/or legislation associated
+    /// with this session
     Delete,
+    /// Details about this session
     Get,
+    /// Sync data from a specific chamber or all chambers for this session
     Sync {
         /// Sync only a specific chamber. The default behavior
         ///
@@ -108,46 +133,84 @@ impl SessionAction {
                 }
 
                 match sync_type {
-                    SyncType::All { details } | SyncType::Legislation { details } => {
-                        let result = match sync.sync_legislation(session_id, &session_ext_id).await
-                        {
-                            Ok(result) => {
-                                result.print();
-                                result
-                            }
-                            Err(e) => {
-                                println!("Something happened when syncing legislation: {e}");
+                    SyncType::All {
+                        legislation_details: details,
+                        start_at_page,
+                    }
+                    | SyncType::Legislation {
+                        details,
+                        start_at_page,
+                    } => match details {
+                        Details::All | Details::None => {
+                            let result = match sync
+                                .sync_legislation(
+                                    session_id,
+                                    &session_ext_id,
+                                    start_at_page.unwrap_or_default(),
+                                )
+                                .await
+                            {
+                                Ok(result) => {
+                                    result.print();
+                                    result
+                                }
+                                Err(e) => {
+                                    println!("Something happened when syncing legislation: {e}");
+                                    return Ok(());
+                                }
+                            };
+
+                            if sync.config().get_legislation_has_details
+                                && matches!(details, Details::None)
+                            {
+                                println!(
+                                    "{}",
+                                    fmt::yellow(
+                                        "Legislation has been synced, but some legislative items need additional information. try rerunning with --details only_known_legislation"
+                                    )
+                                );
+                            } else if !sync.config().get_legislation_has_details {
                                 return Ok(());
                             }
-                        };
 
-                        if sync.config().get_legislation_has_details && !details {
-                            println!(
-                                "{}",
-                                fmt::yellow(
-                                    "Legislation has been synced, but some legislative items need additional information."
-                                )
-                            );
-                        } else if !sync.config().get_legislation_has_details {
-                            return Ok(());
-                        }
+                            if matches!(details, Details::None) {
+                                return Ok(());
+                            }
 
-                        for legislation in result.created.into_iter().chain(result.updated) {
-                            if let Some(external) = legislation.external {
-                                match sync.sync_votes(legislation.id, &external.external_id).await {
-                                    Ok(result) => {
-                                        result.print();
-                                    }
-                                    Err(e) => {
-                                        println!(
-                                            "Something happened when syncing votes for legislation {} ({}): {e}",
-                                            legislation.name_id, legislation.id
-                                        );
+                            for legislation in result.created.into_iter().chain(result.updated) {
+                                if let Some(external) = legislation.external {
+                                    match sync
+                                        .sync_legislation_details(
+                                            legislation.id,
+                                            &external.external_id,
+                                        )
+                                        .await
+                                    {
+                                        Ok(result) => {
+                                            if let Some(votes) = result.votes {
+                                                votes.print();
+                                            }
+                                        }
+                                        Err(e) => {
+                                            println!(
+                                                "Something happened when syncing votes for legislation {} ({}): {e}",
+                                                legislation.name_id, legislation.id
+                                            );
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
+                        Details::OnlyKnownLegislation => {
+                            sync.sync_known_legislation_details(
+                                session_id,
+                                start_at_page.unwrap_or(1),
+                            )
+                            .await?;
+
+                            //todo
+                        }
+                    },
                     _ => {}
                 }
 

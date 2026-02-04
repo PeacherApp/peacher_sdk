@@ -35,8 +35,42 @@ pub struct Args {
     url: Option<String>,
 }
 
+#[derive(Default)]
+pub struct CliOpts {
+    /// Override the default path of the config
+    pub config: Option<String>,
+
+    /// Override your api key
+    pub api_key: Option<String>,
+
+    /// Override the API base URL (default: from config or https://api.peacher.app)
+    pub url: Option<String>,
+}
+
 pub async fn cli<E: ExternalClient>(client: E) -> Result<()> {
-    let args = Args::parse();
+    cli_with_opts(client, Default::default()).await
+}
+
+pub async fn cli_with_opts<E: ExternalClient>(client: E, options: CliOpts) -> Result<()> {
+    let mut args = Args::parse();
+
+    if args.config.is_none()
+        && let Some(config) = options.config
+    {
+        args.config = Some(config);
+    }
+
+    if args.api_key.is_none()
+        && let Some(api_key) = options.api_key
+    {
+        args.api_key = Some(api_key);
+    }
+    if args.config.is_none()
+        && let Some(url) = options.url
+    {
+        args.url = Some(url);
+    }
+
     if let Resource::Config { cmd } = args.resource {
         let override_config_path = args.config.map(PathBuf::from);
 

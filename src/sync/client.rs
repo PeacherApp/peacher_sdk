@@ -21,7 +21,9 @@ pub struct ExternalClientConfig {
     /// Set the behavior of what should happen if, when syncing votes,
     /// legislation is updated.
     ///
-    /// WARNING: This is dangerous if your external IDs are not unique!!!
+    /// **WARNING**
+    /// Setting this value to [`LegVoteAction::Fail`] is dangerous if your external
+    /// IDs are not unique!
     /// Be sure that you are setting unique external ids on your votes!
     pub behavior_when_legislation_vote_exists: LegVoteAction,
 }

@@ -50,6 +50,12 @@ pub struct LegislationSyncResult {
     pub stopped_early: bool,
 }
 
+#[derive(Debug)]
+pub struct LegislationDetailSyncResult {
+    pub legislation: LegislationView,
+    pub votes: Option<VotesSyncResult>,
+}
+
 /// Result of syncing votes
 #[derive(Debug)]
 pub struct VotesSyncResult {
@@ -637,23 +643,58 @@ where
         Ok(member.id)
     }
 
+    /// This will call `get_legislation` for all known legislation
+    pub async fn sync_known_legislation_details(
+        &self,
+        session_id: i32,
+        start_at_page: u64,
+    ) -> Result<(), SyncError> {
+        info!("syncing with legislation details");
+        let mut page = start_at_page;
+        loop {
+            let params = LegislationParams {
+                session_id: Some(session_id),
+                page: Some(page),
+                page_size: Some(100),
+                ..Default::default()
+            };
+            let result = params.request(self.peacher).await?;
+            let is_empty = result.data.is_empty();
+            for leg in result.data {
+                let Some(ext) = leg.external else {
+                    continue;
+                };
+
+                self.sync_legislation_details(leg.id, &ext.external_id)
+                    .await?;
+            }
+
+            if result.page >= result.num_pages || is_empty {
+                break;
+            }
+            page += 1;
+        }
+        Ok(())
+    }
+
     /// Sync legislation for a session.
     pub async fn sync_legislation(
         &self,
         session_id: i32,
         session_ext_id: &ExternalId,
+        start_at_page: u64,
     ) -> Result<LegislationSyncResult, SyncError> {
         let config = self.external.config();
 
         info!(
-            "Syncing legislation for session {} (ext_id: {})",
+            "Syncing legislation for session {} (ext_id: {}) page {start_at_page}",
             session_id,
             session_ext_id.val_str()
         );
 
         // Get all existing legislation external_ids for this session
         let mut existing_ext_ids: HashMap<String, LegislationView> = HashMap::default();
-        let mut page = 1u64;
+        let mut page = start_at_page;
         loop {
             let params = LegislationParams {
                 session_id: Some(session_id),
@@ -693,11 +734,12 @@ where
         let mut stopped_early = false;
 
         loop {
-            let batch = self
-                .external
-                .fetch_legislation(session_ext_id, ext_page, page_size)
-                .await?;
-
+            let batch = attempt_request(3, |val| {
+                *val = format!("External Fetch Legislation Request for {session_ext_id}, (page: {ext_page}, page_size: {page_size})");
+                self.external
+                    .fetch_legislation(session_ext_id, ext_page, page_size)
+            })
+            .await?;
             if batch.data.is_empty() {
                 break;
             }
@@ -707,12 +749,17 @@ where
 
                 match existing_ext_ids.get(&ext_id_str) {
                     Some(leg) => {
+                        info!(
+                            "Found existing '{}' (id: {}, ext_id: {})",
+                            leg.name_id, leg.id, ext_id_str
+                        );
                         consecutive_known += 1;
                         // TODO: we actually should update the legislation if possible.
                         // if no changes were made, then we will increase consecutive_known by 1.
                         updated.push(leg.clone());
                         // If ordering is Latest, we can stop early when hitting known items
-                        if config.legislation_order == ExtOrder::Latest && consecutive_known > 10 {
+                        if config.legislation_order == ExtOrder::Latest && consecutive_known > 5000
+                        {
                             info!(
                                 "Hit {} consecutive known items, stopping early",
                                 consecutive_known
@@ -737,10 +784,12 @@ where
 
                         let req = ext_leg.into_create_legislation_request();
 
-                        // Create legislation
-                        let leg = CreateLegislation::new(chamber_id, session_id, req)
-                            .request(self.peacher)
-                            .await?;
+                        let leg = attempt_request(3, |name| {
+                            *name = format!("Creating legislation for {chamber_id}, {req:?}");
+                            CreateLegislation::new(chamber_id, session_id, req.clone())
+                                .request(self.peacher)
+                        })
+                        .await?;
 
                         info!(
                             "Created legislation '{}' (id: {}, ext_id: {})",
@@ -772,154 +821,198 @@ where
     }
 
     /// Sync votes for a piece of legislation.
-    pub async fn sync_votes(
+    pub async fn sync_legislation_details(
         &self,
         legislation_id: i32,
         legislation_ext_id: &ExternalId,
-    ) -> Result<VotesSyncResult, SyncError> {
+    ) -> Result<LegislationDetailSyncResult, SyncError> {
         info!(
             "Syncing votes for legislation {} (ext_id: {})",
             legislation_id,
             legislation_ext_id.val_str()
         );
 
-        // Get existing votes from Peacher
-        // Note: We'd need external vote IDs to check existence
-        // For now, we create all votes (API handles duplicates via external_id)
-        let _existing_votes = GetLegislationVotes(legislation_id)
-            .request(self.peacher)
-            .await?;
-
         // Fetch votes from external source
-        let external_legislation = self.external.get_legislation(legislation_ext_id).await?;
-        let Some(external_votes) = external_legislation.votes else {
-            return Err(SyncError::NoVotes(legislation_ext_id.clone()));
+        let external_legislation = attempt_request(3, |name| {
+            *name = format!("`get_legislation` for {legislation_ext_id}");
+            self.external.get_legislation(legislation_ext_id)
+        })
+        .await?;
+
+        let votes_sync_result = match external_legislation.votes.clone() {
+            Some(external_votes) => {
+                Some(sync_leg_votes(self, legislation_id, external_votes).await?)
+            }
+            None => None,
         };
 
-        let mut created = Vec::new();
-        let mut updated = Vec::new();
+        info!("Updating legislation details...");
+        let result = UpdateLegislation::new(
+            legislation_id,
+            external_legislation.into_update_legislation_request(),
+        )
+        .request(self.peacher)
+        .await?;
+        Ok(LegislationDetailSyncResult {
+            legislation: result,
+            votes: votes_sync_result,
+        })
+    }
+}
 
-        for ext_vote in external_votes {
-            // Build member votes - need to resolve external member IDs to internal IDs
-            let mut member_votes = Vec::new();
-            for ext_member_vote in &ext_vote.votes {
-                let member_id = match self.resolve_member(&ext_member_vote.member_id).await {
-                    Ok(id) => id,
-                    Err(SyncError::MemberNotFound(ref ext_id)) => {
-                        info!(
-                            "Member {} not found in database, attempting to sync from external source",
-                            ext_id.val_str()
-                        );
+async fn attempt_request<F, Fut, T, E>(retries: u32, mut request: F) -> Result<T, E>
+where
+    F: FnMut(&mut String) -> Fut,
+    Fut: Future<Output = Result<T, E>>,
+    E: std::fmt::Debug,
+{
+    let mut retry_count = 0;
+    loop {
+        let mut value = String::new();
 
-                        match self.ext_config.behavior_when_member_doesnt_exist {
-                            MemberAction::Skip => {
-                                continue;
-                            }
-                            MemberAction::Create => {
-                                // Try to sync the missing member
-                                match self.sync_single_member(&ext_member_vote.member_id).await {
-                                    Ok(synced_id) => {
-                                        info!(
-                                            "Successfully auto-synced member {} (id: {})",
-                                            ext_member_vote.member_id.val_str(),
-                                            synced_id
-                                        );
+        match request(&mut value).await {
+            Ok(result) => return Ok(result),
+            Err(e) => {
+                retry_count += 1;
+
+                tracing::error!("Error performing request({value}): {e:?}");
+
+                if retry_count >= retries {
+                    return Err(e);
+                }
+
+                //todo
+            }
+        };
+    }
+}
+
+async fn sync_leg_votes<'p, E, P>(
+    sync: &ApiSync<'p, E, P>,
+    legislation_id: i32,
+
+    external_votes: impl IntoIterator<Item = ExternalLegislationVote>,
+) -> Result<VotesSyncResult, SyncError>
+where
+    E: ExternalClient,
+    P: Client,
+{
+    let mut created = Vec::new();
+    let mut updated = Vec::new();
+
+    for ext_vote in external_votes {
+        // Build member votes - need to resolve external member IDs to internal IDs
+        let mut member_votes = Vec::new();
+        for ext_member_vote in &ext_vote.votes {
+            let member_id = match sync.resolve_member(&ext_member_vote.member_id).await {
+                Ok(id) => id,
+                Err(SyncError::MemberNotFound(ref ext_id)) => {
+                    info!(
+                        "Member {} not found in database, attempting to sync from external source",
+                        ext_id.val_str()
+                    );
+
+                    match sync.ext_config.behavior_when_member_doesnt_exist {
+                        MemberAction::Skip => {
+                            continue;
+                        }
+                        MemberAction::Create => {
+                            // Try to sync the missing member
+                            match sync.sync_single_member(&ext_member_vote.member_id).await {
+                                Ok(synced_id) => {
+                                    info!(
+                                        "Successfully auto-synced member {} (id: {})",
+                                        ext_member_vote.member_id.val_str(),
                                         synced_id
-                                    }
-                                    Err(sync_err) => {
-                                        // Production case: member can't be fetched from external API
-                                        // Fail the entire vote sync per user's requirement
-                                        error!(
-                                            "Failed to auto-sync member {}: {:?}",
-                                            ext_member_vote.member_id.val_str(),
-                                            sync_err
-                                        );
-                                        return Err(SyncError::MemberNotFound(
-                                            ext_member_vote.member_id.clone(),
-                                        ));
-                                    }
+                                    );
+                                    synced_id
+                                }
+                                Err(sync_err) => {
+                                    // Production case: member can't be fetched from external API
+                                    // Fail the entire vote sync per user's requirement
+                                    error!(
+                                        "Failed to auto-sync member {}: {:?}",
+                                        ext_member_vote.member_id.val_str(),
+                                        sync_err
+                                    );
+                                    return Err(SyncError::MemberNotFound(
+                                        ext_member_vote.member_id.clone(),
+                                    ));
                                 }
                             }
-                            MemberAction::Fail => {
-                                return Err(SyncError::MemberNotFound(
-                                    ext_member_vote.member_id.clone(),
-                                ));
-                            }
+                        }
+                        MemberAction::Fail => {
+                            return Err(SyncError::MemberNotFound(
+                                ext_member_vote.member_id.clone(),
+                            ));
                         }
                     }
-                    Err(other_err) => {
-                        // Other resolution errors (network, SDK errors, etc.)
-                        return Err(other_err);
-                    }
-                };
-
-                member_votes.push(MemberVoteInput::new(member_id, ext_member_vote.vote));
-            }
-
-            // Create vote
-
-            let mut ext_metadata = ExternalMetadata::new(ext_vote.external_id.clone());
-
-            if let Some(url) = ext_vote.url {
-                ext_metadata.set_url(url.clone());
-            }
-
-            let vote_name = ext_vote.vote_name.clone();
-            let ext_vote_id = ext_vote.external_id.val_str().to_owned();
-            let vote_req = CreateVoteRequest {
-                name: ext_vote.vote_name.clone(),
-                occurred_at: ext_vote.date_occurred,
-                member_votes: member_votes.clone(),
-                external_metadata: Some(ext_metadata),
-                vote_type: ext_vote.vote_type,
+                }
+                Err(other_err) => {
+                    // Other resolution errors (network, SDK errors, etc.)
+                    return Err(other_err);
+                }
             };
 
-            match CreateVote::new(legislation_id, vote_req)
-                .request(self.peacher)
-                .await
-            {
-                Ok(vote_id) => {
-                    info!(
-                        "Created vote '{}' (id: {}, ext_id: {})",
-                        vote_name, vote_id, ext_vote_id
-                    );
-                    created.push(vote_id);
-                }
-                Err(e) => {
-                    info!(
-                        "Failed to create vote '{}': {} (may already exist)",
-                        vote_name, e
-                    );
-                    if self.ext_config.behavior_when_legislation_vote_exists
-                        == LegVoteAction::Update
-                        && let SdkError::Status(StatusCode::CONFLICT, val) = e
-                        && let Ok(err) = serde_json::from_str::<ErrorResponse>(&val)
-                        && let Ok(id) = err.description.parse()
-                    {
-                        let req = UpdateVoteRequest {
-                            name: Some(ext_vote.vote_name),
-                            occurred_at: ext_vote.date_occurred,
-                            member_votes: Some(member_votes),
-                        };
+            member_votes.push(MemberVoteInput::new(member_id, ext_member_vote.vote));
+        }
 
-                        UpdateVote::new(legislation_id, id, req)
-                            .request(self.peacher)
-                            .await?;
+        // Create vote
 
-                        info!("here in update");
-                        updated.push(id);
-                        //we can update
-                    }
+        let mut ext_metadata = ExternalMetadata::new(ext_vote.external_id.clone());
+
+        if let Some(url) = ext_vote.url {
+            ext_metadata.set_url(url.clone());
+        }
+
+        let vote_name = ext_vote.vote_name.clone();
+        let ext_vote_id = ext_vote.external_id.val_str().to_owned();
+        let vote_req = CreateVoteRequest {
+            name: ext_vote.vote_name.clone(),
+            occurred_at: ext_vote.date_occurred,
+            member_votes: member_votes.clone(),
+            external_metadata: Some(ext_metadata),
+            vote_type: ext_vote.vote_type,
+        };
+
+        match CreateVote::new(legislation_id, vote_req)
+            .request(sync.peacher())
+            .await
+        {
+            Ok(vote_id) => {
+                info!(
+                    "Created vote '{}' (id: {}, ext_id: {})",
+                    vote_name, vote_id, ext_vote_id
+                );
+                created.push(vote_id);
+            }
+            Err(e) => {
+                info!(
+                    "Failed to create vote '{}': {} (may already exist).",
+                    vote_name, e
+                );
+                if sync.ext_config.behavior_when_legislation_vote_exists == LegVoteAction::Update
+                    && let SdkError::Status(StatusCode::CONFLICT, val) = e
+                    && let Ok(err) = serde_json::from_str::<ErrorResponse>(&val)
+                    && let Ok(id) = err.description.parse()
+                {
+                    info!("Updating vote");
+                    let req = UpdateVoteRequest {
+                        name: Some(ext_vote.vote_name),
+                        occurred_at: ext_vote.date_occurred,
+                        member_votes: Some(member_votes),
+                    };
+
+                    UpdateVote::new(legislation_id, id, req)
+                        .request(sync.peacher())
+                        .await?;
+
+                    updated.push(id);
+                    //we can update
                 }
             }
         }
-
-        info!(
-            "Votes sync complete: {} created, {} updated",
-            created.len(),
-            updated.len()
-        );
-
-        Ok(VotesSyncResult { created, updated })
     }
+
+    Ok(VotesSyncResult { created, updated })
 }

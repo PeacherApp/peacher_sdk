@@ -166,8 +166,11 @@ pub struct UpdateLegislationRequest {
     pub summary: Option<String>,
     pub legislation_type: Option<LegislationType>,
     pub status: Option<String>,
+    pub introduced_at_set: bool,
     pub introduced_at: Option<DateTime<FixedOffset>>,
+    pub outcome_set: bool,
     pub outcome: Option<LegislationOutcome>,
+    pub resolved_at_set: bool,
     pub resolved_at: Option<DateTime<FixedOffset>>,
 }
 
