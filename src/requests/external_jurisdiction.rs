@@ -34,8 +34,8 @@ impl ExternalJurisdiction {
         self
     }
 
-    pub fn with_chambers(mut self, chambers: Vec<ExternalChamber>) -> Self {
-        self.chambers = chambers;
+    pub fn with_chambers(mut self, chambers: impl IntoIterator<Item = ExternalChamber>) -> Self {
+        self.chambers = chambers.into_iter().collect();
         self
     }
 
