@@ -16,14 +16,14 @@ pub trait ExternalClient: Send + Sync {
     fn get_jurisdiction(&self) -> ExternalJurisdiction;
 
     /// List all sessions - no filtering, return everything
-    fn list_sessions(&self) -> impl Future<Output = SdkResult<Vec<ExternalSession>>>;
+    fn list_sessions(&self) -> impl Future<Output = SyncResult<Vec<ExternalSession>>>;
 
     /// List all chamber members - no filtering
     fn list_members(
         &self,
         session_id: &ExternalId,
         chamber_id: &ExternalId,
-    ) -> impl Future<Output = SdkResult<Vec<ExtChamberSessionMember>>>;
+    ) -> impl Future<Output = SyncResult<Vec<ExtChamberSessionMember>>>;
 
     /// Fetch legislation page - pagination controlled by ApiSync.
     ///
@@ -34,5 +34,5 @@ pub trait ExternalClient: Send + Sync {
         session_id: &ExternalId,
         page: u64,
         page_size: u64,
-    ) -> impl Future<Output = SdkResult<Paginated<ExternalLegislation>>>;
+    ) -> impl Future<Output = SyncResult<Paginated<ExternalLegislation>>>;
 }

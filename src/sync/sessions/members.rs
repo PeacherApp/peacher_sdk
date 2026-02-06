@@ -34,7 +34,6 @@ impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'clien
             session.id, chamber.id
         );
 
-        info!("here 1");
         // Get members from external source
         let external_members = self
             .external
