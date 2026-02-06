@@ -4,6 +4,9 @@ pub use members::*;
 mod session;
 pub use session::*;
 
+mod legislation;
+pub use legislation::*;
+
 use ahash::HashMap;
 use tracing::info;
 
@@ -31,13 +34,21 @@ impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
     }
 
     pub async fn session(&self, id: &ExternalId) -> SyncResult<SessionSync<'_, E, P>> {
-        let val = self.mapper().session(id).await?;
-
-        Ok(SessionSync::new(val, &self.external, self.peacher))
+        Ok(SessionSync::new(id.clone(), &self.external, self.peacher))
     }
+
     pub async fn with_session_id(&self, id: i32) -> SyncResult<SessionSync<'_, E, P>> {
         let session = GetSession(id).request(self.peacher).await?;
-        Ok(SessionSync::new(session, &self.external, self.peacher))
+
+        let Some(external_owner) = session.external else {
+            return Err(SyncError::no_external_id(session));
+        };
+
+        Ok(SessionSync::new(
+            external_owner.external_id,
+            &self.external,
+            self.peacher,
+        ))
     }
 
     /// Sync the available sessions.

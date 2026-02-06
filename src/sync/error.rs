@@ -1,3 +1,5 @@
+use std::fmt;
+
 use thiserror::Error;
 
 use crate::prelude::{ExternalId, SdkError};
@@ -12,10 +14,16 @@ pub enum SyncError {
     #[error("External not found for resource: {0}")]
     NotFound(ExternalId),
 
+    #[error("Missing External ID: {0}")]
+    NoExternalId(String),
+
     #[error("Something internally failed: {0}")]
     InternalIssue(String),
 }
 impl SyncError {
+    pub fn no_external_id(msg: impl fmt::Debug) -> Self {
+        Self::NoExternalId(format!("{:?}", msg))
+    }
     pub fn internal(msg: impl Into<String>) -> Self {
         Self::InternalIssue(msg.into())
     }
