@@ -29,8 +29,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
         Self { external, mapper }
     }
 
-    pub fn session(self, id: &ExternalId) -> SessionSync<'caller, 'client, E, P> {
-        SessionSync::new(id.clone(), self.external, self.mapper)
+    pub fn session(self, session_id: &ExternalId) -> SessionSync<'caller, 'client, E, P> {
+        SessionSync::new(session_id.clone(), self.external, self.mapper)
     }
 
     pub async fn with_session_id<'m>(
