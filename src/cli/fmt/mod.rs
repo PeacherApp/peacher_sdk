@@ -238,7 +238,7 @@ impl AsTable for Vec<LegislationView> {
             id: l.id,
             name_id: l.name_id.clone(),
             title: if l.title.len() > 50 {
-                format!("{}...", &l.title[..47])
+                format!("{}...", l.title.chars().take(47).collect::<String>())
             } else {
                 l.title.clone()
             },
