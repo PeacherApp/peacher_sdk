@@ -3,18 +3,18 @@ use tracing::info;
 
 use crate::prelude::*;
 
-pub struct MembersSync<'c, 's, E, P> {
-    session_external_id: &'s ExternalId,
+pub struct MembersSync<'caller, 'clients, E, P> {
+    session_external_id: &'caller ExternalId,
     chamber_external_id: ExternalId,
-    external: &'s E,
-    mapper: &'c mut ClientMapper<'s, P>,
+    external: &'caller E,
+    mapper: &'caller mut ClientMapper<'clients, P>,
 }
-impl<'c, 's, E: ExternalClient, P: Client> MembersSync<'c, 's, E, P> {
+impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'client, E, P> {
     pub fn new(
-        session_external_id: &'s ExternalId,
+        session_external_id: &'caller ExternalId,
         chamber_external_id: ExternalId,
-        external: &'s E,
-        mapper: &'c mut ClientMapper<'s, P>,
+        external: &'caller E,
+        mapper: &'caller mut ClientMapper<'client, P>,
     ) -> Self {
         Self {
             session_external_id,

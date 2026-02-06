@@ -101,18 +101,12 @@ impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
     ///
     /// ExternalClient::get_jurisdiction() returns the jurisdiction with its chambers,
     /// so one client = one jurisdiction + its chambers. They sync together.
-    pub fn jurisdiction<'s>(&'s mut self) -> JurisdictionSync<'s, 'p, E, P>
-    where
-        's: 'p,
-    {
+    pub fn jurisdiction<'slf>(&'slf mut self) -> JurisdictionSync<'slf, 'p, E, P> {
         JurisdictionSync::new(&self.external, &mut self.mapper)
     }
 
     /// Sync sessions for a jurisdiction.
-    pub fn sessions<'s>(&'s mut self) -> AllSessionsSync<'s, 'p, E, P>
-    where
-        's: 'p,
-    {
+    pub fn sessions<'slf>(&'slf mut self) -> AllSessionsSync<'slf, 'p, E, P> {
         AllSessionsSync::new(&self.external, &mut self.mapper)
     }
 

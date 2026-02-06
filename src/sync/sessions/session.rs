@@ -1,35 +1,48 @@
 use crate::prelude::*;
 
-pub struct SessionSync<'c, 's, E, P> {
+pub struct SessionSync<'caller, 'client, E, P> {
     session: ExternalId,
-    external: &'s E,
-
-    mapper: &'c mut ClientMapper<'s, P>,
+    external: &'caller E,
+    mapper: &'caller mut ClientMapper<'client, P>,
 }
 
-impl<'c, 's, E: ExternalClient, P: Client> SessionSync<'c, 's, E, P> {
-    pub fn new(session: ExternalId, external: &'s E, mapper: &'c mut ClientMapper<'s, P>) -> Self {
+impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'client, E, P> {
+    pub fn new(
+        session: ExternalId,
+        external: &'caller E,
+        mapper: &'caller mut ClientMapper<'client, P>,
+    ) -> Self {
         Self {
             session,
             external,
             mapper,
         }
     }
+    pub async fn delete(self) -> SyncResult<()> {
+        let session = self.mapper.session(&self.session).await?;
+        DeleteSession(session.id)
+            .request(self.mapper.client())
+            .await?;
+        Ok(())
+    }
+
+    pub async fn get(&self) -> SyncResult<GetSessionResponse> {
+        let session = self.mapper.session(&self.session).await?;
+        Ok(session)
+    }
+
+    pub fn legislation<'slf>(&'slf mut self) -> LegislationSync<'slf, 'client, E, P> {
+        LegislationSync::new(self.session.clone(), self.external, self.mapper)
+    }
 
     /// Get a sync instance for a specific chamber of the session.
-    pub fn members<'m>(&'m mut self, chamber: ExternalId) -> MembersSync<'m, 's, E, P>
-    where
-        'c: 's,
-        'm: 's,
-    {
+    pub fn members<'slf>(&'slf mut self, chamber: ExternalId) -> MembersSync<'slf, 'client, E, P> {
         MembersSync::new(&self.session, chamber, self.external, &mut self.mapper)
     }
-    pub async fn all_members<'m, F, T, Fut>(&'m mut self, mut func: F) -> SyncResult<Vec<T>>
+    pub async fn all_members<'slf, F, T, Fut>(&'slf mut self, mut func: F) -> SyncResult<Vec<T>>
     where
-        F: FnMut(MembersSync<'m, 's, E, P>) -> Fut,
+        F: for<'call> FnMut(MembersSync<'call, 'client, E, P>) -> Fut,
         Fut: Future<Output = SyncResult<T>>,
-        'm: 'c,
-        'c: 's,
     {
         let session = self.mapper.session(&self.session).await?;
 

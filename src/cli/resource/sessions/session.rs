@@ -22,22 +22,9 @@ pub enum SyncType {
     /// Sync only members
     Members,
     /// Sync only legislation
-    Legislation {
-        /// Also sync the detailed information of the legislation
-        #[arg(short, long)]
-        details: Details,
-        /// Determine which legislation ID to start at
-        #[arg(short, long)]
-        start_at_page: Option<u64>,
-    },
+    Legislation,
     /// Sync both members and legislation
-    All {
-        #[arg(short, long)]
-        legislation_details: Details,
-        /// Determine which legislation ID to start at
-        #[arg(short, long)]
-        start_at_page: Option<u64>,
-    },
+    All,
 }
 
 #[derive(Subcommand, Debug)]
@@ -53,34 +40,49 @@ pub enum SessionAction {
         ///
         /// will sync all members/legislation of all chambers of this session.
         #[arg(long)]
-        chamber_id: Option<i32>,
+        chamber: Option<String>,
         #[command(subcommand)]
         sync_type: SyncType,
     },
 }
 
 impl SessionAction {
-    pub async fn run<'p, E, P>(self, session_id: i32, mut sync: ApiSync<'p, E, P>) -> Result<()>
+    pub async fn run<'p, E, P>(self, session_id: String, mut sync: ApiSync<'p, E, P>) -> Result<()>
     where
         E: ExternalClient,
         P: Client,
     {
+        let id = ExternalId::new(session_id);
+        let session = sync.sessions().session(&id);
         match self {
             SessionAction::Delete => {
                 let spinner = fmt::spinner(format!("Deleting session {session_id}"));
-                DeleteSession(session_id).request(sync.peacher()).await?;
+                session.delete().await?;
                 fmt::spinner_success(&spinner, "Sync complete");
                 Ok(())
             }
             SessionAction::Get => {
-                let session = GetSession(session_id).request(sync.peacher()).await?;
+                let session = session.get().await?;
                 session.print();
                 Ok(())
             }
-            SessionAction::Sync {
-                chamber_id,
-                sync_type,
-            } => {
+            SessionAction::Sync { chamber, sync_type } => {
+                match sync_type {
+                    SyncType::All | SyncType::Members => match chamber.as_deref() {
+                        Some(id) => {
+                            let result = session.members(ExternalId::new(id)).sync().await?;
+                            result.print()
+                        }
+                        None => {
+                            let results = session.all_members(|val| val.sync()).await?;
+                            for result in results {
+                                result.print();
+                            }
+                        }
+                    },
+                    SyncType::Legislation => {}
+                }
+
                 let session = GetSession(session_id).request(sync.peacher()).await?;
                 let session_ext_id = session
                     .external

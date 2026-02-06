@@ -19,27 +19,24 @@ pub struct SessionsSyncResult {
     pub updated: Vec<GetSessionResponse>,
 }
 
-pub struct AllSessionsSync<'c, 's, E, P> {
-    external: &'s E,
-    mapper: &'c mut ClientMapper<'s, P>,
+pub struct AllSessionsSync<'caller, 'client, E, P> {
+    external: &'caller E,
+    mapper: &'caller mut ClientMapper<'client, P>,
 }
 
-impl<'c, 's, E: ExternalClient, P: Client> AllSessionsSync<'c, 's, E, P> {
-    pub fn new(external: &'s E, mapper: &'c mut ClientMapper<'s, P>) -> Self {
+impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'client, E, P> {
+    pub fn new(external: &'caller E, mapper: &'caller mut ClientMapper<'client, P>) -> Self {
         Self { external, mapper }
     }
 
-    pub async fn session<'m>(
-        &'m mut self,
-        id: &ExternalId,
-    ) -> SyncResult<SessionSync<'m, 's, E, P>> {
-        Ok(SessionSync::new(id.clone(), &self.external, self.mapper))
+    pub fn session<'m>(&'m mut self, id: &ExternalId) -> SessionSync<'m, 'client, E, P> {
+        SessionSync::new(id.clone(), &self.external, self.mapper)
     }
 
     pub async fn with_session_id<'m>(
         &'m mut self,
         id: i32,
-    ) -> SyncResult<SessionSync<'m, 's, E, P>> {
+    ) -> SyncResult<SessionSync<'m, 'client, E, P>> {
         let session = GetSession(id).request(self.mapper.client()).await?;
 
         let Some(external_owner) = session.external else {
@@ -51,6 +48,17 @@ impl<'c, 's, E: ExternalClient, P: Client> AllSessionsSync<'c, 's, E, P> {
             &self.external,
             &mut self.mapper,
         ))
+    }
+
+    pub async fn list(&self) -> SyncResult<Paginated<GetSessionResponse>> {
+        let ext = self.external.get_jurisdiction();
+        let jurisdiction = self.mapper.jurisdiction(&ext.external_id).await?;
+
+        let sessions = ListSessions(SessionParams::default().with_jurisdiction(jurisdiction.id))
+            .request(self.mapper.client())
+            .await?;
+
+        Ok(sessions)
     }
 
     /// Sync the available sessions.

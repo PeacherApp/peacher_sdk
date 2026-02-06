@@ -13,14 +13,23 @@ pub struct JurisdictionAndChambersSyncResult {
     pub chambers_updated: Vec<ListChamberResponse>,
 }
 
-pub struct JurisdictionSync<'c, 's, E, P> {
-    external: &'s E,
-    mapper: &'c mut ClientMapper<'s, P>,
+pub struct JurisdictionSync<'caller, 'client, E, P> {
+    external: &'caller E,
+    mapper: &'caller mut ClientMapper<'client, P>,
 }
 
-impl<'c, 's, E: ExternalClient, P: Client> JurisdictionSync<'c, 's, E, P> {
-    pub fn new(external: &'s E, mapper: &'c mut ClientMapper<'s, P>) -> Self {
+impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, 'client, E, P> {
+    pub fn new(external: &'caller E, mapper: &'caller mut ClientMapper<'client, P>) -> Self {
         Self { external, mapper }
+    }
+
+    pub async fn get(&self) -> SyncResult<GetJurisdictionResponse> {
+        let client_provided_jurisdiction = self.external.get_jurisdiction();
+        let val = self
+            .mapper
+            .jurisdiction(&client_provided_jurisdiction.external_id)
+            .await?;
+        Ok(val)
     }
 
     /// Syncs the jurisdiction and chambers (creating if doesn't exist)

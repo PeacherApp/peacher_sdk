@@ -4,22 +4,23 @@ use tracing::info;
 
 use crate::prelude::*;
 
-pub struct LegislationSync<'s, E, P> {
+pub struct LegislationSync<'caller, 'client, E, P> {
     session: ExternalId,
-    external: &'s E,
-    peacher: &'s P,
+    external: &'caller E,
+    mapper: &'caller mut ClientMapper<'client, P>,
 }
 
-impl<'s, E: ExternalClient, P: Client> LegislationSync<'s, E, P> {
-    pub fn new(session: ExternalId, external: &'s E, peacher: &'s P) -> Self {
+impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'client, E, P> {
+    pub fn new(
+        session: ExternalId,
+        external: &'caller E,
+        mapper: &'caller mut ClientMapper<'client, P>,
+    ) -> Self {
         Self {
             session,
             external,
-            peacher,
+            mapper,
         }
-    }
-    fn mapper(&self) -> ClientMapper<'s, P> {
-        ClientMapper::new(self.peacher)
     }
 
     pub async fn sync(&self) -> Result<LegislationSyncResult, SyncError> {
