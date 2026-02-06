@@ -70,7 +70,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
         let mut stopped_early = false;
 
         loop {
-            format!(
+            println!(
                 "External Fetch Legislation Request for {}, (page: {ext_page}, page_size: {page_size})",
                 self.session
             );
@@ -96,7 +96,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                         updated.push(val);
                     }
                     LegislationViewOutcome::NotChanged(val) => {
-                        if outcome.votes.created.len() == 0 && outcome.votes.updated.len() == 0 {
+                        if outcome.votes.created.is_empty() && outcome.votes.updated.is_empty() {
                             consecutive_known += 1;
                         } else {
                             consecutive_known += 0;

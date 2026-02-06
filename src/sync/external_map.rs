@@ -17,12 +17,12 @@ impl<'p, P: Client> ClientMapper<'p, P> {
             .request(self.peacher)
             .await?;
         if chambers.data.is_empty() {
-            return Err(SyncError::NotFound(ext_id.clone()));
+            Err(SyncError::NotFound(ext_id.clone()))
         } else if chambers.data.len() > 1 {
-            return Err(SyncError::internal(format!(
+            Err(SyncError::internal(format!(
                 "The response for getting a chamber by external id was expected to have one value. Debug:\nExternalId: {}\nResult:{:?}",
                 ext_id, chambers
-            )));
+            )))
         } else {
             let value = chambers.data.swap_remove(0);
             Ok(value)
@@ -34,12 +34,12 @@ impl<'p, P: Client> ClientMapper<'p, P> {
                 .request(self.peacher)
                 .await?;
         if sessions.data.is_empty() {
-            return Err(SyncError::NotFound(ext_id.clone()));
+            Err(SyncError::NotFound(ext_id.clone()))
         } else if sessions.data.len() > 1 {
-            return Err(SyncError::internal(format!(
+            Err(SyncError::internal(format!(
                 "The response for getting a chamber by external id was expected to have one value. Debug:\nExternalId: {}\nResult:{:?}",
                 ext_id, sessions
-            )));
+            )))
         } else {
             let value = sessions.data.swap_remove(0);
             Ok(value)
@@ -52,12 +52,12 @@ impl<'p, P: Client> ClientMapper<'p, P> {
             .request(self.peacher)
             .await?;
         if members.data.is_empty() {
-            return Err(SyncError::NotFound(ext_id.clone()));
+            Err(SyncError::NotFound(ext_id.clone()))
         } else if members.data.len() > 1 {
-            return Err(SyncError::internal(format!(
+            Err(SyncError::internal(format!(
                 "The response for getting a chamber by external id was expected to have one value. Debug:\nExternalId: {}\nResult:{:?}",
                 ext_id, members
-            )));
+            )))
         } else {
             let value = members.data.swap_remove(0);
             Ok(value)
@@ -70,12 +70,12 @@ impl<'p, P: Client> ClientMapper<'p, P> {
             .request(self.peacher)
             .await?;
         if jurisdictions.data.is_empty() {
-            return Err(SyncError::NotFound(ext_id.clone()));
+            Err(SyncError::NotFound(ext_id.clone()))
         } else if jurisdictions.data.len() > 1 {
-            return Err(SyncError::internal(format!(
+            Err(SyncError::internal(format!(
                 "The response for getting a chamber by external id was expected to have one value. Debug:\nExternalId: {}\nResult:{:?}",
                 ext_id, jurisdictions
-            )));
+            )))
         } else {
             let value = jurisdictions.data.swap_remove(0);
             Ok(value)

@@ -37,7 +37,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
 
     /// Get a sync instance for a specific chamber of the session.
     pub fn members<'slf>(&'slf mut self, chamber: ExternalId) -> MembersSync<'slf, 'client, E, P> {
-        MembersSync::new(&self.session, chamber, self.external, &mut self.mapper)
+        MembersSync::new(&self.session, chamber, self.external, self.mapper)
     }
     pub async fn sync_all_members(&mut self) -> SyncResult<Vec<MembersSyncResult>> {
         let session = self.mapper.session(&self.session).await?;

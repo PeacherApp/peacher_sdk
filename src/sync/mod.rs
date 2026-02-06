@@ -117,30 +117,3 @@ impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
         //self.sessions().
     }
 }
-
-async fn attempt_request<F, Fut, T, E>(retries: u32, mut request: F) -> Result<T, E>
-where
-    F: FnMut(&mut String) -> Fut,
-    Fut: Future<Output = Result<T, E>>,
-    E: std::fmt::Debug,
-{
-    let mut retry_count = 0;
-    loop {
-        let mut value = String::new();
-
-        match request(&mut value).await {
-            Ok(result) => return Ok(result),
-            Err(e) => {
-                retry_count += 1;
-
-                tracing::error!("Error performing request({value}): {e:?}");
-
-                if retry_count >= retries {
-                    return Err(e);
-                }
-
-                //todo
-            }
-        };
-    }
-}

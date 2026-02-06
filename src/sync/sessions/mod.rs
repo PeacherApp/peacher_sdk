@@ -45,8 +45,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
 
         Ok(SessionSync::new(
             external_owner.external_id,
-            &self.external,
-            &mut self.mapper,
+            self.external,
+            self.mapper,
         ))
     }
 

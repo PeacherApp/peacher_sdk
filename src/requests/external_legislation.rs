@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::prelude::*;
 
@@ -14,7 +15,7 @@ pub struct ExternalLegislation {
     pub summary: String,
     /// Where the legislation started
     pub chamber_id: ExternalId,
-    pub url: Option<String>,
+    pub url: Option<Url>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
     /// Current outcome of the legislation (replaces active boolean)
     pub outcome: Option<LegislationOutcome>,

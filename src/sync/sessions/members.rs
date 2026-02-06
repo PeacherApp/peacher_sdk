@@ -26,7 +26,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'clien
 
     /// Sync the members for this session and chamber pair
     pub async fn sync(&self) -> SyncResult<MembersSyncResult> {
-        let session = self.mapper.session(&self.session_external_id).await?;
+        let session = self.mapper.session(self.session_external_id).await?;
         let chamber = self.mapper.chamber(&self.chamber_external_id).await?;
 
         info!(
@@ -37,7 +37,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'clien
         // Get members from external source
         let external_members = self
             .external
-            .list_members(&self.session_external_id, &self.chamber_external_id)
+            .list_members(self.session_external_id, &self.chamber_external_id)
             .await?;
 
         // Get existing members - we need to check by external_id
