@@ -3,37 +3,31 @@ use tracing::info;
 
 use crate::prelude::*;
 
-pub struct MembersSync<'s, E, P> {
+pub struct MembersSync<'c, 's, E, P> {
     session_external_id: &'s ExternalId,
     chamber_external_id: ExternalId,
     external: &'s E,
-    peacher: &'s P,
+    mapper: &'c mut ClientMapper<'s, P>,
 }
-impl<'s, E: ExternalClient, P: Client> MembersSync<'s, E, P> {
+impl<'c, 's, E: ExternalClient, P: Client> MembersSync<'c, 's, E, P> {
     pub fn new(
         session_external_id: &'s ExternalId,
         chamber_external_id: ExternalId,
         external: &'s E,
-        peacher: &'s P,
+        mapper: &'c mut ClientMapper<'s, P>,
     ) -> Self {
         Self {
             session_external_id,
             chamber_external_id,
             external,
-            peacher,
+            mapper,
         }
-    }
-
-    fn mapper(&self) -> ExternalIdQuery<'s, P> {
-        ExternalIdQuery::new(self.peacher)
     }
 
     /// Sync the members for this session and chamber pair
     pub async fn sync(&self) -> SyncResult<MembersSyncResult> {
-        let mapper = self.mapper();
-
-        let session = mapper.session(&self.session_external_id).await?;
-        let chamber = mapper.chamber(&self.chamber_external_id).await?;
+        let session = self.mapper.session(&self.session_external_id).await?;
+        let chamber = self.mapper.chamber(&self.chamber_external_id).await?;
 
         info!(
             "Syncing members for session {} chamber {}",
@@ -50,7 +44,7 @@ impl<'s, E: ExternalClient, P: Client> MembersSync<'s, E, P> {
         // Note: The current API doesn't have a session/chamber filter on ListMembers
         // We'll get all members and filter, or use the chamber session endpoint
         let chamber_session = ListSessionMembers::new(chamber.id, session.id)
-            .request(self.peacher)
+            .request(self.mapper.client())
             .await?;
 
         let known_members = chamber_session
@@ -71,7 +65,7 @@ impl<'s, E: ExternalClient, P: Client> MembersSync<'s, E, P> {
                 Some(member) => {
                     let update_req = ext_member.member.to_update_member_request();
                     let member = UpdateMember::new(member.member.id, update_req)
-                        .request(self.peacher)
+                        .request(self.mapper.client())
                         .await?;
 
                     //TODO: need to update appointed at, expunged at, and district id.
@@ -79,13 +73,14 @@ impl<'s, E: ExternalClient, P: Client> MembersSync<'s, E, P> {
                 }
                 None => {
                     let (member, is_new) =
-                        match self.mapper().member(&ext_member.member.external_id).await {
+                        match self.mapper.member(&ext_member.member.external_id).await {
                             Ok(member) => (member, false),
                             Err(SyncError::NotFound(id)) => {
                                 // Create new member
                                 let create_req = ext_member.member.to_create_member_request();
-                                let member =
-                                    CreateMember::new(create_req).request(self.peacher).await?;
+                                let member = CreateMember::new(create_req)
+                                    .request(self.mapper.client())
+                                    .await?;
 
                                 info!(
                                     "Created member '{}' (id: {}, ext_id: {})",
@@ -103,7 +98,7 @@ impl<'s, E: ExternalClient, P: Client> MembersSync<'s, E, P> {
                         .appointed_at(ext_member.appointed_at)
                         .expunged_at(ext_member.vacated_at);
                     link_req.set_district(ext_member.district_number);
-                    link_req.request(self.peacher).await?;
+                    link_req.request(self.mapper.client()).await?;
 
                     if is_new {
                         created.push(member);
@@ -111,7 +106,7 @@ impl<'s, E: ExternalClient, P: Client> MembersSync<'s, E, P> {
                         let update_req = ext_member.member.to_update_member_request();
 
                         let member = UpdateMember::new(member.id, update_req)
-                            .request(self.peacher)
+                            .request(self.mapper.client())
                             .await?;
 
                         updated.push(member);

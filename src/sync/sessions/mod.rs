@@ -19,26 +19,28 @@ pub struct SessionsSyncResult {
     pub updated: Vec<GetSessionResponse>,
 }
 
-pub struct AllSessionsSync<'s, E, P> {
+pub struct AllSessionsSync<'c, 's, E, P> {
     external: &'s E,
-    peacher: &'s P,
+    mapper: &'c mut ClientMapper<'s, P>,
 }
 
-impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
-    pub fn new(external: &'s E, peacher: &'s P) -> Self {
-        Self { external, peacher }
+impl<'c, 's, E: ExternalClient, P: Client> AllSessionsSync<'c, 's, E, P> {
+    pub fn new(external: &'s E, mapper: &'c mut ClientMapper<'s, P>) -> Self {
+        Self { external, mapper }
     }
 
-    fn mapper(&self) -> ExternalIdQuery<'s, P> {
-        ExternalIdQuery::new(self.peacher)
+    pub async fn session<'m>(
+        &'m mut self,
+        id: &ExternalId,
+    ) -> SyncResult<SessionSync<'m, 's, E, P>> {
+        Ok(SessionSync::new(id.clone(), &self.external, self.mapper))
     }
 
-    pub async fn session(&self, id: &ExternalId) -> SyncResult<SessionSync<'_, E, P>> {
-        Ok(SessionSync::new(id.clone(), &self.external, self.peacher))
-    }
-
-    pub async fn with_session_id(&self, id: i32) -> SyncResult<SessionSync<'_, E, P>> {
-        let session = GetSession(id).request(self.peacher).await?;
+    pub async fn with_session_id<'m>(
+        &'m mut self,
+        id: i32,
+    ) -> SyncResult<SessionSync<'m, 's, E, P>> {
+        let session = GetSession(id).request(self.mapper.client()).await?;
 
         let Some(external_owner) = session.external else {
             return Err(SyncError::no_external_id(session));
@@ -47,7 +49,7 @@ impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
         Ok(SessionSync::new(
             external_owner.external_id,
             &self.external,
-            self.peacher,
+            &mut self.mapper,
         ))
     }
 
@@ -60,10 +62,10 @@ impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
     /// ### Does not
     /// - Sync members
     /// - Sync legislation
-    pub async fn sync_sessions(&self) -> SyncResult<SessionsSyncResult> {
+    pub async fn sync_sessions(&mut self) -> SyncResult<SessionsSyncResult> {
         let jurisdiction_id = self.external.get_jurisdiction();
         let jurisdiction = self
-            .mapper()
+            .mapper
             .jurisdiction(&jurisdiction_id.external_id)
             .await?;
 
@@ -71,7 +73,7 @@ impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
 
         let existing_sessions =
             ListSessions(SessionParams::default().with_jurisdiction(jurisdiction.id))
-                .request(self.peacher)
+                .request(self.mapper.client())
                 .await?
                 .data
                 .into_iter()
@@ -84,7 +86,7 @@ impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
         // Get all chambers for this jurisdiction (needed to link sessions to chambers)
         let chambers = ListChambers::default()
             .with_jurisdiction(jurisdiction.id)
-            .request(self.peacher)
+            .request(self.mapper.client())
             .await?;
 
         // Get sessions from external source
@@ -104,7 +106,7 @@ impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
                             ends_at: ext_session.ends_at,
                         },
                     )
-                    .request(self.peacher)
+                    .request(self.mapper.client())
                     .await?;
                     updated.push(response);
                 }
@@ -125,7 +127,7 @@ impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
                     session_req = session_req.external_metadata(ext_metadata);
 
                     let response = CreateSession::new(jurisdiction.id, session_req)
-                        .request(self.peacher)
+                        .request(self.mapper.client())
                         .await?;
 
                     info!(
@@ -141,7 +143,7 @@ impl<'s, E: ExternalClient, P: Client> AllSessionsSync<'s, E, P> {
                             response.id,
                             LinkSessionToChamberRequest::new(chamber.id),
                         )
-                        .request(self.peacher)
+                        .request(self.mapper.client())
                         .await
                         {
                             Ok(_) => {

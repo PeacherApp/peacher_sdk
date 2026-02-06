@@ -1,33 +1,37 @@
 use crate::prelude::*;
 
-pub struct SessionSync<'s, E, P> {
+pub struct SessionSync<'c, 's, E, P> {
     session: ExternalId,
     external: &'s E,
-    peacher: &'s P,
+
+    mapper: &'c mut ClientMapper<'s, P>,
 }
 
-impl<'s, E: ExternalClient, P: Client> SessionSync<'s, E, P> {
-    pub fn new(session: ExternalId, external: &'s E, peacher: &'s P) -> Self {
+impl<'c, 's, E: ExternalClient, P: Client> SessionSync<'c, 's, E, P> {
+    pub fn new(session: ExternalId, external: &'s E, mapper: &'c mut ClientMapper<'s, P>) -> Self {
         Self {
             session,
             external,
-            peacher,
+            mapper,
         }
-    }
-    fn mapper(&self) -> ExternalIdQuery<'s, P> {
-        ExternalIdQuery::new(self.peacher)
     }
 
     /// Get a sync instance for a specific chamber of the session.
-    pub fn members(&self, chamber: ExternalId) -> MembersSync<'_, E, P> {
-        MembersSync::new(&self.session, chamber, self.external, self.peacher)
-    }
-    pub async fn all_members<F, T, Fut>(&self, mut func: F) -> SyncResult<Vec<T>>
+    pub fn members<'m>(&'m mut self, chamber: ExternalId) -> MembersSync<'m, 's, E, P>
     where
-        F: for<'a> FnMut(MembersSync<'a, E, P>) -> Fut,
-        Fut: Future<Output = SyncResult<T>>,
+        'c: 's,
+        'm: 's,
     {
-        let session = self.mapper().session(&self.session).await?;
+        MembersSync::new(&self.session, chamber, self.external, &mut self.mapper)
+    }
+    pub async fn all_members<'m, F, T, Fut>(&'m mut self, mut func: F) -> SyncResult<Vec<T>>
+    where
+        F: FnMut(MembersSync<'m, 's, E, P>) -> Fut,
+        Fut: Future<Output = SyncResult<T>>,
+        'm: 'c,
+        'c: 's,
+    {
+        let session = self.mapper.session(&self.session).await?;
 
         let mut responses = Vec::with_capacity(session.chambers.len());
 

@@ -13,18 +13,14 @@ pub struct JurisdictionAndChambersSyncResult {
     pub chambers_updated: Vec<ListChamberResponse>,
 }
 
-pub struct JurisdictionSync<'s, E, P> {
+pub struct JurisdictionSync<'c, 's, E, P> {
     external: &'s E,
-    peacher: &'s P,
+    mapper: &'c mut ClientMapper<'s, P>,
 }
 
-impl<'s, E: ExternalClient, P: Client> JurisdictionSync<'s, E, P> {
-    pub fn new(external: &'s E, peacher: &'s P) -> Self {
-        Self { external, peacher }
-    }
-
-    fn mapper(&self) -> ExternalIdQuery<'s, P> {
-        ExternalIdQuery::new(self.peacher)
+impl<'c, 's, E: ExternalClient, P: Client> JurisdictionSync<'c, 's, E, P> {
+    pub fn new(external: &'s E, mapper: &'c mut ClientMapper<'s, P>) -> Self {
+        Self { external, mapper }
     }
 
     /// Syncs the jurisdiction and chambers (creating if doesn't exist)
@@ -38,7 +34,7 @@ impl<'s, E: ExternalClient, P: Client> JurisdictionSync<'s, E, P> {
         );
 
         let (jurisdiction, jurisdiction_created) = match self
-            .mapper()
+            .mapper
             .jurisdiction(&client_provided_jurisdiction.external_id)
             .await
         {
@@ -52,7 +48,7 @@ impl<'s, E: ExternalClient, P: Client> JurisdictionSync<'s, E, P> {
 
                 let created = CreateJurisdiction::new(&client_provided_jurisdiction.name)
                     .external_metadata(ext_metadata)
-                    .request(self.peacher)
+                    .request(self.mapper.client())
                     .await?;
 
                 info!(
@@ -68,7 +64,7 @@ impl<'s, E: ExternalClient, P: Client> JurisdictionSync<'s, E, P> {
         // Sync chambers
         let known_chambers = ListChambers::default()
             .with_jurisdiction(jurisdiction.id)
-            .request(self.peacher)
+            .request(self.mapper.client())
             .await?
             .data
             .into_iter()
@@ -97,7 +93,7 @@ impl<'s, E: ExternalClient, P: Client> JurisdictionSync<'s, E, P> {
                     }
                     chamber_req = chamber_req.external_metadata(ext_metadata);
 
-                    let created = chamber_req.request(self.peacher).await?;
+                    let created = chamber_req.request(self.mapper.client()).await?;
                     info!(
                         "Created chamber '{}' (id: {}, ext_id: {})",
                         created.name, created.id, client_provided_chamber.external_id

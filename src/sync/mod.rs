@@ -13,16 +13,8 @@ pub use sessions::*;
 mod external_map;
 pub use external_map::*;
 
-// Note: legislation_sync module kept for reference but not currently used. Needs to be removed soon.
-// mod legislation_sync;
-// use legislation_sync::*;
-
-use ahash::HashMap;
-use reqwest::StatusCode;
-
 use crate::prelude::*;
 use chrono::NaiveDate;
-use tracing::{error, info};
 
 /// Result of syncing members
 #[derive(Debug, Clone)]
@@ -84,20 +76,21 @@ pub struct SyncChamberSessionView {
 /// 5. **Fail if references missing** - Sync order matters (jurisdiction → chambers → sessions → members → legislation → votes)
 pub struct ApiSync<'p, E, P = PeacherClient> {
     external: E,
-    peacher: &'p P,
+    mapper: ClientMapper<'p, P>,
 }
 
 impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
     pub fn new(external: E, peacher: &'p P) -> Self {
-        Self { external, peacher }
+        let mapper = ClientMapper::new(peacher);
+        Self { external, mapper }
     }
 
     pub fn peacher(&self) -> &'p P {
-        self.peacher
+        self.mapper().client()
     }
 
-    pub fn mapper(&self) -> ExternalIdQuery<'p, P> {
-        ExternalIdQuery::new(self.peacher())
+    pub fn mapper(&self) -> ClientMapper<'p, P> {
+        ClientMapper::new(self.peacher())
     }
 
     pub fn external(&self) -> &E {
@@ -108,19 +101,26 @@ impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
     ///
     /// ExternalClient::get_jurisdiction() returns the jurisdiction with its chambers,
     /// so one client = one jurisdiction + its chambers. They sync together.
-    pub fn jurisdiction(&self) -> JurisdictionSync<'_, E, P> {
-        JurisdictionSync::new(&self.external, self.peacher)
+    pub fn jurisdiction<'s>(&'s mut self) -> JurisdictionSync<'s, 'p, E, P>
+    where
+        's: 'p,
+    {
+        JurisdictionSync::new(&self.external, &mut self.mapper)
     }
 
     /// Sync sessions for a jurisdiction.
-    pub fn sessions(&self) -> AllSessionsSync<'_, E, P> {
-        AllSessionsSync::new(&self.external, self.peacher)
+    pub fn sessions<'s>(&'s mut self) -> AllSessionsSync<'s, 'p, E, P>
+    where
+        's: 'p,
+    {
+        AllSessionsSync::new(&self.external, &mut self.mapper)
     }
 
     pub async fn sync_all(&self) -> SyncResult<()> {
-        self.jurisdiction().sync().await?;
-        self.sessions().sync_sessions().await?;
         todo!()
+        // self.jurisdiction().sync().await?;
+        // self.sessions().sync_sessions().await?;
+        //self.sessions().
     }
 }
 

@@ -18,8 +18,8 @@ impl<'s, E: ExternalClient, P: Client> LegislationSync<'s, E, P> {
             peacher,
         }
     }
-    fn mapper(&self) -> ExternalIdQuery<'s, P> {
-        ExternalIdQuery::new(self.peacher)
+    fn mapper(&self) -> ClientMapper<'s, P> {
+        ClientMapper::new(self.peacher)
     }
 
     pub async fn sync(&self) -> Result<LegislationSyncResult, SyncError> {
@@ -163,7 +163,7 @@ pub struct LegislationUpdateOutcome {
 
 async fn sync_legislation<P: Client>(
     peacher: &P,
-    mapper: &ExternalIdQuery<'_, P>,
+    mapper: &ClientMapper<'_, P>,
     session_id: i32,
     known_legislation: &HashMap<ExternalId, LegislationView>,
     ext_leg: ExternalLegislation,
@@ -219,7 +219,7 @@ async fn sync_legislation<P: Client>(
 }
 
 async fn sync_legislation_votes<P: Client>(
-    mapper: &ExternalIdQuery<'_, P>,
+    mapper: &ClientMapper<'_, P>,
     legislation: &LegislationView,
     external_votes: impl IntoIterator<Item = ExternalLegislationVote>,
 ) -> SyncResult<VotesSyncResult> {

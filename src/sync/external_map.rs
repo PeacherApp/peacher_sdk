@@ -1,13 +1,13 @@
 use crate::prelude::*;
-pub struct ExternalIdQuery<'p, P> {
+pub struct ClientMapper<'p, P> {
     peacher: &'p P,
 }
 
-impl<'p, P: Client> ExternalIdQuery<'p, P> {
+impl<'p, P: Client> ClientMapper<'p, P> {
     pub(super) fn new(peacher: &'p P) -> Self {
         Self { peacher }
     }
-    pub fn client(&self) -> &P {
+    pub fn client(&self) -> &'p P {
         self.peacher
     }
 
