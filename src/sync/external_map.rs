@@ -1,11 +1,14 @@
 use crate::prelude::*;
-
 pub struct ExternalIdQuery<'p, P> {
     peacher: &'p P,
 }
+
 impl<'p, P: Client> ExternalIdQuery<'p, P> {
     pub(super) fn new(peacher: &'p P) -> Self {
         Self { peacher }
+    }
+    pub fn client(&self) -> &P {
+        self.peacher
     }
 
     pub async fn chamber(&self, ext_id: &ExternalId) -> SyncResult<ListChamberResponse> {
