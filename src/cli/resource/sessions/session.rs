@@ -52,8 +52,9 @@ impl SessionAction {
         E: ExternalClient,
         P: Client,
     {
-        let id = ExternalId::new(session_id);
-        let session = sync.sessions().session(&id);
+        let id = ExternalId::new(&session_id);
+        let mut session = sync.sessions().session(&id);
+
         match self {
             SessionAction::Delete => {
                 let spinner = fmt::spinner(format!("Deleting session {session_id}"));
@@ -74,7 +75,7 @@ impl SessionAction {
                             result.print()
                         }
                         None => {
-                            let results = session.all_members(|val| val.sync()).await?;
+                            let results = session.sync_all_members().await?;
                             for result in results {
                                 result.print();
                             }
@@ -83,137 +84,12 @@ impl SessionAction {
                     SyncType::Legislation => {}
                 }
 
-                let session = GetSession(session_id).request(sync.peacher()).await?;
-                let session_ext_id = session
-                    .external
-                    .context("The provided session id does not have external associated data!")?
-                    .external_id;
-
-                let chambers = match chamber_id {
-                    Some(value) => {
-                        let chamber = GetChamber(value).request(sync.peacher()).await?;
-                        let chamber_ext_id = chamber.external.map(|v| v.external_id).context(
-                            "The provided chamber id does not have external associated data!",
-                        )?;
-                        vec![(chamber.id, chamber_ext_id, chamber.name)]
-                    }
-                    None => session
-                        .chambers
-                        .into_iter()
-                        .filter_map(|c| {
-                            let chamber_ext_id = c.external?.external_id;
-                            Some((c.chamber_id, chamber_ext_id, c.chamber_name))
-                        })
-                        .collect(),
-                };
-
-                for (chamber_id, chamber_ext_id, chamber_name) in chambers {
-                    match sync_type {
-                        SyncType::All { .. } | SyncType::Members => {
-                            match sync
-                                .sync_members(
-                                    session_id,
-                                    &session_ext_id,
-                                    chamber_id,
-                                    &chamber_ext_id,
-                                )
-                                .await
-                            {
-                                Ok(result) => {
-                                    result.print();
-                                }
-                                Err(e) => {
-                                    println!(
-                                        "Something happened when syncing Chamber {}: {e}",
-                                        chamber_name
-                                    );
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-
                 match sync_type {
-                    SyncType::All {
-                        legislation_details: details,
-                        start_at_page,
+                    SyncType::All | SyncType::Legislation => {
+                        let value = session.legislation().sync().await?;
+                        value.print();
                     }
-                    | SyncType::Legislation {
-                        details,
-                        start_at_page,
-                    } => match details {
-                        Details::All | Details::None => {
-                            let result = match sync
-                                .sync_legislation(
-                                    session_id,
-                                    &session_ext_id,
-                                    start_at_page.unwrap_or_default(),
-                                )
-                                .await
-                            {
-                                Ok(result) => {
-                                    result.print();
-                                    result
-                                }
-                                Err(e) => {
-                                    println!("Something happened when syncing legislation: {e}");
-                                    return Ok(());
-                                }
-                            };
-
-                            if sync.config().get_legislation_has_details
-                                && matches!(details, Details::None)
-                            {
-                                println!(
-                                    "{}",
-                                    fmt::yellow(
-                                        "Legislation has been synced, but some legislative items need additional information. try rerunning with --details only_known_legislation"
-                                    )
-                                );
-                            } else if !sync.config().get_legislation_has_details {
-                                return Ok(());
-                            }
-
-                            if matches!(details, Details::None) {
-                                return Ok(());
-                            }
-
-                            for legislation in result.created.into_iter().chain(result.updated) {
-                                if let Some(external) = legislation.external {
-                                    match sync
-                                        .sync_legislation_details(
-                                            legislation.id,
-                                            &external.external_id,
-                                        )
-                                        .await
-                                    {
-                                        Ok(result) => {
-                                            if let Some(votes) = result.votes {
-                                                votes.print();
-                                            }
-                                        }
-                                        Err(e) => {
-                                            println!(
-                                                "Something happened when syncing votes for legislation {} ({}): {e}",
-                                                legislation.name_id, legislation.id
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Details::OnlyKnownLegislation => {
-                            sync.sync_known_legislation_details(
-                                session_id,
-                                start_at_page.unwrap_or(1),
-                            )
-                            .await?;
-
-                            //todo
-                        }
-                    },
-                    _ => {}
+                    SyncType::Members => {}
                 }
 
                 Ok(())

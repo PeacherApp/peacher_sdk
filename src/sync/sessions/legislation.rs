@@ -23,9 +23,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
         }
     }
 
-    pub async fn sync(&self) -> Result<LegislationSyncResult, SyncError> {
-        let mapper = self.mapper();
-        let session = mapper.session(&self.session).await?;
+    pub async fn sync(&mut self) -> Result<LegislationSyncResult, SyncError> {
+        let session = self.mapper.session(&self.session).await?;
 
         info!(
             "Syncing legislation for session {} (ext_id: {})",
@@ -43,7 +42,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                 ..Default::default()
             };
 
-            let result = params.request(self.peacher).await?;
+            let result = params.request(self.mapper.client()).await?;
             let is_empty = result.data.is_empty();
 
             for leg in result.data {
@@ -85,14 +84,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
             }
 
             for ext_leg in batch.data {
-                let outcome = sync_legislation(
-                    self.peacher,
-                    &mapper,
-                    session.id,
-                    &known_legislation,
-                    ext_leg,
-                )
-                .await?;
+                let outcome =
+                    sync_legislation(self.mapper, session.id, &known_legislation, ext_leg).await?;
                 match outcome.view {
                     LegislationViewOutcome::Created(val) => {
                         consecutive_known = 0;
@@ -163,8 +156,7 @@ pub struct LegislationUpdateOutcome {
 }
 
 async fn sync_legislation<P: Client>(
-    peacher: &P,
-    mapper: &ClientMapper<'_, P>,
+    mapper: &mut ClientMapper<'_, P>,
     session_id: i32,
     known_legislation: &HashMap<ExternalId, LegislationView>,
     ext_leg: ExternalLegislation,
@@ -180,7 +172,7 @@ async fn sync_legislation<P: Client>(
             if ext_leg.needs_update(leg) {
                 let update =
                     UpdateLegislation::new(leg.id, ext_leg.into_update_legislation_request())
-                        .request(peacher)
+                        .request(mapper.client())
                         .await?;
                 LegislationViewOutcome::Updated(update)
                 // consecutive_known = 0;
@@ -201,7 +193,7 @@ async fn sync_legislation<P: Client>(
             let req = ext_leg.into_create_legislation_request();
 
             let leg = CreateLegislation::new(chamber.id, session_id, req.clone())
-                .request(peacher)
+                .request(mapper.client())
                 .await?;
 
             info!(

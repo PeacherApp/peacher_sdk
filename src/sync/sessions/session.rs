@@ -39,11 +39,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
     pub fn members<'slf>(&'slf mut self, chamber: ExternalId) -> MembersSync<'slf, 'client, E, P> {
         MembersSync::new(&self.session, chamber, self.external, &mut self.mapper)
     }
-    pub async fn all_members<'slf, F, T, Fut>(&'slf mut self, mut func: F) -> SyncResult<Vec<T>>
-    where
-        F: for<'call> FnMut(MembersSync<'call, 'client, E, P>) -> Fut,
-        Fut: Future<Output = SyncResult<T>>,
-    {
+    pub async fn sync_all_members(&mut self) -> SyncResult<Vec<MembersSyncResult>> {
         let session = self.mapper.session(&self.session).await?;
 
         let mut responses = Vec::with_capacity(session.chambers.len());
@@ -53,9 +49,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
                 continue;
             };
 
-            let sync = self.members(external.external_id);
-
-            let result = func(sync).await?;
+            let result = self.members(external.external_id).sync().await?;
             responses.push(result);
         }
 
