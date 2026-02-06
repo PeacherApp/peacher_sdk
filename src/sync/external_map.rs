@@ -1,7 +1,5 @@
 use crate::prelude::*;
 
-pub type SyncResult<T> = Result<T, SyncError>;
-
 pub struct ExternalIdQuery<'p, P> {
     peacher: &'p P,
 }
@@ -16,7 +14,7 @@ impl<'p, P: Client> ExternalIdQuery<'p, P> {
             .request(self.peacher)
             .await?;
         if chambers.data.is_empty() {
-            return Err(SyncError::ChamberNotFound(ext_id.clone()));
+            return Err(SyncError::NotFound(ext_id.clone()));
         } else if chambers.data.len() > 1 {
             return Err(SyncError::internal(format!(
                 "The response for getting a chamber by external id was expected to have one value. Debug:\nExternalId: {}\nResult:{:?}",
@@ -33,7 +31,7 @@ impl<'p, P: Client> ExternalIdQuery<'p, P> {
                 .request(self.peacher)
                 .await?;
         if sessions.data.is_empty() {
-            return Err(SyncError::ChamberNotFound(ext_id.clone()));
+            return Err(SyncError::NotFound(ext_id.clone()));
         } else if sessions.data.len() > 1 {
             return Err(SyncError::internal(format!(
                 "The response for getting a chamber by external id was expected to have one value. Debug:\nExternalId: {}\nResult:{:?}",
@@ -51,7 +49,7 @@ impl<'p, P: Client> ExternalIdQuery<'p, P> {
             .request(self.peacher)
             .await?;
         if members.data.is_empty() {
-            return Err(SyncError::ChamberNotFound(ext_id.clone()));
+            return Err(SyncError::NotFound(ext_id.clone()));
         } else if members.data.len() > 1 {
             return Err(SyncError::internal(format!(
                 "The response for getting a chamber by external id was expected to have one value. Debug:\nExternalId: {}\nResult:{:?}",
@@ -69,7 +67,7 @@ impl<'p, P: Client> ExternalIdQuery<'p, P> {
             .request(self.peacher)
             .await?;
         if jurisdictions.data.is_empty() {
-            return Err(SyncError::ChamberNotFound(ext_id.clone()));
+            return Err(SyncError::NotFound(ext_id.clone()));
         } else if jurisdictions.data.len() > 1 {
             return Err(SyncError::internal(format!(
                 "The response for getting a chamber by external id was expected to have one value. Debug:\nExternalId: {}\nResult:{:?}",

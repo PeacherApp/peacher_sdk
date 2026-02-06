@@ -1,6 +1,12 @@
 mod client;
 pub use client::*;
 
+mod error;
+pub use error::*;
+
+mod jurisdiction;
+pub use jurisdiction::*;
+
 mod external_map;
 pub use external_map::*;
 
@@ -10,21 +16,10 @@ pub use external_map::*;
 
 use ahash::{HashMap, HashSet};
 use reqwest::StatusCode;
-use thiserror::Error;
 
 use crate::prelude::*;
 use chrono::NaiveDate;
 use tracing::{error, info};
-
-/// Result of syncing jurisdiction and its chambers
-#[derive(Debug, Clone)]
-pub struct JurisdictionAndChambersSyncResult {
-    pub jurisdiction_id: i32,
-    pub jurisdiction_name: String,
-    pub jurisdiction_created: bool,
-    pub chambers_created: Vec<ListChamberResponse>,
-    pub chambers_updated: Vec<ListChamberResponse>,
-}
 
 /// Result of syncing sessions
 #[derive(Debug, Clone)]
@@ -60,44 +55,6 @@ pub struct LegislationDetailSyncResult {
 pub struct VotesSyncResult {
     pub created: Vec<i32>, // Vote IDs
     pub updated: Vec<i32>,
-}
-
-// ============================================================================
-// Error Types
-// ============================================================================
-
-#[derive(Debug, Error)]
-pub enum SyncError {
-    #[error("{0}")]
-    Sdk(#[from] SdkError),
-
-    #[error("Missing reference: {0} with external_id {1}")]
-    MissingReference(&'static str, ExternalId),
-
-    #[error(
-        "The jurisdiction for the external client was not found. Create it first or enable dangerously_create."
-    )]
-    JurisdictionNotFound,
-
-    #[error("Chamber not found: {0}")]
-    ChamberNotFound(ExternalId),
-
-    #[error("Session not found: {0}")]
-    SessionNotFound(ExternalId),
-
-    #[error("Member not found: {0}")]
-    MemberNotFound(ExternalId),
-
-    #[error("Votes do not exist for {0}")]
-    NoVotes(ExternalId),
-
-    #[error("Something internally failed: {0}")]
-    InternalIssue(String),
-}
-impl SyncError {
-    pub fn internal(msg: impl Into<String>) -> Self {
-        Self::InternalIssue(msg.into())
-    }
 }
 
 // ============================================================================
@@ -142,6 +99,10 @@ impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
         self.peacher
     }
 
+    pub fn mapper(&self) -> ExternalIdQuery<'p, P> {
+        ExternalIdQuery::new(self.peacher())
+    }
+
     pub fn external(&self) -> &E {
         &self.external
     }
@@ -150,105 +111,8 @@ impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
     ///
     /// ExternalClient::get_jurisdiction() returns the jurisdiction with its chambers,
     /// so one client = one jurisdiction + its chambers. They sync together.
-    pub async fn sync_jurisdiction_and_chambers(
-        &mut self,
-    ) -> Result<JurisdictionAndChambersSyncResult, SyncError> {
-        let ext_jurisdiction = self.external.get_jurisdiction();
-
-        info!(
-            "Syncing jurisdiction '{}' (ext_id: {})",
-            ext_jurisdiction.name,
-            ext_jurisdiction.external_id.val_str()
-        );
-
-        // Check if jurisdiction exists
-        let existing_jurisdictions = ListJurisdictions::default()
-            .with_external_id(ext_jurisdiction.external_id.val_str())
-            .request(self.peacher)
-            .await?;
-
-        let (jurisdiction_id, jurisdiction_name, jurisdiction_created) =
-            if let Some(existing) = existing_jurisdictions.data.first() {
-                info!(
-                    "Jurisdiction '{}' already exists (id: {})",
-                    existing.name, existing.id
-                );
-                (existing.id, existing.name.clone(), false)
-            } else {
-                // Create jurisdiction
-                let mut ext_metadata = ExternalMetadata::new(ext_jurisdiction.external_id.clone());
-                if let Some(ref url) = ext_jurisdiction.url {
-                    ext_metadata.set_url(url.clone());
-                }
-
-                let created = CreateJurisdiction::new(&ext_jurisdiction.name)
-                    .external_metadata(ext_metadata)
-                    .request(self.peacher)
-                    .await?;
-
-                info!(
-                    "Created jurisdiction '{}' (id: {})",
-                    created.name, created.id
-                );
-                (created.id, created.name, true)
-            };
-
-        // Sync chambers
-        let existing_chambers = ListChambers::default()
-            .with_jurisdiction(jurisdiction_id)
-            .request(self.peacher)
-            .await?;
-
-        let existing_ext_ids: HashSet<String> = existing_chambers
-            .data
-            .iter()
-            .filter_map(|c| {
-                c.external
-                    .as_ref()
-                    .map(|e| e.external_id.val_str().to_string())
-            })
-            .collect();
-
-        let mut chambers_created = Vec::new();
-        let mut chambers_updated = Vec::new();
-
-        for ext_chamber in &ext_jurisdiction.chambers {
-            let ext_id_str = ext_chamber.external_id.val_str().to_string();
-
-            if existing_ext_ids.contains(&ext_id_str) {
-                // Chamber exists - we could call PATCH here, but for now just note it
-                if let Some(existing) = existing_chambers.data.iter().find(|c| {
-                    c.external
-                        .as_ref()
-                        .is_some_and(|e| e.external_id.val_str() == ext_id_str)
-                }) {
-                    chambers_updated.push(existing.clone());
-                }
-            } else {
-                // Create chamber
-                let mut chamber_req = CreateChamber::new(jurisdiction_id, &ext_chamber.name);
-                let mut ext_metadata = ExternalMetadata::new(ext_chamber.external_id.clone());
-                if let Some(ref url) = ext_chamber.url {
-                    ext_metadata.set_url(url.clone());
-                }
-                chamber_req = chamber_req.external_metadata(ext_metadata);
-
-                let created = chamber_req.request(self.peacher).await?;
-                info!(
-                    "Created chamber '{}' (id: {}, ext_id: {})",
-                    created.name, created.id, ext_id_str
-                );
-                chambers_created.push(created);
-            }
-        }
-
-        Ok(JurisdictionAndChambersSyncResult {
-            jurisdiction_id,
-            jurisdiction_name,
-            jurisdiction_created,
-            chambers_created,
-            chambers_updated,
-        })
+    pub async fn jurisdiction(&self) -> JurisdictionSync<'_, E, P> {
+        JurisdictionSync::new(&self.external, self.peacher)
     }
 
     /// Sync sessions for a jurisdiction.
