@@ -1,13 +1,12 @@
 mod client;
-
 pub use client::*;
+
+mod external_map;
+pub use external_map::*;
 
 // Note: legislation_sync module kept for reference but not currently used. Needs to be removed soon.
 // mod legislation_sync;
 // use legislation_sync::*;
-
-mod builder;
-pub use builder::*;
 
 use ahash::{HashMap, HashSet};
 use reqwest::StatusCode;
@@ -91,6 +90,14 @@ pub enum SyncError {
 
     #[error("Votes do not exist for {0}")]
     NoVotes(ExternalId),
+
+    #[error("Something internally failed: {0}")]
+    InternalIssue(String),
+}
+impl SyncError {
+    pub fn internal(msg: impl Into<String>) -> Self {
+        Self::InternalIssue(msg.into())
+    }
 }
 
 // ============================================================================
@@ -124,20 +131,11 @@ pub struct SyncChamberSessionView {
 pub struct ApiSync<'p, E, P = PeacherClient> {
     external: E,
     peacher: &'p P,
-    /// Cached jurisdiction ID (resolved during build)
-    jurisdiction_id: Option<i32>,
-    ext_config: ExternalClientConfig,
 }
 
-impl<'p, E: ExternalClient, P> ApiSync<'p, E, P> {
-    pub fn new_from_clients(external: E, peacher: &'p P) -> Self {
-        let ext_config = external.config();
-        Self {
-            external,
-            peacher,
-            jurisdiction_id: None,
-            ext_config,
-        }
+impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
+    pub fn new(external: E, peacher: &'p P) -> Self {
+        Self { external, peacher }
     }
 
     pub fn peacher(&self) -> &'p P {
@@ -147,111 +145,6 @@ impl<'p, E: ExternalClient, P> ApiSync<'p, E, P> {
     pub fn external(&self) -> &E {
         &self.external
     }
-
-    pub fn jurisdiction_id(&self) -> Option<i32> {
-        self.jurisdiction_id
-    }
-    /// Adjust the running config for the sync client.
-    pub fn config_mut(&mut self) -> &mut ExternalClientConfig {
-        &mut self.ext_config
-    }
-    pub fn config(&self) -> &ExternalClientConfig {
-        &self.ext_config
-    }
-}
-
-impl<'p, E: ExternalClient> ApiSync<'p, E> {
-    pub fn new(external: E, peacher: &'p PeacherClient) -> Self {
-        Self::new_from_clients(external, peacher)
-    }
-}
-
-impl<'p, E, P> ApiSync<'p, E, P>
-where
-    E: ExternalClient,
-    P: Client,
-{
-    pub fn builder(external_client: E, peacher_client: &'p P) -> ApiSyncBuilder<'p, E, P> {
-        ApiSyncBuilder::new(external_client, peacher_client)
-    }
-
-    // ========================================================================
-    // ID Resolution Helpers
-    // ========================================================================
-
-    /// Resolve external chamber ID to internal ID
-    pub async fn resolve_chamber(&self, ext_id: &ExternalId) -> Result<i32, SyncError> {
-        let chambers = ListChambers::default()
-            .with_external_id(ext_id.val_str())
-            .request(self.peacher)
-            .await?;
-
-        chambers
-            .data
-            .first()
-            .map(|c| c.id)
-            .ok_or_else(|| SyncError::ChamberNotFound(ext_id.clone()))
-    }
-
-    /// Resolve external session ID to internal ID
-    pub async fn resolve_session(&self, ext_id: &ExternalId) -> Result<i32, SyncError> {
-        let sessions = ListSessions(SessionParams::default().with_external_id(ext_id.val_str()))
-            .request(self.peacher)
-            .await?;
-
-        sessions
-            .data
-            .first()
-            .map(|s| s.id)
-            .ok_or_else(|| SyncError::SessionNotFound(ext_id.clone()))
-    }
-
-    /// Resolve external member ID to internal ID
-    pub async fn resolve_member(&self, ext_id: &ExternalId) -> Result<i32, SyncError> {
-        let members = ListMembers::default()
-            .with_external_id(ext_id.val_str())
-            .request(self.peacher)
-            .await?;
-
-        members
-            .data
-            .first()
-            .map(|m| m.id)
-            .ok_or_else(|| SyncError::MemberNotFound(ext_id.clone()))
-    }
-
-    /// Resolve external jurisdiction ID to internal ID
-    pub async fn resolve_jurisdiction(&self, ext_id: &ExternalId) -> Result<i32, SyncError> {
-        let jurisdictions = ListJurisdictions::default()
-            .with_external_id(ext_id.val_str())
-            .request(self.peacher)
-            .await?;
-
-        jurisdictions
-            .data
-            .first()
-            .map(|j| j.id)
-            .ok_or(SyncError::JurisdictionNotFound)
-    }
-
-    /// helper to resolve the current jurisdiction based on the external client
-    pub async fn resolve_internal_jurisdiction(&self) -> Result<i32, SyncError> {
-        let jurisdiction = self.external.get_jurisdiction();
-        let jurisdictions = ListJurisdictions::default()
-            .with_external_id(jurisdiction.external_id.val_str())
-            .request(self.peacher)
-            .await?;
-
-        jurisdictions
-            .data
-            .first()
-            .map(|j| j.id)
-            .ok_or(SyncError::JurisdictionNotFound)
-    }
-
-    // ========================================================================
-    // Fine-grained Sync Methods
-    // ========================================================================
 
     /// Sync jurisdiction AND chambers together.
     ///
@@ -299,8 +192,6 @@ where
                 );
                 (created.id, created.name, true)
             };
-
-        self.jurisdiction_id = Some(jurisdiction_id);
 
         // Sync chambers
         let existing_chambers = ListChambers::default()
@@ -572,15 +463,10 @@ where
                 // Link to chamber/session
                 let mut link_req = LinkMemberToChamber::new(chamber_id, session_id, member_id);
 
-                if !self.ext_config.get_member_has_details {
-                    link_req = link_req
-                        .appointed_at(ext_member.appointed_at)
-                        .expunged_at(ext_member.vacated_at);
-                }
-                if let Some(district_id) = ext_member.district_number {
-                    link_req.set_district(Some(district_id));
-                }
-
+                link_req = link_req
+                    .appointed_at(ext_member.appointed_at)
+                    .expunged_at(ext_member.vacated_at);
+                link_req.set_district(ext_member.district_number);
                 link_req.request(self.peacher).await?;
 
                 if is_new {
@@ -603,44 +489,6 @@ where
         );
 
         Ok(MembersSyncResult { created, updated })
-    }
-
-    /// Sync a single member by external ID when discovered during operations like vote sync.
-    ///
-    /// This is called when we encounter a member reference that doesn't exist in the database.
-    /// It fetches the member from the external source and creates them in Peacher.
-    async fn sync_single_member(&self, member_ext_id: &ExternalId) -> Result<i32, SyncError> {
-        info!("Auto-syncing missing member: {}", member_ext_id.val_str());
-
-        // Check if member exists globally (might be in a different chamber/session)
-        let existing = ListMembers::default()
-            .with_external_id(member_ext_id.val_str())
-            .request(self.peacher)
-            .await?;
-
-        if let Some(existing_member) = existing.data.first() {
-            info!(
-                "Member '{}' (id: {}) already exists globally",
-                existing_member.display_name, existing_member.id
-            );
-            return Ok(existing_member.id);
-        }
-
-        // Member doesn't exist - fetch from external source
-        let ext_member = self.external.get_member(member_ext_id).await?;
-
-        // Create member
-        let create_req = ext_member.to_create_member_request();
-        let member = CreateMember::new(create_req).request(self.peacher).await?;
-
-        info!(
-            "Auto-synced member '{}' (id: {}, ext_id: {})",
-            member.display_name,
-            member.id,
-            member_ext_id.val_str()
-        );
-
-        Ok(member.id)
     }
 
     /// This will call `get_legislation` for all known legislation
@@ -684,8 +532,6 @@ where
         session_ext_id: &ExternalId,
         start_at_page: u64,
     ) -> Result<LegislationSyncResult, SyncError> {
-        let config = self.external.config();
-
         info!(
             "Syncing legislation for session {} (ext_id: {}) page {start_at_page}",
             session_id,
@@ -758,8 +604,7 @@ where
                         // if no changes were made, then we will increase consecutive_known by 1.
                         updated.push(leg.clone());
                         // If ordering is Latest, we can stop early when hitting known items
-                        if config.legislation_order == ExtOrder::Latest && consecutive_known > 5000
-                        {
+                        if consecutive_known > 10 {
                             info!(
                                 "Hit {} consecutive known items, stopping early",
                                 consecutive_known
