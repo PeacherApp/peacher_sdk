@@ -128,12 +128,11 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
             stopped_early
         );
 
-        // Ok(LegislationSyncResult {
-        //     created,
-        //     updated,
-        //     stopped_early,
-        // })
-        todo!()
+        Ok(LegislationSyncResult {
+            created,
+            updated,
+            stopped_early,
+        })
     }
 }
 
