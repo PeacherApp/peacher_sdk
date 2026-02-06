@@ -71,7 +71,8 @@ impl SessionAction {
                 match sync_type {
                     SyncType::All | SyncType::Members => match chamber.as_deref() {
                         Some(id) => {
-                            let result = session.members(ExternalId::new(id)).sync().await?;
+                            let id = ExternalId::new(id);
+                            let result = session.members(&id).sync().await?;
                             result.print()
                         }
                         None => {

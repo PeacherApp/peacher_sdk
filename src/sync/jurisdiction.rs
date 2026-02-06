@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use ahash::HashMap;
 use tracing::info;
 
@@ -23,7 +25,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
         Self { external, mapper }
     }
 
-    pub async fn get(&self) -> SyncResult<GetJurisdictionResponse> {
+    pub async fn get(&mut self) -> SyncResult<Arc<GetJurisdictionResponse>> {
         let client_provided_jurisdiction = self.external.get_jurisdiction();
         let val = self
             .mapper
@@ -33,7 +35,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
     }
 
     /// Syncs the jurisdiction and chambers (creating if doesn't exist)
-    pub async fn sync(&self) -> SyncResult<JurisdictionAndChambersSyncResult> {
+    pub async fn sync(&mut self) -> SyncResult<JurisdictionAndChambersSyncResult> {
         let client_provided_jurisdiction = self.external.get_jurisdiction();
 
         info!(
@@ -59,6 +61,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
                     .external_metadata(ext_metadata)
                     .request(self.mapper.client())
                     .await?;
+                let created = self.mapper.store_jurisdiction(created);
 
                 info!(
                     "Created jurisdiction '{}' (id: {})",
@@ -114,7 +117,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
 
         Ok(JurisdictionAndChambersSyncResult {
             jurisdiction_id: jurisdiction.id,
-            jurisdiction_name: jurisdiction.name,
+            jurisdiction_name: jurisdiction.name.clone(),
             jurisdiction_created,
             chambers_created,
             chambers_updated,

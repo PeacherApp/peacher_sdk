@@ -1,4 +1,6 @@
 mod client;
+use std::sync::Arc;
+
 pub use client::*;
 
 mod error;
@@ -19,8 +21,8 @@ use chrono::NaiveDate;
 /// Result of syncing members
 #[derive(Debug, Clone)]
 pub struct MembersSyncResult {
-    pub created: Vec<MemberView>,
-    pub updated: Vec<MemberView>,
+    pub created: Vec<Arc<MemberView>>,
+    pub updated: Vec<Arc<MemberView>>,
 }
 
 /// Result of syncing legislation
@@ -89,8 +91,8 @@ impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
         self.mapper.client()
     }
 
-    pub fn mapper(&self) -> &ClientMapper<'p, P> {
-        &self.mapper
+    pub fn mapper(&mut self) -> &mut ClientMapper<'p, P> {
+        &mut self.mapper
     }
 
     pub fn external(&self) -> &E {

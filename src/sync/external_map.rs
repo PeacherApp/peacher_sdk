@@ -1,17 +1,37 @@
+use std::sync::Arc;
+
+use ahash::HashMap;
+
 use crate::prelude::*;
 pub struct ClientMapper<'p, P> {
     peacher: &'p P,
+
+    jurisdiction: Option<Arc<GetJurisdictionResponse>>,
+    chambers: HashMap<ExternalId, Arc<ListChamberResponse>>,
+    sessions: HashMap<ExternalId, Arc<GetSessionResponse>>,
+    members: HashMap<ExternalId, Arc<MemberView>>,
 }
 
 impl<'p, P: Client> ClientMapper<'p, P> {
     pub(super) fn new(peacher: &'p P) -> Self {
-        Self { peacher }
+        Self {
+            peacher,
+
+            jurisdiction: None,
+            chambers: Default::default(),
+            sessions: Default::default(),
+            members: Default::default(),
+        }
     }
     pub fn client(&self) -> &'p P {
         self.peacher
     }
 
-    pub async fn chamber(&self, ext_id: &ExternalId) -> SyncResult<ListChamberResponse> {
+    pub async fn chamber(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<ListChamberResponse>> {
+        if let Some(chamber) = self.chambers.get(ext_id) {
+            return Ok(chamber.clone());
+        }
+
         let mut chambers = ListChambers::default()
             .with_external_id(ext_id.val_str())
             .request(self.peacher)
@@ -24,11 +44,17 @@ impl<'p, P: Client> ClientMapper<'p, P> {
                 ext_id, chambers
             )))
         } else {
-            let value = chambers.data.swap_remove(0);
+            let value = Arc::new(chambers.data.swap_remove(0));
+
+            self.chambers.insert(ext_id.clone(), value.clone());
             Ok(value)
         }
     }
-    pub async fn session(&self, ext_id: &ExternalId) -> SyncResult<GetSessionResponse> {
+    pub async fn session(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<GetSessionResponse>> {
+        if let Some(session) = self.sessions.get(ext_id) {
+            return Ok(session.clone());
+        }
+
         let mut sessions =
             ListSessions(SessionParams::default().with_external_id(ext_id.val_str()))
                 .request(self.peacher)
@@ -41,12 +67,17 @@ impl<'p, P: Client> ClientMapper<'p, P> {
                 ext_id, sessions
             )))
         } else {
-            let value = sessions.data.swap_remove(0);
+            let value = Arc::new(sessions.data.swap_remove(0));
+            self.sessions.insert(ext_id.clone(), value.clone());
             Ok(value)
         }
     }
 
-    pub async fn member(&self, ext_id: &ExternalId) -> SyncResult<MemberView> {
+    pub async fn member(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<MemberView>> {
+        if let Some(member) = self.members.get(ext_id) {
+            return Ok(member.clone());
+        }
+
         let mut members = ListMembers::default()
             .with_external_id(ext_id.val_str())
             .request(self.peacher)
@@ -59,12 +90,34 @@ impl<'p, P: Client> ClientMapper<'p, P> {
                 ext_id, members
             )))
         } else {
-            let value = members.data.swap_remove(0);
+            let value = Arc::new(members.data.swap_remove(0));
+            self.members.insert(ext_id.clone(), value.clone());
             Ok(value)
         }
     }
 
-    pub async fn jurisdiction(&self, ext_id: &ExternalId) -> SyncResult<GetJurisdictionResponse> {
+    pub fn store_member(&mut self, id: ExternalId, member: MemberView) -> Arc<MemberView> {
+        let m = Arc::new(member);
+        self.members.insert(id, m.clone());
+        m
+    }
+
+    pub fn store_jurisdiction(
+        &mut self,
+        jurisdiction: GetJurisdictionResponse,
+    ) -> Arc<GetJurisdictionResponse> {
+        let j = Arc::new(jurisdiction);
+        self.jurisdiction = Some(j.clone());
+        j
+    }
+
+    pub async fn jurisdiction(
+        &mut self,
+        ext_id: &ExternalId,
+    ) -> SyncResult<Arc<GetJurisdictionResponse>> {
+        if let Some(jurisdiction) = self.jurisdiction.as_ref() {
+            return Ok(jurisdiction.clone());
+        }
         let mut jurisdictions = ListJurisdictions::default()
             .with_external_id(ext_id.val_str())
             .request(self.peacher)
@@ -77,7 +130,8 @@ impl<'p, P: Client> ClientMapper<'p, P> {
                 ext_id, jurisdictions
             )))
         } else {
-            let value = jurisdictions.data.swap_remove(0);
+            let value = Arc::new(jurisdictions.data.swap_remove(0));
+            self.jurisdiction = Some(value.clone());
             Ok(value)
         }
     }

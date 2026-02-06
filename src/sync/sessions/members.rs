@@ -3,16 +3,18 @@ use tracing::info;
 
 use crate::prelude::*;
 
-pub struct MembersSync<'caller, 'clients, E, P> {
+pub struct MembersSync<'caller, 'chamber, 'clients, E, P> {
     session_external_id: &'caller ExternalId,
-    chamber_external_id: ExternalId,
+    chamber_external_id: &'chamber ExternalId,
     external: &'caller E,
     mapper: &'caller mut ClientMapper<'clients, P>,
 }
-impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'client, E, P> {
+impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
+    MembersSync<'caller, 'chamber, 'client, E, P>
+{
     pub fn new(
         session_external_id: &'caller ExternalId,
-        chamber_external_id: ExternalId,
+        chamber_external_id: &'chamber ExternalId,
         external: &'caller E,
         mapper: &'caller mut ClientMapper<'client, P>,
     ) -> Self {
@@ -25,9 +27,9 @@ impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'clien
     }
 
     /// Sync the members for this session and chamber pair
-    pub async fn sync(&self) -> SyncResult<MembersSyncResult> {
+    pub async fn sync(&mut self) -> SyncResult<MembersSyncResult> {
         let session = self.mapper.session(self.session_external_id).await?;
-        let chamber = self.mapper.chamber(&self.chamber_external_id).await?;
+        let chamber = self.mapper.chamber(self.chamber_external_id).await?;
 
         info!(
             "Syncing members for session {} chamber {}",
@@ -37,7 +39,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'clien
         // Get members from external source
         let external_members = self
             .external
-            .list_members(self.session_external_id, &self.chamber_external_id)
+            .list_members(self.session_external_id, self.chamber_external_id)
             .await?;
 
         info!("here 1.5");
@@ -70,6 +72,10 @@ impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'clien
                         .request(self.mapper.client())
                         .await?;
 
+                    let member = self
+                        .mapper
+                        .store_member(ext_member.member.external_id.clone(), member);
+
                     //TODO: need to update appointed at, expunged at, and district id.
                     updated.push(member);
                 }
@@ -83,6 +89,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'clien
                                 let member = CreateMember::new(create_req)
                                     .request(self.mapper.client())
                                     .await?;
+
+                                let member = self.mapper.store_member(id.clone(), member);
 
                                 info!(
                                     "Created member '{}' (id: {}, ext_id: {})",
@@ -110,6 +118,10 @@ impl<'caller, 'client, E: ExternalClient, P: Client> MembersSync<'caller, 'clien
                         let member = UpdateMember::new(member.id, update_req)
                             .request(self.mapper.client())
                             .await?;
+
+                        let member = self
+                            .mapper
+                            .store_member(ext_member.member.external_id.clone(), member);
 
                         updated.push(member);
                     }

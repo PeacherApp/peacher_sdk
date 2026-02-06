@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::prelude::*;
 
 pub struct SessionSync<'caller, 'client, E, P> {
@@ -26,7 +28,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
         Ok(())
     }
 
-    pub async fn get(&self) -> SyncResult<GetSessionResponse> {
+    pub async fn get(&mut self) -> SyncResult<Arc<GetSessionResponse>> {
         let session = self.mapper.session(&self.session).await?;
         Ok(session)
     }
@@ -36,7 +38,10 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
     }
 
     /// Get a sync instance for a specific chamber of the session.
-    pub fn members<'slf>(&'slf mut self, chamber: ExternalId) -> MembersSync<'slf, 'client, E, P> {
+    pub fn members<'slf, 'chamber>(
+        &'slf mut self,
+        chamber: &'chamber ExternalId,
+    ) -> MembersSync<'slf, 'chamber, 'client, E, P> {
         MembersSync::new(&self.session, chamber, self.external, self.mapper)
     }
     pub async fn sync_all_members(&mut self) -> SyncResult<Vec<MembersSyncResult>> {
@@ -44,12 +49,12 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
 
         let mut responses = Vec::with_capacity(session.chambers.len());
 
-        for chamber in session.chambers {
-            let Some(external) = chamber.external else {
+        for chamber in &session.chambers {
+            let Some(external) = &chamber.external else {
                 continue;
             };
 
-            match self.members(external.external_id).sync().await {
+            match self.members(&external.external_id).sync().await {
                 Ok(result) => responses.push(result),
                 Err(SyncError::NotFound(_)) => {}
                 Err(e) => return Err(e),

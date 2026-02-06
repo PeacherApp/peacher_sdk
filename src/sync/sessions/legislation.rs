@@ -84,6 +84,15 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
             }
 
             for ext_leg in batch.data {
+                info!(
+                    "Beginning sync for {}({})",
+                    ext_leg.name_id, ext_leg.external_id
+                );
+
+                if ext_leg.external_id == ExternalId::new("119-sres-56") {
+                    tracing::error!("FOUND THIS ID: {ext_leg:#?}");
+                }
+
                 let outcome =
                     sync_legislation(self.mapper, session.id, &known_legislation, ext_leg).await?;
                 match outcome.view {
@@ -211,7 +220,7 @@ async fn sync_legislation<P: Client>(
 }
 
 async fn sync_legislation_votes<P: Client>(
-    mapper: &ClientMapper<'_, P>,
+    mapper: &mut ClientMapper<'_, P>,
     legislation: &LegislationView,
     external_votes: impl IntoIterator<Item = ExternalLegislationVote>,
 ) -> SyncResult<VotesSyncResult> {
