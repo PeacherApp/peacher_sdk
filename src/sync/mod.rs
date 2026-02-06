@@ -86,11 +86,11 @@ impl<'p, E: ExternalClient, P: Client> ApiSync<'p, E, P> {
     }
 
     pub fn peacher(&self) -> &'p P {
-        self.mapper().client()
+        self.mapper.client()
     }
 
-    pub fn mapper(&self) -> ClientMapper<'p, P> {
-        ClientMapper::new(self.peacher())
+    pub fn mapper(&self) -> &ClientMapper<'p, P> {
+        &self.mapper
     }
 
     pub fn external(&self) -> &E {
