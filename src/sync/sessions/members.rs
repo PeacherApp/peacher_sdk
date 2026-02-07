@@ -65,41 +65,40 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
         let mut updated = Vec::new();
 
         for ext_member in external_members {
-            match known_members.get(&ext_member.member.external_id) {
+            match known_members.get(&ext_member.external_id) {
                 Some(member) => {
-                    let update_req = ext_member.member.to_update_member_request();
+                    let update_req = ext_member.to_update_member_request();
                     let member = UpdateMember::new(member.member.id, update_req)
                         .request(self.mapper.client())
                         .await?;
 
                     let member = self
                         .mapper
-                        .store_member(ext_member.member.external_id.clone(), member);
+                        .store_member(ext_member.external_id.clone(), member);
 
                     //TODO: need to update appointed at, expunged at, and district id.
                     updated.push(member);
                 }
                 None => {
-                    let (member, is_new) =
-                        match self.mapper.member(&ext_member.member.external_id).await {
-                            Ok(member) => (member, false),
-                            Err(SyncError::NotFound(id)) => {
-                                // Create new member
-                                let create_req = ext_member.member.to_create_member_request();
-                                let member = CreateMember::new(create_req)
-                                    .request(self.mapper.client())
-                                    .await?;
+                    let (member, is_new) = match self.mapper.member(&ext_member.external_id).await {
+                        Ok(member) => (member, false),
+                        Err(SyncError::NotFound(id)) => {
+                            // Create new member
+                            let create_req = ext_member.to_create_member_request();
+                            let member = CreateMember::new(create_req)
+                                .request(self.mapper.client())
+                                .await?;
 
-                                let member = self.mapper.store_member(id.clone(), member);
+                            let member = self.mapper.store_member(id.clone(), member);
 
-                                info!(
-                                    "Created member '{}' (id: {}, ext_id: {})",
-                                    member.display_name, member.id, id
-                                );
-                                (member, true)
-                            }
-                            Err(e) => return Err(e),
-                        };
+                            info!(
+                                "Created member '{}' (id: {}, ext_id: {})",
+                                member.display_name, member.id, id
+                            );
+                            (member, true)
+                        }
+                        Err(e) => return Err(e),
+                    };
 
                     // since the member is not known, they need to be linked.
                     let mut link_req = LinkMemberToChamber::new(chamber.id, session.id, member.id);
@@ -113,7 +112,7 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
                     if is_new {
                         created.push(member);
                     } else {
-                        let update_req = ext_member.member.to_update_member_request();
+                        let update_req = ext_member.to_update_member_request();
 
                         let member = UpdateMember::new(member.id, update_req)
                             .request(self.mapper.client())
@@ -121,7 +120,7 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
 
                         let member = self
                             .mapper
-                            .store_member(ext_member.member.external_id.clone(), member);
+                            .store_member(ext_member.external_id.clone(), member);
 
                         updated.push(member);
                     }

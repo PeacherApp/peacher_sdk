@@ -23,7 +23,7 @@ pub trait ExternalClient: Send + Sync {
         &self,
         session_id: &ExternalId,
         chamber_id: &ExternalId,
-    ) -> impl Future<Output = SyncResult<Vec<ExtChamberSessionMember>>>;
+    ) -> impl Future<Output = SyncResult<Vec<ExternalMember>>>;
 
     /// Fetch legislation page - pagination controlled by ApiSync.
     ///
