@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::views::MemberView;
+use crate::views::{ChamberView, MemberView};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -18,5 +18,12 @@ pub struct BoundaryView {
     pub map_id: i32,
     pub geo_id: i32,
     pub name: String,
-    pub representative: Option<MemberView>,
+    pub chambers: Vec<BoundaryChambers>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct BoundaryChambers {
+    pub chamber: ChamberView,
+    pub members: Vec<MemberView>,
 }

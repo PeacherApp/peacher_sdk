@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::views::{BoundaryView, ChamberView, GeoJson, MapView};
+use crate::views::{BoundaryView, GeoJson, MapView};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -51,6 +51,5 @@ pub struct LocationIntersectionResponse {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct IntersectionView {
     pub map: MapView,
-    pub chamber: Option<ChamberView>,
     pub boundaries: GeoJson<BoundaryView>,
 }
