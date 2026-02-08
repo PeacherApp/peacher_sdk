@@ -84,7 +84,10 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
                         Ok(member) => (member, false),
                         Err(SyncError::NotFound(id)) => {
                             // Create new member
+
                             let create_req = ext_member.to_create_member_request();
+
+                            info!("Creating member '{:?}'", create_req);
                             let member = CreateMember::new(create_req)
                                 .request(self.mapper.client())
                                 .await?;
@@ -102,6 +105,10 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
 
                     // since the member is not known, they need to be linked.
                     let mut link_req = LinkMemberToChamber::new(chamber.id, session.id, member.id);
+                    info!(
+                        "linking member '{}' to chamber {} and session {}",
+                        member.display_name, chamber.name, session.name
+                    );
 
                     link_req = link_req
                         .appointed_at(ext_member.appointed_at)
