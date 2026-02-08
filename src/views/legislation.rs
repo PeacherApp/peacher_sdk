@@ -186,7 +186,7 @@ pub struct LegislationDetailsResponse {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SponsorInfo {
     pub member: MemberView,
-    pub sponsor_type: String,
+    pub sponsor_type: SponsorshipType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

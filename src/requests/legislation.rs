@@ -233,6 +233,53 @@ impl Handler for AddSponsor {
     }
 }
 
+/// Request to replace all sponsors on legislation
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PutSponsorsRequest {
+    pub sponsors: Vec<SponsorInput>,
+}
+
+/// A single sponsor entry for the PUT request
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SponsorInput {
+    pub member_id: i32,
+    pub sponsor_type: SponsorshipType,
+    pub sponsored_at: Option<DateTime<FixedOffset>>,
+}
+
+/// Handler for replacing all sponsors on legislation
+pub struct PutSponsors {
+    legislation_id: i32,
+    body: PutSponsorsRequest,
+}
+
+impl PutSponsors {
+    pub fn new(legislation_id: i32, body: PutSponsorsRequest) -> Self {
+        Self {
+            legislation_id,
+            body,
+        }
+    }
+}
+
+impl Handler for PutSponsors {
+    type ResponseBody = NoResponse;
+
+    fn method(&self) -> Method {
+        Method::Put
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/sponsors", self.legislation_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
 #[test]
 fn test_query_params_behavior() {
     use pretty_assertions::assert_eq;

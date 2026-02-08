@@ -49,16 +49,25 @@ impl ExternalLegislation {
         }
     }
 
+    #[allow(clippy::nonminimal_bool)]
     pub fn needs_update(&self, view: &LegislationView) -> bool {
-        self.status == view.status
-            && self.title == view.title
-            && self.status_text == view.status_text
-            && view
-                .external
-                .as_ref()
-                .is_some_and(|val| val.external_id == self.external_id && val.url == self.url)
-            && view.summary == self.summary
-            && view.legislation_type == self.legislation_type
+        view.external
+            .as_ref()
+            .is_some_and(|val| val.external_id == self.external_id)
+            && (self.status != view.status
+                || self.title != view.title
+                || self.summary != view.summary
+                || self.status_text != view.status_text
+                || self.status != view.status
+                || self
+                    .status_updated_at
+                    .is_some_and(|status| status != view.status_updated_at)
+                || view
+                    .external
+                    .as_ref()
+                    .is_some_and(|val| val.url != self.url)
+                || view.summary != self.summary
+                || view.legislation_type != self.legislation_type)
     }
 
     pub fn into_update_legislation_request(self) -> UpdateLegislationRequest {

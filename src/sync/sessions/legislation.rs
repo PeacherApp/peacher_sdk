@@ -170,6 +170,7 @@ async fn sync_legislation<P: Client>(
     ext_leg: ExternalLegislation,
 ) -> SyncResult<LegislationUpdateOutcome> {
     let votes = ext_leg.votes.clone();
+    let sponsors = ext_leg.sponsors.clone();
     let legislation_outcome = match known_legislation.get(&ext_leg.external_id) {
         Some(leg) => {
             info!(
@@ -183,15 +184,8 @@ async fn sync_legislation<P: Client>(
                         .request(mapper.client())
                         .await?;
                 LegislationViewOutcome::Updated(update)
-                // consecutive_known = 0;
-                // updated.push(update)
             } else {
                 LegislationViewOutcome::NotChanged(leg.clone())
-                // consecutive_known += 1;
-                // // TODO: we actually should update the legislation if possible.
-                // // if no changes were made, then we will increase consecutive_known by 1.
-                // updated.push(leg.clone());
-                // // If ordering is Latest, we can stop early when hitting known items
             }
         }
         None => {
@@ -213,6 +207,7 @@ async fn sync_legislation<P: Client>(
     };
 
     let val = sync_legislation_votes(mapper, legislation_outcome.view(), votes).await?;
+    sync_legislation_sponsors(mapper, legislation_outcome.view(), sponsors).await?;
     Ok(LegislationUpdateOutcome {
         view: legislation_outcome,
         votes: val,
@@ -309,4 +304,37 @@ async fn sync_legislation_votes<P: Client>(
         updated,
         unchanged,
     })
+}
+
+async fn sync_legislation_sponsors<P: Client>(
+    mapper: &mut ClientMapper<'_, P>,
+    legislation: &LegislationView,
+    external_sponsors: Vec<ExternalSponsor>,
+) -> SyncResult<()> {
+    let mut sponsor_inputs = Vec::new();
+
+    for ext_sponsor in &external_sponsors {
+        let member = mapper.member(&ext_sponsor.external_member_id).await?;
+        sponsor_inputs.push(SponsorInput {
+            member_id: member.id,
+            sponsor_type: ext_sponsor.sponsor_type,
+            sponsored_at: ext_sponsor.sponsored_at,
+        });
+    }
+
+    let req = PutSponsorsRequest {
+        sponsors: sponsor_inputs,
+    };
+
+    PutSponsors::new(legislation.id, req)
+        .request(mapper.client())
+        .await?;
+
+    info!(
+        "Synced {} sponsors for legislation '{}'",
+        external_sponsors.len(),
+        legislation.name_id
+    );
+
+    Ok(())
 }
