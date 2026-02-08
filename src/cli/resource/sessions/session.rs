@@ -2,21 +2,6 @@ use crate::{cli::fmt, prelude::*};
 use anyhow::{Context, Result};
 use clap::{Subcommand, ValueEnum};
 
-#[derive(ValueEnum, Debug, Clone, Copy)]
-pub enum Details {
-    /// Only fetch Legislation from the endpoint, but don't look for details
-    None,
-    /// fetch Legislation from the endpoint, and sync details by calling each
-    /// legislative item individually
-    ///
-    /// Note: this will not apply if your config does not identify `get_legislation`
-    /// as having more information
-    All,
-
-    /// Fetch legislation details from the endpoint only for legislation peacher knows about.
-    OnlyKnownLegislation,
-}
-
 #[derive(Subcommand, Debug, Clone, Copy)]
 pub enum SyncType {
     /// Sync only members

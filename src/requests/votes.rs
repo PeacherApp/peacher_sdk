@@ -10,6 +10,8 @@ pub struct CreateVoteRequest {
     pub name: String,
     pub occurred_at: Option<DateTime<FixedOffset>>,
     pub member_votes: Vec<MemberVoteInput>,
+    /// The chamber where the vote occurs
+    pub chamber: i32,
     pub external_metadata: Option<ExternalMetadata>,
     pub vote_type: VoteType,
 }
@@ -19,12 +21,14 @@ impl CreateVoteRequest {
         name: impl Into<String>,
         occurred_at: Option<DateTime<FixedOffset>>,
         member_votes: Vec<MemberVoteInput>,
+        chamber: i32,
         vote_type: VoteType,
     ) -> Self {
         Self {
             name: name.into(),
             occurred_at,
             member_votes,
+            chamber,
             vote_type,
             external_metadata: None,
         }

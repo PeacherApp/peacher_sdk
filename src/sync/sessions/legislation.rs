@@ -237,11 +237,13 @@ async fn sync_legislation_votes<P: Client>(
             url: ext_vote.url.clone(),
             externally_updated_at: None,
         };
+        let chamber = mapper.chamber(&ext_vote.chamber_id).await.unwrap();
 
         let vote_name = ext_vote.vote_name.clone();
         let ext_vote_id = ext_vote.external_id.val_str().to_owned();
         let vote_req = CreateVoteRequest {
             name: ext_vote.vote_name.clone(),
+            chamber: chamber.id,
             occurred_at: ext_vote.date_occurred,
             member_votes: member_votes.clone(),
             external_metadata: Some(ext_metadata),
