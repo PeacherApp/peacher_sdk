@@ -2,6 +2,7 @@ use crate::prelude::*;
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
+use url::Url;
 
 impl GetHandler for LegislationParams {
     type ResponseBody = Paginated<DetailedLegislationView>;
@@ -131,20 +132,27 @@ pub struct UpdateLegislationRequest {
     pub summary: Option<String>,
     /// If some, the legislation_type is updated. If none, it remains unchanged
     pub legislation_type: Option<LegislationType>,
+
+    pub url_set: bool,
+    pub url: Option<Url>,
+
     /// When the external update occurred. this is a user editable field, so
     /// if an external api provides and updated_date, that should be this field.
     ///
     /// Otherwise, this is None.
     pub external_update_at: Option<DateTime<FixedOffset>>,
+
     /// If some, the status is updated. If none, the status is unchanged
     pub status_text: Option<String>,
 
     pub introduced_at_set: bool,
     /// Only applied if `introduced_at_set` is true.
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub outcome_set: bool,
-    /// Only applied if `outcome_set` is true.
+
+    pub status_set: bool,
+    /// Only applied if `status_set` is true.
     pub status: Option<LegislationStatus>,
+
     pub status_updated_set: bool,
     /// Only applied if `status_updated_set` is true.
     pub status_updated_at: Option<DateTime<FixedOffset>>,

@@ -68,12 +68,19 @@ impl ExternalLegislation {
             summary: Some(self.summary),
             legislation_type: Some(self.legislation_type),
             status_text: Some(self.status_text),
+
             introduced_at_set: true,
             introduced_at: self.introduced_at,
-            outcome_set: true,
+
+            url_set: true,
+            url: self.url,
+
+            status_set: true,
             status: self.status,
+
             external_update_at: Some(self.external_update_at),
             status_updated_set: true,
+
             status_updated_at: self.status_updated_at,
         }
     }
