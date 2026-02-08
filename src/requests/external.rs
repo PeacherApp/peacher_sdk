@@ -3,7 +3,9 @@ use std::{
     str::FromStr,
 };
 
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 /// An id that's in our database, so not from an external resource.
 #[derive(Clone, Copy)]
@@ -68,23 +70,6 @@ impl ExternalId {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ExternalMetadata {
     pub external_id: ExternalId,
-    pub url: Option<String>,
-}
-
-impl ExternalMetadata {
-    pub fn new(external_id: impl Into<ExternalId>) -> Self {
-        Self {
-            external_id: external_id.into(),
-            url: None,
-        }
-    }
-
-    pub fn with_url(mut self, url: impl Into<String>) -> Self {
-        self.url = Some(url.into());
-        self
-    }
-
-    pub fn set_url(&mut self, url: impl Into<String>) {
-        self.url = Some(url.into());
-    }
+    pub url: Option<Url>,
+    pub externally_updated_at: Option<DateTime<FixedOffset>>,
 }

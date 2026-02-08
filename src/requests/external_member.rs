@@ -1,4 +1,4 @@
-use chrono::NaiveDate;
+use chrono::{DateTime, FixedOffset, NaiveDate};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -53,6 +53,7 @@ impl NewMember for NewExternalMember {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExternalMember {
     pub external_id: ExternalId,
+    pub external_update_at: Option<DateTime<FixedOffset>>,
     pub display_name: String,
     pub full_name: Option<String>,
     pub bio: String,
@@ -96,10 +97,12 @@ impl ExternalMember {
             req = req.photo_url(photo.clone());
         }
 
-        let mut ext_metadata = ExternalMetadata::new(self.external_id.clone());
-        if let Some(url) = &self.url {
-            ext_metadata.set_url(url.clone());
-        }
+        let ext_metadata = ExternalMetadata {
+            external_id: self.external_id.clone(),
+            externally_updated_at: self.external_update_at,
+            url: self.url.clone(),
+        };
+
         req = req.external_metadata(ext_metadata);
 
         req

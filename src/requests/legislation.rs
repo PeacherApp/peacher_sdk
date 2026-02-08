@@ -1,6 +1,7 @@
-use std::borrow::Cow;
-
 use crate::prelude::*;
+use chrono::{DateTime, FixedOffset};
+use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 impl GetHandler for LegislationParams {
     type ResponseBody = Paginated<DetailedLegislationView>;
@@ -61,9 +62,6 @@ impl GetHandler for GetLegislationVoteDetails {
     }
 }
 
-use chrono::{DateTime, FixedOffset, Local};
-use serde::{Deserialize, Serialize};
-
 /// Request to create a new piece of legislation
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -74,59 +72,15 @@ pub struct CreateLegislationRequest {
     /// When the primary source material was last updated.
     ///
     /// If your API does not provide this data, use `Local::now()`
-    pub external_update_at: DateTime<FixedOffset>,
     pub legislation_type: LegislationType,
+    pub status: Option<LegislationStatus>,
     pub status_text: String,
     /// When the primary source material was last updated the legislation status.
     ///
     /// If your API does not provide this data, use `Local::now()`
     pub status_updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub status: Option<LegislationStatus>,
     pub external_metadata: Option<ExternalMetadata>,
-}
-
-impl CreateLegislationRequest {
-    pub fn new(
-        name_id: impl Into<String>,
-        title: impl Into<String>,
-        summary: impl Into<String>,
-        legislation_type: LegislationType,
-        status_text: impl Into<String>,
-    ) -> Self {
-        Self {
-            name_id: name_id.into(),
-            title: title.into(),
-            summary: summary.into(),
-            external_update_at: Local::now().into(),
-            legislation_type,
-            status_text: status_text.into(),
-            introduced_at: None,
-            status: None,
-            status_updated_at: Local::now().into(),
-            external_metadata: None,
-        }
-    }
-
-    pub fn introduced_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.introduced_at = Some(date);
-        self
-    }
-
-    pub fn outcome(mut self, outcome: LegislationStatus) -> Self {
-        self.status = Some(outcome);
-        self
-    }
-
-    pub fn status_updated_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.status_updated_at = date;
-        self
-    }
-
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
-        self
-    }
 }
 
 /// Handler for creating legislation
@@ -183,58 +137,17 @@ pub struct UpdateLegislationRequest {
     /// Otherwise, this is None.
     pub external_update_at: Option<DateTime<FixedOffset>>,
     /// If some, the status is updated. If none, the status is unchanged
-    pub status: Option<String>,
+    pub status_text: Option<String>,
 
     pub introduced_at_set: bool,
     /// Only applied if `introduced_at_set` is true.
     pub introduced_at: Option<DateTime<FixedOffset>>,
     pub outcome_set: bool,
     /// Only applied if `outcome_set` is true.
-    pub outcome: Option<LegislationStatus>,
+    pub status: Option<LegislationStatus>,
     pub status_updated_set: bool,
     /// Only applied if `status_updated_set` is true.
     pub status_updated_at: Option<DateTime<FixedOffset>>,
-}
-
-impl UpdateLegislationRequest {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn name_id(mut self, name_id: impl Into<String>) -> Self {
-        self.name_id = Some(name_id.into());
-        self
-    }
-
-    pub fn title(mut self, title: impl Into<String>) -> Self {
-        self.title = Some(title.into());
-        self
-    }
-
-    pub fn summary(mut self, summary: impl Into<String>) -> Self {
-        self.summary = Some(summary.into());
-        self
-    }
-
-    pub fn legislation_type(mut self, legislation_type: LegislationType) -> Self {
-        self.legislation_type = Some(legislation_type);
-        self
-    }
-
-    pub fn status(mut self, status: impl Into<String>) -> Self {
-        self.status = Some(status.into());
-        self
-    }
-
-    pub fn introduced_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.introduced_at = Some(date);
-        self
-    }
-
-    pub fn outcome(mut self, outcome: LegislationStatus) -> Self {
-        self.outcome = Some(outcome);
-        self
-    }
 }
 
 /// Request to add a sponsor to legislation

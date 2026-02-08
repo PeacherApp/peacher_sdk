@@ -14,6 +14,9 @@ pub struct ExternalLegislation {
     /// If your API does not provide this data, use `Local::now()`.
     pub external_update_at: DateTime<FixedOffset>,
     pub legislation_type: LegislationType,
+
+    /// Current outcome of the legislation (replaces active boolean)
+    pub status: Option<LegislationStatus>,
     /// Human-readable status text
     pub status_text: String,
     /// When the status was last updated
@@ -24,38 +27,26 @@ pub struct ExternalLegislation {
     pub chamber_id: ExternalId,
     pub url: Option<Url>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    /// Current outcome of the legislation (replaces active boolean)
-    pub status: Option<LegislationStatus>,
     pub sponsors: Vec<ExternalSponsor>,
     pub votes: Vec<ExternalLegislationVote>,
 }
 impl ExternalLegislation {
     pub fn into_create_legislation_request(self) -> CreateLegislationRequest {
-        let mut req = CreateLegislationRequest::new(
-            self.name_id.clone(),
-            self.title.clone(),
-            self.summary.clone(),
-            self.legislation_type,
-            self.status_text.clone(),
-        );
-
-        if let Some(introduced_at) = self.introduced_at {
-            req = req.introduced_at(introduced_at);
+        CreateLegislationRequest {
+            name_id: self.name_id.clone(),
+            title: self.title.clone(),
+            summary: self.summary.clone(),
+            legislation_type: self.legislation_type,
+            status_text: self.status_text.clone(),
+            status: self.status,
+            status_updated_at: self.status_updated_at.unwrap_or(self.external_update_at),
+            introduced_at: self.introduced_at,
+            external_metadata: Some(ExternalMetadata {
+                external_id: self.external_id.clone(),
+                url: self.url.clone(),
+                externally_updated_at: Some(self.external_update_at),
+            }),
         }
-        if let Some(outcome) = self.status {
-            req = req.outcome(outcome);
-        }
-        if let Some(status_updated_at) = self.status_updated_at {
-            req = req.status_updated_at(status_updated_at);
-        }
-
-        let mut ext_metadata = ExternalMetadata::new(self.external_id.clone());
-        if let Some(ref url) = self.url {
-            ext_metadata.set_url(url.clone());
-        }
-        req = req.external_metadata(ext_metadata);
-
-        req
     }
 
     pub fn needs_update(&self, view: &LegislationView) -> bool {
@@ -76,11 +67,11 @@ impl ExternalLegislation {
             title: Some(self.title),
             summary: Some(self.summary),
             legislation_type: Some(self.legislation_type),
-            status: Some(self.status_text),
+            status_text: Some(self.status_text),
             introduced_at_set: true,
             introduced_at: self.introduced_at,
             outcome_set: true,
-            outcome: self.status,
+            status: self.status,
             external_update_at: Some(self.external_update_at),
             status_updated_set: true,
             status_updated_at: self.status_updated_at,
