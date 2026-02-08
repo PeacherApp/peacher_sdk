@@ -9,9 +9,16 @@ pub struct ExternalLegislation {
     pub external_id: ExternalId,
     pub name_id: String,
     pub title: String,
+    /// When the primary source material was last updated.
+    ///
+    /// If your API does not provide this data, use `Local::now()`.
+    pub external_update_at: DateTime<FixedOffset>,
     pub legislation_type: LegislationType,
     /// Human-readable status text
     pub status: Option<String>,
+    /// When the status was last updated
+    pub status_updated_at: Option<DateTime<FixedOffset>>,
+
     pub summary: String,
     /// Where the legislation started
     pub chamber_id: ExternalId,
@@ -19,8 +26,6 @@ pub struct ExternalLegislation {
     pub introduced_at: Option<DateTime<FixedOffset>>,
     /// Current outcome of the legislation (replaces active boolean)
     pub outcome: Option<LegislationOutcome>,
-    /// When the legislation reached a terminal state
-    pub resolved_at: Option<DateTime<FixedOffset>>,
     pub sponsors: Vec<ExternalSponsor>,
     pub votes: Vec<ExternalLegislationVote>,
 }
@@ -40,7 +45,7 @@ impl ExternalLegislation {
         if let Some(outcome) = self.outcome {
             req = req.outcome(outcome);
         }
-        if let Some(resolved_at) = self.resolved_at {
+        if let Some(resolved_at) = self.updated_at {
             req = req.resolved_at(resolved_at);
         }
 
@@ -56,7 +61,7 @@ impl ExternalLegislation {
     pub fn needs_update(&self, view: &LegislationView) -> bool {
         self.outcome == view.outcome
             && self.title == view.title
-            && self.resolved_at == view.resolved_at
+            && self.updated_at == view.resolved_at
             && view
                 .external
                 .as_ref()
@@ -77,7 +82,7 @@ impl ExternalLegislation {
             outcome_set: true,
             outcome: self.outcome,
             resolved_at_set: true,
-            resolved_at: self.resolved_at,
+            resolved_at: self.updated_at,
         }
     }
 }
@@ -86,4 +91,5 @@ impl ExternalLegislation {
 pub struct ExternalSponsor {
     pub external_member_id: ExternalId,
     pub sponsor_type: SponsorshipType,
+    pub sponsored_at: Option<DateTime<FixedOffset>>,
 }
