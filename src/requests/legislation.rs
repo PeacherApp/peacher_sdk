@@ -61,7 +61,7 @@ impl GetHandler for GetLegislationVoteDetails {
     }
 }
 
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, FixedOffset, Local};
 use serde::{Deserialize, Serialize};
 
 /// Request to create a new piece of legislation
@@ -71,11 +71,18 @@ pub struct CreateLegislationRequest {
     pub name_id: String,
     pub title: String,
     pub summary: String,
+    /// When the primary source material was last updated.
+    ///
+    /// If your API does not provide this data, use `Local::now()`
+    pub external_update_at: DateTime<FixedOffset>,
     pub legislation_type: LegislationType,
-    pub status: String,
+    pub status_text: String,
+    /// When the primary source material was last updated the legislation status.
+    ///
+    /// If your API does not provide this data, use `Local::now()`
+    pub status_updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub outcome: Option<LegislationOutcome>,
-    pub resolved_at: Option<DateTime<FixedOffset>>,
+    pub status: Option<LegislationOutcome>,
     pub external_metadata: Option<ExternalMetadata>,
 }
 
@@ -85,17 +92,18 @@ impl CreateLegislationRequest {
         title: impl Into<String>,
         summary: impl Into<String>,
         legislation_type: LegislationType,
-        status: impl Into<String>,
+        status_text: impl Into<String>,
     ) -> Self {
         Self {
             name_id: name_id.into(),
             title: title.into(),
             summary: summary.into(),
+            external_update_at: Local::now().into(),
             legislation_type,
-            status: status.into(),
+            status_text: status_text.into(),
             introduced_at: None,
-            outcome: None,
-            resolved_at: None,
+            status: None,
+            status_updated_at: Local::now().into(),
             external_metadata: None,
         }
     }
@@ -106,12 +114,12 @@ impl CreateLegislationRequest {
     }
 
     pub fn outcome(mut self, outcome: LegislationOutcome) -> Self {
-        self.outcome = Some(outcome);
+        self.status = Some(outcome);
         self
     }
 
-    pub fn resolved_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.resolved_at = Some(date);
+    pub fn status_updated_at(mut self, date: DateTime<FixedOffset>) -> Self {
+        self.status_updated_at = date;
         self
     }
 
@@ -161,17 +169,31 @@ impl Handler for CreateLegislation {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct UpdateLegislationRequest {
+    /// If some, the name_id is updated. If none, it remains unchanged
     pub name_id: Option<String>,
+    /// If some, the title is updated. If none, it remains unchanged
     pub title: Option<String>,
+    /// If some, the summary is updated. If none, it remains unchanged
     pub summary: Option<String>,
+    /// If some, the legislation_type is updated. If none, it remains unchanged
     pub legislation_type: Option<LegislationType>,
+    /// When the external update occurred. this is a user editable field, so
+    /// if an external api provides and updated_date, that should be this field.
+    ///
+    /// Otherwise, this is None.
+    pub external_update_at: Option<DateTime<FixedOffset>>,
+    /// If some, the status is updated. If none, the status is unchanged
     pub status: Option<String>,
+
     pub introduced_at_set: bool,
+    /// Only applied if `introduced_at_set` is true.
     pub introduced_at: Option<DateTime<FixedOffset>>,
     pub outcome_set: bool,
+    /// Only applied if `outcome_set` is true.
     pub outcome: Option<LegislationOutcome>,
-    pub resolved_at_set: bool,
-    pub resolved_at: Option<DateTime<FixedOffset>>,
+    pub status_updated_set: bool,
+    /// Only applied if `status_updated_set` is true.
+    pub status_updated_at: Option<DateTime<FixedOffset>>,
 }
 
 impl UpdateLegislationRequest {
@@ -211,11 +233,6 @@ impl UpdateLegislationRequest {
 
     pub fn outcome(mut self, outcome: LegislationOutcome) -> Self {
         self.outcome = Some(outcome);
-        self
-    }
-
-    pub fn resolved_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.resolved_at = Some(date);
         self
     }
 }

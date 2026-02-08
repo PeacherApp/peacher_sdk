@@ -64,7 +64,6 @@ pub struct LegislationView {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub resolved_at: Option<DateTime<FixedOffset>>,
     pub legislation_type: LegislationType,
     pub id: i32,
     pub name_id: String,
@@ -72,10 +71,9 @@ pub struct LegislationView {
     pub summary: String,
     /// Current outcome of the legislation
     pub outcome: Option<LegislationOutcome>,
-    /// Derived: true if outcome is None or Pending
-    pub is_active: bool,
     /// Human-readable status text from external source
     pub status: String,
+    pub status_updated_at: DateTime<FixedOffset>,
     pub external: Option<ExternalOwner>,
 }
 
@@ -89,14 +87,13 @@ impl LegislationView {
             created_at: self.created_at,
             updated_at: self.updated_at,
             introduced_at: self.introduced_at,
-            resolved_at: self.resolved_at,
             id: self.id,
             name_id: self.name_id,
             title: self.title,
             summary: self.summary,
+            status_updated_at: self.status_updated_at,
             legislation_type: self.legislation_type,
             outcome: self.outcome,
-            is_active: self.is_active,
             status: self.status,
             external: self.external,
             votes: votes.into_iter().collect(),
@@ -111,7 +108,6 @@ pub struct DetailedLegislationView {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub resolved_at: Option<DateTime<FixedOffset>>,
     pub id: i32,
     pub name_id: String,
     pub title: String,
@@ -119,10 +115,9 @@ pub struct DetailedLegislationView {
     pub legislation_type: LegislationType,
     /// Current outcome of the legislation
     pub outcome: Option<LegislationOutcome>,
-    /// Derived: true if outcome is None or Pending
-    pub is_active: bool,
     /// Human-readable status text from external source
     pub status: String,
+    pub status_updated_at: DateTime<FixedOffset>,
     pub external: Option<ExternalOwner>,
     pub votes: Vec<LegislationViewVote>,
     pub sponsors: Vec<LegislationViewSponsor>,
@@ -134,14 +129,13 @@ impl DetailedLegislationView {
             created_at: self.created_at,
             updated_at: self.updated_at,
             introduced_at: self.introduced_at,
-            resolved_at: self.resolved_at,
             id: self.id,
             name_id: self.name_id,
             title: self.title,
             summary: self.summary,
             legislation_type: self.legislation_type,
+            status_updated_at: self.status_updated_at,
             outcome: self.outcome,
-            is_active: self.is_active,
             status: self.status,
             external: self.external,
         }
