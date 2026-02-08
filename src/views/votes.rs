@@ -65,7 +65,7 @@ impl Vote {
 }
 
 /// A reference to a chamber (minimal info for display)
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ChamberRef {
     pub id: i32,
