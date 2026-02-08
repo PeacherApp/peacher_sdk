@@ -23,7 +23,10 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
         }
     }
 
-    pub async fn sync(&mut self) -> Result<LegislationSyncResult, SyncError> {
+    pub async fn sync(
+        &mut self,
+        max_consecutive_unknown: Option<u32>,
+    ) -> Result<LegislationSyncResult, SyncError> {
         let session = self.mapper.session(&self.session).await?;
 
         info!(
@@ -89,10 +92,6 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                     ext_leg.name_id, ext_leg.external_id
                 );
 
-                if ext_leg.external_id == ExternalId::new("119-sres-56") {
-                    tracing::error!("FOUND THIS ID: {ext_leg:#?}");
-                }
-
                 let outcome =
                     sync_legislation(self.mapper, session.id, &known_legislation, ext_leg).await?;
                 match outcome.view {
@@ -114,7 +113,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                     }
                 };
 
-                if consecutive_known > 10 {
+                if max_consecutive_unknown.is_some_and(|max| consecutive_known > max) {
                     info!(
                         "Hit {} consecutive known items, stopping early",
                         consecutive_known

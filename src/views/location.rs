@@ -19,13 +19,16 @@ impl ViewerLocationResponse {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ViewerIntersectionReponse {
     pub location: ViewerLocationResponse,
-    pub intersections: Vec<IntersectionView>,
+    pub maps: Vec<PoliticalIntersectionMap>,
+    /// Note that this data are also embedded within the maps. However,
+    /// we duplicate the data here, as it's much easier to work with/worth the cost.
+    pub intersections: Vec<BoundaryView>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct Intersections {
-    inner: Vec<IntersectionView>,
+    inner: Vec<PoliticalIntersectionMap>,
 }
 impl Intersections {
     pub fn new(capacity: usize) -> Self {
@@ -33,7 +36,7 @@ impl Intersections {
             inner: Vec::with_capacity(capacity),
         }
     }
-    pub fn extend(&mut self, views: Vec<IntersectionView>) {
+    pub fn extend(&mut self, views: Vec<PoliticalIntersectionMap>) {
         self.inner.extend(views);
     }
 }
@@ -43,13 +46,13 @@ impl Intersections {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct LocationIntersectionResponse {
-    pub intersections: Vec<IntersectionView>,
+    pub intersections: Vec<PoliticalIntersectionMap>,
 }
 
 /// This is an intersection with some map type.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct IntersectionView {
+pub struct PoliticalIntersectionMap {
     pub map: MapView,
     pub boundaries: GeoJson<BoundaryView>,
 }

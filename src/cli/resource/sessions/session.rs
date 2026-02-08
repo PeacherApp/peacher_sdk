@@ -87,7 +87,7 @@ impl SessionAction {
 
                 match sync_type {
                     SyncType::All | SyncType::Legislation => {
-                        let value = session.legislation().sync().await?;
+                        let value = session.legislation().sync(None).await?;
                         value.print();
                     }
                     SyncType::Members => {}
