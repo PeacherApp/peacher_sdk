@@ -136,6 +136,9 @@ pub struct UpdateLegislationRequest {
     pub url_set: bool,
     pub url: Option<Url>,
 
+    /// If some, the status_updated time is updated. If none, it remains unchanged.
+    pub status_updated_at: Option<DateTime<FixedOffset>>,
+
     /// When the external update occurred. this is a user editable field, so
     /// if an external api provides and updated_date, that should be this field.
     ///
@@ -152,10 +155,6 @@ pub struct UpdateLegislationRequest {
     pub status_set: bool,
     /// Only applied if `status_set` is true.
     pub status: Option<LegislationStatus>,
-
-    pub status_updated_set: bool,
-    /// Only applied if `status_updated_set` is true.
-    pub status_updated_at: Option<DateTime<FixedOffset>>,
 }
 
 /// Request to add a sponsor to legislation

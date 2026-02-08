@@ -79,7 +79,6 @@ impl ExternalLegislation {
             status: self.status,
 
             external_update_at: Some(self.external_update_at),
-            status_updated_set: true,
 
             status_updated_at: self.status_updated_at,
         }
