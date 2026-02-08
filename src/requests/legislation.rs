@@ -82,7 +82,7 @@ pub struct CreateLegislationRequest {
     /// If your API does not provide this data, use `Local::now()`
     pub status_updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub status: Option<LegislationOutcome>,
+    pub status: Option<LegislationStatus>,
     pub external_metadata: Option<ExternalMetadata>,
 }
 
@@ -113,7 +113,7 @@ impl CreateLegislationRequest {
         self
     }
 
-    pub fn outcome(mut self, outcome: LegislationOutcome) -> Self {
+    pub fn outcome(mut self, outcome: LegislationStatus) -> Self {
         self.status = Some(outcome);
         self
     }
@@ -190,7 +190,7 @@ pub struct UpdateLegislationRequest {
     pub introduced_at: Option<DateTime<FixedOffset>>,
     pub outcome_set: bool,
     /// Only applied if `outcome_set` is true.
-    pub outcome: Option<LegislationOutcome>,
+    pub outcome: Option<LegislationStatus>,
     pub status_updated_set: bool,
     /// Only applied if `status_updated_set` is true.
     pub status_updated_at: Option<DateTime<FixedOffset>>,
@@ -231,7 +231,7 @@ impl UpdateLegislationRequest {
         self
     }
 
-    pub fn outcome(mut self, outcome: LegislationOutcome) -> Self {
+    pub fn outcome(mut self, outcome: LegislationStatus) -> Self {
         self.outcome = Some(outcome);
         self
     }

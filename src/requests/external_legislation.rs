@@ -25,7 +25,7 @@ pub struct ExternalLegislation {
     pub url: Option<Url>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
     /// Current outcome of the legislation (replaces active boolean)
-    pub status: Option<LegislationOutcome>,
+    pub status: Option<LegislationStatus>,
     pub sponsors: Vec<ExternalSponsor>,
     pub votes: Vec<ExternalLegislationVote>,
 }
@@ -59,9 +59,9 @@ impl ExternalLegislation {
     }
 
     pub fn needs_update(&self, view: &LegislationView) -> bool {
-        self.status == view.outcome
+        self.status == view.status
             && self.title == view.title
-            && self.status_text == view.status
+            && self.status_text == view.status_text
             && view
                 .external
                 .as_ref()

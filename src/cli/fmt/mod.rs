@@ -243,7 +243,7 @@ impl AsTable for Vec<LegislationView> {
                 l.title.clone()
             },
             legislation_type: format!("{:?}", l.legislation_type),
-            status: l.status.clone(),
+            status: l.status_text.clone(),
             external_id: l
                 .external
                 .as_ref()
