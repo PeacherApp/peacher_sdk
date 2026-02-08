@@ -27,12 +27,12 @@ impl GetHandler for ListSessions {
 }
 
 /// Get members of a chamber for a specific session
-pub struct ListSessionMembers {
+pub struct GetChamberSession {
     session_id: i32,
     chamber_id: i32,
 }
 
-impl ListSessionMembers {
+impl GetChamberSession {
     pub fn new(chamber_id: i32, session_id: i32) -> Self {
         Self {
             session_id,
@@ -53,7 +53,7 @@ impl Handler for DeleteSession {
     }
 }
 
-impl GetHandler for ListSessionMembers {
+impl GetHandler for GetChamberSession {
     type ResponseBody = ChamberSessionView;
     fn path(&self) -> Cow<'_, str> {
         format!(

@@ -72,7 +72,7 @@ pub struct ChamberSessionView {
 pub struct ChamberDistrictView {
     pub id: i32,
     pub name: String,
-    pub representative: Option<MemberView>,
+    pub representatives: Vec<MemberView>,
 }
 
 /// Response for getting chamber details with session support

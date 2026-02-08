@@ -1,7 +1,7 @@
 mod utils;
 pub use utils::*;
 
-use std::borrow::Cow;
+use std::{borrow::Cow, sync::Arc};
 
 use console::{Style, StyledObject};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -238,18 +238,37 @@ impl AsTable for Vec<LegislationView> {
             id: l.id,
             name_id: l.name_id.clone(),
             title: if l.title.len() > 50 {
-                format!("{}...", &l.title[..47])
+                format!("{}...", l.title.chars().take(47).collect::<String>())
             } else {
                 l.title.clone()
             },
             legislation_type: format!("{:?}", l.legislation_type),
-            status: l.status.clone(),
+            status: l.status_text.clone(),
             external_id: l
                 .external
                 .as_ref()
                 .map(|e| e.external_id.val_str().to_string())
                 .unwrap_or_else(|| "-".to_string()),
         })
+    }
+}
+
+impl AsTable for Vec<Arc<MemberView>> {
+    type TableRow<'a>
+        = MemberRow
+    where
+        Self: 'a;
+    const NAME: &str = "members";
+    fn to_table_row<'a>(&'a self) -> impl ExactSizeIterator<Item = Self::TableRow<'a>> {
+        self.iter().map(|m| MemberRow {
+            id: m.id,
+            display_name: m.display_name.clone(),
+            handle: m.handle.clone(),
+            party: m.party.name.clone(),
+        })
+    }
+    fn nest(&self) -> usize {
+        4
     }
 }
 

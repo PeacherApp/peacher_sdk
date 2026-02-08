@@ -39,6 +39,21 @@ impl SdkError {
         Self::DeserializeBody(Some(err))
     }
 }
+impl From<anyhow::Error> for SdkError {
+    fn from(value: anyhow::Error) -> Self {
+        Self::Other(value.to_string())
+    }
+}
+impl From<reqwest::Error> for SdkError {
+    fn from(value: reqwest::Error) -> Self {
+        if let Some(status) = value.status() {
+            SdkError::Status(status, value.to_string())
+        } else {
+            SdkError::Other(value.to_string())
+        }
+    }
+}
+
 impl From<Infallible> for SdkError {
     fn from(_: Infallible) -> Self {
         unreachable!()

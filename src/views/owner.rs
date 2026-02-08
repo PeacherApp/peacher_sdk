@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::prelude::ExternalId;
 
@@ -7,10 +8,10 @@ use crate::prelude::ExternalId;
 pub struct ExternalOwner {
     pub owner_id: i32,
     pub external_id: ExternalId,
-    pub url: Option<String>,
+    pub url: Option<Url>,
 }
 impl ExternalOwner {
-    pub fn new(owner_id: i32, external_id: impl ToString, url: Option<String>) -> Self {
+    pub fn new(owner_id: i32, external_id: impl ToString, url: Option<Url>) -> Self {
         Self {
             owner_id,
             external_id: ExternalId::new(external_id),

@@ -22,7 +22,7 @@ pub enum LegislationType {
     Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default, Display, EnumString,
 )]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub enum LegislationOutcome {
+pub enum LegislationStatus {
     ///Still in progress
     #[default]
     Pending,
@@ -41,10 +41,10 @@ pub enum LegislationOutcome {
     Withdrawn,
 }
 
-impl LegislationOutcome {
+impl LegislationStatus {
     /// Returns true if this outcome represents an active/in-progress state
     pub fn is_active(&self) -> bool {
-        matches!(self, LegislationOutcome::Pending)
+        matches!(self, LegislationStatus::Pending)
     }
 
     /// Returns true if this outcome represents a terminal state
@@ -64,18 +64,17 @@ pub struct LegislationView {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub resolved_at: Option<DateTime<FixedOffset>>,
+    pub external_update_at: Option<DateTime<FixedOffset>>,
     pub legislation_type: LegislationType,
     pub id: i32,
     pub name_id: String,
     pub title: String,
     pub summary: String,
     /// Current outcome of the legislation
-    pub outcome: Option<LegislationOutcome>,
-    /// Derived: true if outcome is None or Pending
-    pub is_active: bool,
+    pub status: Option<LegislationStatus>,
     /// Human-readable status text from external source
-    pub status: String,
+    pub status_text: String,
+    pub status_updated_at: DateTime<FixedOffset>,
     pub external: Option<ExternalOwner>,
 }
 
@@ -89,15 +88,15 @@ impl LegislationView {
             created_at: self.created_at,
             updated_at: self.updated_at,
             introduced_at: self.introduced_at,
-            resolved_at: self.resolved_at,
+            external_update_at: self.external_update_at,
             id: self.id,
             name_id: self.name_id,
             title: self.title,
             summary: self.summary,
+            status_updated_at: self.status_updated_at,
             legislation_type: self.legislation_type,
-            outcome: self.outcome,
-            is_active: self.is_active,
             status: self.status,
+            status_text: self.status_text,
             external: self.external,
             votes: votes.into_iter().collect(),
             sponsors: sponsors.into_iter().collect(),
@@ -111,18 +110,17 @@ pub struct DetailedLegislationView {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub resolved_at: Option<DateTime<FixedOffset>>,
     pub id: i32,
     pub name_id: String,
     pub title: String,
     pub summary: String,
+    pub external_update_at: Option<DateTime<FixedOffset>>,
     pub legislation_type: LegislationType,
     /// Current outcome of the legislation
-    pub outcome: Option<LegislationOutcome>,
-    /// Derived: true if outcome is None or Pending
-    pub is_active: bool,
+    pub status: Option<LegislationStatus>,
     /// Human-readable status text from external source
-    pub status: String,
+    pub status_text: String,
+    pub status_updated_at: DateTime<FixedOffset>,
     pub external: Option<ExternalOwner>,
     pub votes: Vec<LegislationViewVote>,
     pub sponsors: Vec<LegislationViewSponsor>,
@@ -134,15 +132,15 @@ impl DetailedLegislationView {
             created_at: self.created_at,
             updated_at: self.updated_at,
             introduced_at: self.introduced_at,
-            resolved_at: self.resolved_at,
+            external_update_at: self.external_update_at,
             id: self.id,
             name_id: self.name_id,
             title: self.title,
             summary: self.summary,
             legislation_type: self.legislation_type,
-            outcome: self.outcome,
-            is_active: self.is_active,
+            status_updated_at: self.status_updated_at,
             status: self.status,
+            status_text: self.status_text,
             external: self.external,
         }
     }
@@ -163,6 +161,7 @@ pub struct LegislationViewSponsor {
     pub id: i32,
     pub member_id: i32,
     pub sponsor_type: i32,
+    pub sponsored_at: Option<DateTime<FixedOffset>>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -171,7 +170,10 @@ pub struct LegislationDetailsResponse {
     pub id: i32,
     pub name_id: String,
     pub title: String,
-    pub status: String,
+    pub external_update_at: Option<DateTime<FixedOffset>>,
+    pub status_text: String,
+    pub status_updated_at: DateTime<FixedOffset>,
+    pub status: Option<LegislationStatus>,
     pub summary: String,
     pub legislation_type: LegislationType,
     pub external: Option<ExternalOwner>,
@@ -184,7 +186,7 @@ pub struct LegislationDetailsResponse {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SponsorInfo {
     pub member: MemberView,
-    pub sponsor_type: String,
+    pub sponsor_type: SponsorshipType,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -200,6 +202,7 @@ pub struct LegislationVoteView {
     pub id: i32,
     pub name: String,
     pub occurred_at: Option<DateTime<FixedOffset>>,
+    pub chamber: ChamberRef,
     pub yes_count: i32,
     pub no_count: i32,
     pub absent_count: i32,
@@ -224,6 +227,7 @@ pub struct LegislationVoteDetailsResponse {
     pub vote_id: i32,
     pub vote_name: String,
     pub occurred_at: Option<DateTime<FixedOffset>>,
+    pub chamber: ChamberRef,
     pub legislation: LegislationView,
     pub member_votes: Vec<MemberVoteValue>,
     pub summary: VoteSummary,
@@ -235,4 +239,5 @@ pub struct LegislationVoteDetailsResponse {
 pub struct SponsoredLegislationView {
     pub sponsor: MemberView,
     pub legislation: LegislationView,
+    pub sponsored_at: Option<DateTime<FixedOffset>>,
 }

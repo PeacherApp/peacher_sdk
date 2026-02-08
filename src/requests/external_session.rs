@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::prelude::*;
 
@@ -33,7 +34,7 @@ impl Handler for CreateJurisdictionSession {
 pub struct ExternalSession {
     pub name: String,
     pub external_id: ExternalId,
-    pub url: Option<String>,
+    pub url: Option<Url>,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
     /// The chambers that are part of this session
@@ -75,7 +76,7 @@ impl ExternalSession {
         self.chambers.extend(chamber.into_iter().map(Into::into));
         self
     }
-    pub fn with_url(mut self, url: String) -> Self {
+    pub fn with_url(mut self, url: Url) -> Self {
         self.url = Some(url);
         self
     }

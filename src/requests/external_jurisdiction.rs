@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::prelude::*;
 
@@ -10,7 +11,7 @@ use crate::prelude::*;
 pub struct ExternalJurisdiction {
     pub name: String,
     pub external_id: ExternalId,
-    pub url: Option<String>,
+    pub url: Option<Url>,
     pub chambers: Vec<ExternalChamber>,
 }
 
@@ -24,8 +25,8 @@ impl ExternalJurisdiction {
         }
     }
 
-    pub fn with_url(mut self, url: impl Into<String>) -> Self {
-        self.url = Some(url.into());
+    pub fn with_url(mut self, url: Url) -> Self {
+        self.url = Some(url);
         self
     }
 
@@ -34,8 +35,8 @@ impl ExternalJurisdiction {
         self
     }
 
-    pub fn with_chambers(mut self, chambers: Vec<ExternalChamber>) -> Self {
-        self.chambers = chambers;
+    pub fn with_chambers(mut self, chambers: impl IntoIterator<Item = ExternalChamber>) -> Self {
+        self.chambers = chambers.into_iter().collect();
         self
     }
 
@@ -52,7 +53,7 @@ impl ExternalJurisdiction {
 pub struct ExternalChamber {
     pub name: String,
     pub external_id: ExternalId,
-    pub url: Option<String>,
+    pub url: Option<Url>,
 }
 
 impl ExternalChamber {
@@ -64,8 +65,8 @@ impl ExternalChamber {
         }
     }
 
-    pub fn with_url(mut self, url: impl Into<String>) -> Self {
-        self.url = Some(url.into());
+    pub fn with_url(mut self, url: Url) -> Self {
+        self.url = Some(url);
         self
     }
 }

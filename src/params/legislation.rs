@@ -65,15 +65,15 @@ impl LegislationParams {
         self
     }
 
-    pub fn set_outcomes(mut self, outcomes: impl IntoIterator<Item = LegislationOutcome>) -> Self {
+    pub fn set_outcomes(mut self, outcomes: impl IntoIterator<Item = LegislationStatus>) -> Self {
         self.outcome = outcomes.into_iter().map(|o| o.to_string()).collect();
         self
     }
 
-    pub fn outcomes(&self) -> Vec<LegislationOutcome> {
+    pub fn outcomes(&self) -> Vec<LegislationStatus> {
         self.outcome
             .iter()
-            .filter_map(|o| LegislationOutcome::from_str(o).ok())
+            .filter_map(|o| LegislationStatus::from_str(o).ok())
             .collect()
     }
 }

@@ -10,9 +10,6 @@ pub use account::*;
 mod health;
 pub use health::*;
 
-mod external_chamber;
-pub use external_chamber::*;
-
 mod external_jurisdiction;
 pub use external_jurisdiction::*;
 

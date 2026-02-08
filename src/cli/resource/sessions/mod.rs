@@ -18,7 +18,7 @@ pub enum SessionCmd {
 
     /// Do something with a specific session
     Id {
-        id: i32,
+        id: String,
         #[command(subcommand)]
         action: SessionAction,
     },
@@ -30,20 +30,17 @@ impl SessionCmd {
         E: ExternalClient,
         P: Client,
     {
-        let jurisdiction_id = sync.resolve_internal_jurisdiction().await?;
+        let jurisdiction = sync.jurisdiction().get().await?;
         match self {
             SessionCmd::List => {
-                let sessions =
-                    ListSessions(SessionParams::default().with_jurisdiction(jurisdiction_id))
-                        .request(sync.peacher())
-                        .await?;
+                let val = sync.sessions().list().await?;
 
-                sessions.data.print();
+                val.data.print();
                 Ok(())
             }
             SessionCmd::Sync => {
                 let spinner = fmt::spinner("Syncing sessions...");
-                let result = sync.sync_sessions(jurisdiction_id).await?;
+                let result = sync.sessions().sync_sessions().await?;
                 fmt::spinner_success(&spinner, "Sync complete");
 
                 result.print();

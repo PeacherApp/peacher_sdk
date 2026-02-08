@@ -1,6 +1,8 @@
-use std::borrow::Cow;
-
 use crate::prelude::*;
+use chrono::{DateTime, FixedOffset};
+use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
+use url::Url;
 
 impl GetHandler for LegislationParams {
     type ResponseBody = Paginated<DetailedLegislationView>;
@@ -61,9 +63,6 @@ impl GetHandler for GetLegislationVoteDetails {
     }
 }
 
-use chrono::{DateTime, FixedOffset};
-use serde::{Deserialize, Serialize};
-
 /// Request to create a new piece of legislation
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -71,54 +70,18 @@ pub struct CreateLegislationRequest {
     pub name_id: String,
     pub title: String,
     pub summary: String,
+    /// When the primary source material was last updated.
+    ///
+    /// If your API does not provide this data, use `Local::now()`
     pub legislation_type: LegislationType,
-    pub status: String,
+    pub status: Option<LegislationStatus>,
+    pub status_text: String,
+    /// When the primary source material was last updated the legislation status.
+    ///
+    /// If your API does not provide this data, use `Local::now()`
+    pub status_updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub outcome: Option<LegislationOutcome>,
-    pub resolved_at: Option<DateTime<FixedOffset>>,
     pub external_metadata: Option<ExternalMetadata>,
-}
-
-impl CreateLegislationRequest {
-    pub fn new(
-        name_id: impl Into<String>,
-        title: impl Into<String>,
-        summary: impl Into<String>,
-        legislation_type: LegislationType,
-        status: impl Into<String>,
-    ) -> Self {
-        Self {
-            name_id: name_id.into(),
-            title: title.into(),
-            summary: summary.into(),
-            legislation_type,
-            status: status.into(),
-            introduced_at: None,
-            outcome: None,
-            resolved_at: None,
-            external_metadata: None,
-        }
-    }
-
-    pub fn introduced_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.introduced_at = Some(date);
-        self
-    }
-
-    pub fn outcome(mut self, outcome: LegislationOutcome) -> Self {
-        self.outcome = Some(outcome);
-        self
-    }
-
-    pub fn resolved_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.resolved_at = Some(date);
-        self
-    }
-
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
-        self
-    }
 }
 
 /// Handler for creating legislation
@@ -161,63 +124,37 @@ impl Handler for CreateLegislation {
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct UpdateLegislationRequest {
+    /// If some, the name_id is updated. If none, it remains unchanged
     pub name_id: Option<String>,
+    /// If some, the title is updated. If none, it remains unchanged
     pub title: Option<String>,
+    /// If some, the summary is updated. If none, it remains unchanged
     pub summary: Option<String>,
+    /// If some, the legislation_type is updated. If none, it remains unchanged
     pub legislation_type: Option<LegislationType>,
-    pub status: Option<String>,
+
+    pub url_set: bool,
+    pub url: Option<Url>,
+
+    /// If some, the status_updated time is updated. If none, it remains unchanged.
+    pub status_updated_at: Option<DateTime<FixedOffset>>,
+
+    /// When the external update occurred. this is a user editable field, so
+    /// if an external api provides and updated_date, that should be this field.
+    ///
+    /// Otherwise, this is None.
+    pub external_update_at: Option<DateTime<FixedOffset>>,
+
+    /// If some, the status is updated. If none, the status is unchanged
+    pub status_text: Option<String>,
+
     pub introduced_at_set: bool,
+    /// Only applied if `introduced_at_set` is true.
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub outcome_set: bool,
-    pub outcome: Option<LegislationOutcome>,
-    pub resolved_at_set: bool,
-    pub resolved_at: Option<DateTime<FixedOffset>>,
-}
 
-impl UpdateLegislationRequest {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn name_id(mut self, name_id: impl Into<String>) -> Self {
-        self.name_id = Some(name_id.into());
-        self
-    }
-
-    pub fn title(mut self, title: impl Into<String>) -> Self {
-        self.title = Some(title.into());
-        self
-    }
-
-    pub fn summary(mut self, summary: impl Into<String>) -> Self {
-        self.summary = Some(summary.into());
-        self
-    }
-
-    pub fn legislation_type(mut self, legislation_type: LegislationType) -> Self {
-        self.legislation_type = Some(legislation_type);
-        self
-    }
-
-    pub fn status(mut self, status: impl Into<String>) -> Self {
-        self.status = Some(status.into());
-        self
-    }
-
-    pub fn introduced_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.introduced_at = Some(date);
-        self
-    }
-
-    pub fn outcome(mut self, outcome: LegislationOutcome) -> Self {
-        self.outcome = Some(outcome);
-        self
-    }
-
-    pub fn resolved_at(mut self, date: DateTime<FixedOffset>) -> Self {
-        self.resolved_at = Some(date);
-        self
-    }
+    pub status_set: bool,
+    /// Only applied if `status_set` is true.
+    pub status: Option<LegislationStatus>,
 }
 
 /// Request to add a sponsor to legislation
@@ -285,6 +222,53 @@ impl Handler for AddSponsor {
 
     fn method(&self) -> Method {
         Method::Post
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/sponsors", self.legislation_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
+/// Request to replace all sponsors on legislation
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PutSponsorsRequest {
+    pub sponsors: Vec<SponsorInput>,
+}
+
+/// A single sponsor entry for the PUT request
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SponsorInput {
+    pub member_id: i32,
+    pub sponsor_type: SponsorshipType,
+    pub sponsored_at: Option<DateTime<FixedOffset>>,
+}
+
+/// Handler for replacing all sponsors on legislation
+pub struct PutSponsors {
+    legislation_id: i32,
+    body: PutSponsorsRequest,
+}
+
+impl PutSponsors {
+    pub fn new(legislation_id: i32, body: PutSponsorsRequest) -> Self {
+        Self {
+            legislation_id,
+            body,
+        }
+    }
+}
+
+impl Handler for PutSponsors {
+    type ResponseBody = NoResponse;
+
+    fn method(&self) -> Method {
+        Method::Put
     }
 
     fn path(&self) -> Cow<'_, str> {

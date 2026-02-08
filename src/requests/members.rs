@@ -149,6 +149,7 @@ impl GetHandler for GetMemberFollowerData {
 }
 
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 /// Request to create a new member
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -226,7 +227,7 @@ pub struct UpdateMemberRequest {
     pub full_name: Option<String>,
     pub bio: Option<String>,
     pub party: Option<String>,
-    pub photo_url: Option<String>,
+    pub photo_url: Option<Url>,
 }
 
 impl UpdateMemberRequest {
@@ -254,8 +255,8 @@ impl UpdateMemberRequest {
         self
     }
 
-    pub fn photo_url(mut self, photo_url: impl Into<String>) -> Self {
-        self.photo_url = Some(photo_url.into());
+    pub fn photo_url(mut self, photo_url: Url) -> Self {
+        self.photo_url = Some(photo_url);
         self
     }
 }

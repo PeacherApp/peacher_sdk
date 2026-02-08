@@ -2,14 +2,14 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
 
-use crate::views::{GroupedVoteFeedItem, SponsoredLegislationView};
+use crate::views::{LegislationUpdateItem, SponsoredLegislationView};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, EnumString, strum::Display)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum ItemType {
-    Vote,
+    LegislationUpdate,
     Legislation,
 }
 
@@ -18,41 +18,38 @@ pub enum ItemType {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "snake_case", tag = "type", content = "value")]
 pub enum FeedItem {
-    Vote(GroupedVoteFeedItem),
+    LegislationUpdate(LegislationUpdateItem),
     Legislation(SponsoredLegislationView),
 }
 
 impl FeedItem {
     pub fn item_type(&self) -> ItemType {
         match self {
-            Self::Vote(_) => ItemType::Vote,
+            Self::LegislationUpdate(_) => ItemType::LegislationUpdate,
             Self::Legislation(_) => ItemType::Legislation,
         }
     }
     pub fn date_occurred(&self) -> Option<DateTime<FixedOffset>> {
         match self {
-            Self::Vote(grouped) => grouped.legislation_vote.occurred_at,
-            Self::Legislation(legislation) => legislation.legislation.introduced_at,
+            Self::LegislationUpdate(item) => item.latest_vote_at,
+            Self::Legislation(leg) => leg.sponsored_at.or(leg.legislation.introduced_at),
         }
     }
     pub fn actor_id(&self) -> Option<i32> {
         match self {
-            Self::Vote(grouped) => grouped
-                .votes_by_type
-                .yes
+            Self::LegislationUpdate(item) => item
+                .vote_events
                 .first()
-                .or(grouped.votes_by_type.no.first())
-                .or(grouped.votes_by_type.absent.first())
-                .or(grouped.votes_by_type.not_voting.first())
-                .map(|m| m.id),
+                .and_then(|e| e.representative_votes.first())
+                .map(|rv| rv.member.id),
             Self::Legislation(legislation) => Some(legislation.sponsor.id),
         }
     }
 }
 
-impl From<GroupedVoteFeedItem> for FeedItem {
-    fn from(value: GroupedVoteFeedItem) -> Self {
-        Self::Vote(value)
+impl From<LegislationUpdateItem> for FeedItem {
+    fn from(value: LegislationUpdateItem) -> Self {
+        Self::LegislationUpdate(value)
     }
 }
 impl From<SponsoredLegislationView> for FeedItem {

@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::prelude::*;
 
@@ -11,8 +12,9 @@ use crate::prelude::*;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExternalLegislationVote {
     pub vote_name: String,
-    pub url: Option<String>,
+    pub url: Option<Url>,
     pub date_occurred: Option<DateTime<FixedOffset>>,
+    pub chamber_id: ExternalId,
     /// Note that many APIs duplicate their external ID as a composite
     /// primary key of the legislation and another value.
     /// you will have to augment this conversion.

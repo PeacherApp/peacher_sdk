@@ -29,7 +29,8 @@ impl JurisdictionCmd {
             }
             JurisdictionCmd::Sync => {
                 let spinner = fmt::spinner("Syncing jurisdiction and chambers...");
-                let result = sync.sync_jurisdiction_and_chambers().await?;
+
+                let result = sync.jurisdiction().sync().await?;
                 fmt::spinner_success(&spinner, "Sync complete");
                 result.print();
                 Ok(())

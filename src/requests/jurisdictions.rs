@@ -85,7 +85,7 @@ impl CreateJurisdiction {
 }
 
 impl Handler for CreateJurisdiction {
-    type ResponseBody = CreateJurisdictionResponse;
+    type ResponseBody = GetJurisdictionResponse;
 
     fn method(&self) -> Method {
         Method::Post

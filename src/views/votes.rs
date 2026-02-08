@@ -65,7 +65,7 @@ impl Vote {
 }
 
 /// A reference to a chamber (minimal info for display)
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ChamberRef {
     pub id: i32,
@@ -95,47 +95,24 @@ pub struct MemberVoteView {
     pub vote: VoteView,
 }
 
-/// A feed item showing votes from followed members on a single legislation vote
+/// A vote event on legislation with only the user's representatives' votes
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct GroupedVoteFeedItem {
-    /// The legislation vote event
+pub struct RepresentativeVoteEvent {
+    /// The legislation vote event (chamber, name, date)
     pub legislation_vote: LegislationVote,
-    /// The legislation being voted on
+    /// How each of the user's representatives voted
+    pub representative_votes: Vec<MemberVoteValue>,
+}
+
+/// A legislation-centric feed item showing all vote events with representative votes
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct LegislationUpdateItem {
+    /// The legislation being tracked
     pub legislation: LegislationView,
-    /// Summary of votes from followed members only
-    pub followed_summary: FollowedVoteSummary,
-    /// Members grouped by their vote value
-    pub votes_by_type: VotesByType,
-}
-impl GroupedVoteFeedItem {
-    pub fn members(&self) -> impl Iterator<Item = &MemberView> {
-        self.votes_by_type
-            .yes
-            .iter()
-            .chain(self.votes_by_type.no.iter())
-            .chain(self.votes_by_type.not_voting.iter())
-            .chain(self.votes_by_type.absent.iter())
-    }
-}
-
-/// Summary counts for followed members' votes
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct FollowedVoteSummary {
-    pub yes_count: i32,
-    pub no_count: i32,
-    pub absent_count: i32,
-    pub not_voting_count: i32,
-    pub total: i32,
-}
-
-/// Members grouped by vote type
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct VotesByType {
-    pub yes: Vec<MemberView>,
-    pub no: Vec<MemberView>,
-    pub absent: Vec<MemberView>,
-    pub not_voting: Vec<MemberView>,
+    /// All vote events on this legislation, ordered by most recent first
+    pub vote_events: Vec<RepresentativeVoteEvent>,
+    /// The most recent vote date (used for feed sorting)
+    pub latest_vote_at: Option<DateTime<FixedOffset>>,
 }

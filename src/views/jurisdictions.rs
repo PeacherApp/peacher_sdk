@@ -5,16 +5,6 @@ use crate::views::{ExternalOwner, ListChamberResponse, SmallChamberView};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct CreateJurisdictionResponse {
-    pub id: i32,
-    pub name: String,
-    pub created_at: DateTime<FixedOffset>,
-    pub updated_at: DateTime<FixedOffset>,
-    pub external: Option<ExternalOwner>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct GetJurisdictionResponse {
     pub id: i32,
     pub name: String,
