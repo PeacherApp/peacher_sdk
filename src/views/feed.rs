@@ -32,7 +32,7 @@ impl FeedItem {
     pub fn date_occurred(&self) -> Option<DateTime<FixedOffset>> {
         match self {
             Self::Vote(grouped) => grouped.legislation_vote.occurred_at,
-            Self::Legislation(legislation) => legislation.legislation.introduced_at,
+            Self::Legislation(leg) => leg.sponsored_at.or(leg.legislation.introduced_at),
         }
     }
     pub fn actor_id(&self) -> Option<i32> {

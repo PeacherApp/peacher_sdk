@@ -237,4 +237,5 @@ pub struct LegislationVoteDetailsResponse {
 pub struct SponsoredLegislationView {
     pub sponsor: MemberView,
     pub legislation: LegislationView,
+    pub sponsored_at: Option<DateTime<FixedOffset>>,
 }
