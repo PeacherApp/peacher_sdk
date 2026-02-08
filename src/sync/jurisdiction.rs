@@ -52,10 +52,11 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
             Ok(jurisdiction) => (jurisdiction, false),
             Err(SyncError::NotFound(external_id)) => {
                 // Create jurisdiction
-                let mut ext_metadata = ExternalMetadata::new(external_id);
-                if let Some(ref url) = client_provided_jurisdiction.url {
-                    ext_metadata.set_url(url.clone());
-                }
+                let ext_metadata = ExternalMetadata {
+                    external_id,
+                    url: client_provided_jurisdiction.url,
+                    externally_updated_at: None,
+                };
 
                 let created = CreateJurisdiction::new(&client_provided_jurisdiction.name)
                     .external_metadata(ext_metadata)
@@ -98,11 +99,13 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
                 None => {
                     let mut chamber_req =
                         CreateChamber::new(jurisdiction.id, &client_provided_chamber.name);
-                    let mut ext_metadata =
-                        ExternalMetadata::new(client_provided_chamber.external_id.clone());
-                    if let Some(ref url) = client_provided_chamber.url {
-                        ext_metadata.set_url(url.clone());
-                    }
+
+                    let ext_metadata = ExternalMetadata {
+                        external_id: client_provided_chamber.external_id.clone(),
+                        url: client_provided_chamber.url.clone(),
+                        externally_updated_at: None,
+                    };
+
                     chamber_req = chamber_req.external_metadata(ext_metadata);
 
                     let created = chamber_req.request(self.mapper.client()).await?;

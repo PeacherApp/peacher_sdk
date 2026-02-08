@@ -128,10 +128,11 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
                         session_req = session_req.ends_at(ends_at);
                     }
 
-                    let mut ext_metadata = ExternalMetadata::new(ext_session.external_id.clone());
-                    if let Some(ref url) = ext_session.url {
-                        ext_metadata.set_url(url.clone());
-                    }
+                    let ext_metadata = ExternalMetadata {
+                        external_id: ext_session.external_id.clone(),
+                        url: ext_session.url.clone(),
+                        externally_updated_at: None,
+                    };
                     session_req = session_req.external_metadata(ext_metadata);
 
                     let response = CreateSession::new(jurisdiction.id, session_req)

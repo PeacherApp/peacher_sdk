@@ -237,12 +237,12 @@ async fn sync_legislation_votes<P: Client>(
         }
 
         // Create vote
-
-        let mut ext_metadata = ExternalMetadata::new(ext_vote.external_id.clone());
-
-        if let Some(url) = ext_vote.url {
-            ext_metadata.set_url(url.clone());
-        }
+        //
+        let ext_metadata = ExternalMetadata {
+            external_id: ext_vote.external_id.clone(),
+            url: ext_vote.url.clone(),
+            externally_updated_at: None,
+        };
 
         let vote_name = ext_vote.vote_name.clone();
         let ext_vote_id = ext_vote.external_id.val_str().to_owned();
