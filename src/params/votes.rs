@@ -7,5 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct VoteParams {
     pub page: Option<u64>,
     pub page_size: Option<u64>,
+    /// Comma-separated vote values to filter by (e.g. "Yes,No")
+    pub vote_value: Option<String>,
 }
 paginated!(VoteParams);

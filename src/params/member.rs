@@ -2,10 +2,12 @@ use crate::{paginated, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
 pub struct MemberParams {
+    /// Free text search across display_name, handle, and full_name
+    pub freetext: Option<String>,
     /// A query for members following this member
     pub members_following: Option<i32>,
     /// A query for members that are followed by this member
@@ -24,6 +26,9 @@ pub struct MemberParams {
 paginated!(MemberParams);
 
 impl MemberParams {
+    pub fn freetext(&self) -> Option<&str> {
+        self.freetext.as_deref()
+    }
     pub fn external_id(&self) -> Option<&str> {
         self.external_id.as_deref()
     }

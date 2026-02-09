@@ -3,44 +3,42 @@ use std::borrow::Cow;
 use crate::prelude::*;
 
 /// List members with optional filters
+#[derive(Default)]
 pub struct ListMembers {
-    page: u64,
-    page_size: u64,
-    external_id: Option<String>,
+    pub params: MemberParams,
 }
 
 impl ListMembers {
     pub fn new() -> Self {
         Self {
-            page: 1,
-            page_size: 20,
-            external_id: None,
+            params: MemberParams {
+                page: Some(1),
+                page_size: Some(20),
+                external_id: None,
+                freetext: None,
+                ..Default::default()
+            },
         }
     }
 
     pub fn page(mut self, page: u64) -> Self {
-        self.page = page;
+        self.params.page = Some(page);
         self
     }
 
     pub fn page_size(mut self, page_size: u64) -> Self {
-        self.page_size = page_size;
+        self.params.page_size = Some(page_size);
         self
     }
 
     pub fn with_external_id(mut self, external_id: impl Into<String>) -> Self {
-        self.external_id = Some(external_id.into());
+        self.params.external_id = Some(external_id.into());
         self
     }
-}
 
-impl Default for ListMembers {
-    fn default() -> Self {
-        Self {
-            page: 1,
-            page_size: 20,
-            external_id: None,
-        }
+    pub fn freetext(mut self, freetext: impl Into<String>) -> Self {
+        self.params.freetext = Some(freetext.into());
+        self
     }
 }
 
@@ -52,18 +50,7 @@ impl GetHandler for ListMembers {
     }
 
     fn params(&self) -> impl SdkParams {
-        #[derive(Serialize)]
-        struct Params {
-            page: u64,
-            page_size: u64,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            external_id: Option<String>,
-        }
-        Params {
-            page: self.page,
-            page_size: self.page_size,
-            external_id: self.external_id.clone(),
-        }
+        self.params.clone()
     }
 }
 
