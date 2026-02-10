@@ -122,3 +122,103 @@ impl Handler for DeleteCategory {
         format!("/api/categories/{}", self.0).into()
     }
 }
+
+// --- Account Categories ---
+
+/// Request body for setting account categories
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SetAccountCategoriesRequest {
+    pub categories: Vec<String>,
+}
+
+/// Get categories for the current account
+pub struct GetAccountCategories;
+
+impl GetHandler for GetAccountCategories {
+    type ResponseBody = Vec<Category>;
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/account/categories".into()
+    }
+}
+
+/// Set categories for the current account (replaces all)
+pub struct SetAccountCategories {
+    body: SetAccountCategoriesRequest,
+}
+
+impl SetAccountCategories {
+    pub fn new(categories: Vec<String>) -> Self {
+        Self {
+            body: SetAccountCategoriesRequest { categories },
+        }
+    }
+}
+
+impl Handler for SetAccountCategories {
+    type ResponseBody = Vec<Category>;
+
+    fn method(&self) -> Method {
+        Method::Put
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/account/categories".into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
+// --- Legislation Categories ---
+
+/// Request body for setting legislation categories
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SetLegislationCategoriesRequest {
+    pub categories: Vec<String>,
+}
+
+/// Get categories for a piece of legislation
+pub struct GetLegislationCategories(pub i32);
+
+impl GetHandler for GetLegislationCategories {
+    type ResponseBody = Vec<Category>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/categories", self.0).into()
+    }
+}
+
+/// Set categories for a piece of legislation (replaces all)
+pub struct SetLegislationCategories {
+    legislation_id: i32,
+    body: SetLegislationCategoriesRequest,
+}
+
+impl SetLegislationCategories {
+    pub fn new(legislation_id: i32, categories: Vec<String>) -> Self {
+        Self {
+            legislation_id,
+            body: SetLegislationCategoriesRequest { categories },
+        }
+    }
+}
+
+impl Handler for SetLegislationCategories {
+    type ResponseBody = Vec<Category>;
+
+    fn method(&self) -> Method {
+        Method::Put
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/categories", self.legislation_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
