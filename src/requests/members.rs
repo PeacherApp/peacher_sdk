@@ -302,3 +302,11 @@ impl Handler for UpdateMember {
         builder.json(&self.body)
     }
 }
+
+/// Ban a member with a reason
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct BanMemberRequest {
+    pub reason: String,
+    pub context: String,
+}
