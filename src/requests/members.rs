@@ -307,6 +307,12 @@ impl Handler for UpdateMember {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BanMemberRequest {
+    /// This is the reason for the ban
     pub reason: String,
+
+    /// This field is for interior use only, meant to share
+    /// additional context with administrators of the site.
+    ///
+    /// This is not visible to users without moderator capabilities.
     pub context: String,
 }
