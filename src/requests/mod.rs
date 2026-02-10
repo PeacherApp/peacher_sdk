@@ -4,6 +4,9 @@ pub use auth::*;
 mod external;
 pub use external::*;
 
+mod categories;
+pub use categories::*;
+
 mod account;
 pub use account::*;
 
