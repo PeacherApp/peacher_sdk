@@ -302,3 +302,51 @@ impl Handler for UpdateMember {
         builder.json(&self.body)
     }
 }
+
+/// Ban a member with a reason
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct BanMemberRequest {
+    /// This is the reason for the ban
+    pub reason: String,
+
+    /// This field is for interior use only, meant to share
+    /// additional context with administrators of the site.
+    ///
+    /// This is not visible to users without moderator capabilities.
+    pub context: String,
+}
+
+/// Handler to ban a member
+pub struct BanMember {
+    member_id: i32,
+    body: BanMemberRequest,
+}
+
+impl BanMember {
+    pub fn new(member_id: i32, reason: impl Into<String>, context: impl Into<String>) -> Self {
+        Self {
+            member_id,
+            body: BanMemberRequest {
+                reason: reason.into(),
+                context: context.into(),
+            },
+        }
+    }
+}
+
+impl Handler for BanMember {
+    type ResponseBody = BanInfo;
+
+    fn method(&self) -> Method {
+        Method::Post
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/members/{}/bans", self.member_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
