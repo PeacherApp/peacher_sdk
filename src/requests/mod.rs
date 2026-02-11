@@ -4,11 +4,17 @@ pub use auth::*;
 mod external;
 pub use external::*;
 
+mod categories;
+pub use categories::*;
+
 mod account;
 pub use account::*;
 
 mod health;
 pub use health::*;
+
+mod reports;
+pub use reports::*;
 
 mod external_jurisdiction;
 pub use external_jurisdiction::*;
