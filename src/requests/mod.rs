@@ -13,6 +13,9 @@ pub use account::*;
 mod health;
 pub use health::*;
 
+mod reports;
+pub use reports::*;
+
 mod external_jurisdiction;
 pub use external_jurisdiction::*;
 
