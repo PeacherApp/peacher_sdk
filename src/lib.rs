@@ -1,4 +1,5 @@
 pub mod client;
+pub mod document;
 pub mod paginate;
 pub mod params;
 pub mod peanut;
