@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreateSummaryRequest {
-    pub content: String,
+    pub content: serde_json::Value,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
