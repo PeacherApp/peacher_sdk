@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Request to create a new piece of legislation
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -11,12 +12,13 @@ pub struct CreateSummaryRequest {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SummaryView {
-    pub id: i32,
+    pub id: Uuid,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-    pub content: String,
+    pub searchable_text: String,
+    pub document: serde_json::Value,
     pub visibility: Visibility,
-    pub author: i32,
+    pub author: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

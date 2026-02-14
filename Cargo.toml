@@ -51,7 +51,7 @@ console = { version = "0.15", optional = true }
 indicatif = { version = "0.17", optional = true }
 thiserror = {version = "2"}
 strum = { version = "0.27", features = ["derive"] }
-uuid = { version = "1.6", features = ["v4"] }
+uuid = { version = "1.6", features = ["serde", "v4"] }
 mime = "0.3.17"
 
 [dev-dependencies]
