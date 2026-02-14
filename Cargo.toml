@@ -2,58 +2,64 @@
 name = "peacher_sdk"
 version = "0.6.0-dev"
 edition = "2024"
-authors = ["Daniel Gallups <dan@peacher.app>"]
 description = "The rust request, response, and parameter types used by the peacher API"
-keywords = ["sdk"]
-repository = "https://github.com/PeacherApp/peacher_sdk"
 readme = "README.md"
+repository = "https://github.com/PeacherApp/peacher_sdk"
 license = "MIT OR Apache-2.0"
-
-
-[features]
-utoipa = ["dep:utoipa"]
-cli = ["dep:clap", "dep:toml", "dep:dirs", "dep:dialoguer", "dep:tabled", "dep:console", "dep:indicatif"]
-geo = ["dep:geo", "dep:geojson"]
-axum_test = ["dep:axum-test"]
+keywords = ["sdk"]
 
 [dependencies]
-axum-test = { version = "17.3", optional = true}
-serde = {version = "1", features = ["derive"]}
-serde_json = { version = "1" }
-geo = {version = "0.32", optional = true }
-geojson = { version = "0.24", optional = true }
-url = { version = "2", features = ["serde"] }
 ahash = "0.8"
+anyhow = "1.0"
+axum-test = { version = "17.3", optional = true }
+bytes = "1.11"
 chrono = { version = "0.4", features = ["serde"] }
-utoipa = { version = "5.4", optional = true, features = ["chrono", "uuid", "url"] }
+clap = { version = "4.5", features = ["derive"], optional = true }
+console = { version = "0.15", optional = true }
+dialoguer = { version = "0.12", optional = true }
+dirs = { version = "6", optional = true }
+futures-core = "0.3.31"
+futures-util = { version = "0.3.31", features = ["io"] }
+geo = { version = "0.32", optional = true }
+geojson = { version = "0.24", optional = true }
+http = "1.4"
+indicatif = { version = "0.17", optional = true }
+mime = "0.3.17"
+rand = "0.9"
+reqwest = { version = "0.12", default-features = false, features = [
+  "charset",
+  "cookies",
+  "http2",
+  "json",
+  "rustls-tls",
+] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
 serde_qs = { version = "0.15" }
 serde_urlencoded = "0.7.1"
-tracing = { version = "0.1" }
-clap = { version = "4.5", optional = true, features = ["derive"] }
-anyhow = "1.0"
-bytes = "1.11"
-http = "1.4"
-futures-core = "0.3.31"
-rand = "0.9"
-futures-util = { version = "0.3.31", features = ["io"] }
-reqwest = { version = "0.12", features = [
-  "json",
-  "cookies",
-  "rustls-tls",
-  "http2",
-  "charset",
-], default-features = false }
-toml = { version = "0.9", optional = true }
-dirs = { version = "6", optional = true }
-dialoguer = { version = "0.12", optional = true }
-tabled = { version = "0.17", optional = true }
-console = { version = "0.15", optional = true }
-indicatif = { version = "0.17", optional = true }
-thiserror = {version = "2"}
 strum = { version = "0.27", features = ["derive"] }
+tabled = { version = "0.17", optional = true }
+thiserror = { version = "2" }
+toml = { version = "0.9", optional = true }
+tracing = { version = "0.1" }
+url = { version = "2", features = ["serde"] }
+utoipa = { version = "5.4", features = ["chrono", "url", "uuid"], optional = true }
 uuid = { version = "1.6", features = ["serde", "v4"] }
-mime = "0.3.17"
 
 [dev-dependencies]
-pretty_assertions = {version = "1.4"}
+pretty_assertions = { version = "1.4" }
 tokio = { version = "1", features = ["full"] }
+
+[features]
+axum_test = ["dep:axum-test"]
+cli = [
+  "dep:clap",
+  "dep:console",
+  "dep:dialoguer",
+  "dep:dirs",
+  "dep:indicatif",
+  "dep:tabled",
+  "dep:toml"
+]
+geo = ["dep:geo", "dep:geojson"]
+utoipa = ["dep:utoipa"]
