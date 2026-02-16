@@ -22,7 +22,7 @@ pub struct ExternalLegislation {
     /// When the status was last updated
     pub status_updated_at: Option<DateTime<FixedOffset>>,
 
-    pub summary: String,
+    pub summary: Option<CreateSummaryRequest>,
     /// Where the legislation started
     pub chamber_id: ExternalId,
     pub url: Option<Url>,
@@ -35,7 +35,7 @@ impl ExternalLegislation {
         CreateLegislationRequest {
             name_id: self.name_id.clone(),
             title: self.title.clone(),
-            summary: self.summary.clone(),
+            summary: self.summary.clone(), // Option<String> passthrough
             legislation_type: self.legislation_type,
             status_text: self.status_text.clone(),
             status: self.status,
@@ -56,7 +56,6 @@ impl ExternalLegislation {
             .is_some_and(|val| val.external_id == self.external_id)
             && (self.status != view.status
                 || self.title != view.title
-                || self.summary != view.summary
                 || self.status_text != view.status_text
                 || self.status != view.status
                 || self
@@ -66,7 +65,6 @@ impl ExternalLegislation {
                     .external
                     .as_ref()
                     .is_some_and(|val| val.url != self.url)
-                || view.summary != self.summary
                 || view.legislation_type != self.legislation_type)
     }
 
@@ -74,7 +72,6 @@ impl ExternalLegislation {
         UpdateLegislationRequest {
             name_id: Some(self.name_id),
             title: Some(self.title),
-            summary: Some(self.summary),
             legislation_type: Some(self.legislation_type),
             status_text: Some(self.status_text),
 
