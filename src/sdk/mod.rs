@@ -10,11 +10,14 @@ pub use auth::*;
 mod attachments;
 pub use attachments::*;
 
+mod categories;
+pub use categories::*;
+
 mod chambers;
 pub use chambers::*;
 
-mod categories;
-pub use categories::*;
+mod content;
+pub use content::*;
 
 mod districts;
 pub use districts::*;
