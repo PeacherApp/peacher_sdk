@@ -1,7 +1,6 @@
+use crate::prelude::*;
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
-
-use crate::views::{AttachmentResponse, MemberView};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
