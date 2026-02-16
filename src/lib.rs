@@ -11,7 +11,6 @@ pub mod peanut;
 pub mod sessions;
 pub mod sponsorships;
 pub mod sync;
-pub mod views;
 pub mod votes;
 
 #[cfg(feature = "cli")]
@@ -25,7 +24,6 @@ pub mod prelude {
     pub use crate::params::*;
     pub use crate::peanut::prelude::*;
     pub use crate::sync::*;
-    pub use crate::views::*;
 
     pub use crate::address::*;
     pub use crate::chambers::*;
