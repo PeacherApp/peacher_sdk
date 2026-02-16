@@ -41,6 +41,7 @@ impl<I> PaginateBuilder<I> {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct Paginated<T> {
     pub data: Vec<T>,
+    /// pages start at 0
     pub page: u64,
     pub page_size: u64,
     pub num_items: u64,

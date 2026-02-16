@@ -69,7 +69,7 @@ pub struct LegislationView {
     pub id: i32,
     pub name_id: String,
     pub title: String,
-    pub summary: String,
+    pub summary: Option<serde_json::Value>,
     /// Current outcome of the legislation
     pub status: Option<LegislationStatus>,
     /// Human-readable status text from external source
@@ -113,7 +113,7 @@ pub struct DetailedLegislationView {
     pub id: i32,
     pub name_id: String,
     pub title: String,
-    pub summary: String,
+    pub summary: Option<serde_json::Value>,
     pub external_update_at: Option<DateTime<FixedOffset>>,
     pub legislation_type: LegislationType,
     /// Current outcome of the legislation
@@ -174,7 +174,7 @@ pub struct LegislationDetailsResponse {
     pub status_text: String,
     pub status_updated_at: DateTime<FixedOffset>,
     pub status: Option<LegislationStatus>,
-    pub summary: String,
+    pub summaries: Vec<SummaryView>,
     pub legislation_type: LegislationType,
     pub external: Option<ExternalOwner>,
     pub sponsors: Vec<SponsorInfo>,
