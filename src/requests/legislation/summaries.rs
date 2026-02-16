@@ -1,4 +1,4 @@
-use crate::views::MemberView;
+use crate::{paginated, views::MemberView};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -36,3 +36,12 @@ pub enum Visibility {
     NotVisible,
     Public,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SummaryParams {
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+
+paginated!(SummaryParams);
