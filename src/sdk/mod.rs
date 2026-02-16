@@ -13,6 +13,9 @@ pub use attachments::*;
 mod chambers;
 pub use chambers::*;
 
+mod categories;
+pub use categories::*;
+
 mod districts;
 pub use districts::*;
 
