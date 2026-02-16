@@ -3,6 +3,22 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 use uuid::Uuid;
 
+/// Get the current user's feed
+#[derive(Default, Clone, Debug)]
+pub struct GetFeed(pub FeedParams);
+
+impl GetHandler for GetFeed {
+    type ResponseBody = Paginated<FeedItem>;
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/feed".into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.0.clone()
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
