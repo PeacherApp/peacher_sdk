@@ -1,3 +1,6 @@
+use std::borrow::Cow;
+
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 use crate::{paginated, prelude::*};
@@ -198,9 +201,6 @@ impl GetHandler for ListSessionLegislation {
         }
     }
 }
-
-use chrono::NaiveDate;
-use serde::{Deserialize, Serialize};
 
 /// Request to create a new session
 #[derive(Serialize, Deserialize, Clone, Debug)]

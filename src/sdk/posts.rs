@@ -1,6 +1,8 @@
 use std::borrow::Cow;
 
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::{paginated, prelude::*};
 
@@ -266,24 +268,6 @@ impl<M> PostSummary<M> {
         }
     }
 }
-/*
-Might be dead code
-
-#[derive(Serialize, ToSchema)]
-pub struct PostResponse {
-    #[schema(value_type = String, format = DateTime, example = "2024-01-01T00:00:00Z")]
-    pub created_at: DateTimeWithTimeZone,
-    #[schema(value_type = String, format = DateTime, example = "2024-01-01T00:00:00Z")]
-    pub updated_at: DateTimeWithTimeZone,
-    pub id: i32,
-    pub title: String,
-    #[schema(value_type = Option<String>, format = DateTime)]
-    pub published_at: Option<DateTimeWithTimeZone>,
-    pub cover_image: Option<String>,
-    pub author: i32,
-    pub views: i32,
-}
- */
 
 /// Full post view (used when viewing a single post)
 /// Note: Uses serde_json::Value for complex nested types that vary
