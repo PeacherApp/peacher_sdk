@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::views::{ChamberView, MemberView};
+use crate::prelude::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]

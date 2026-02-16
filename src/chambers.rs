@@ -5,9 +5,6 @@ use crate::{paginated, prelude::*};
 use std::borrow::Cow;
 
 use chrono::NaiveDate;
-use serde::Serialize;
-
-use crate::prelude::*;
 
 /// Parameters for listing chambers
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -157,8 +154,6 @@ impl GetHandler for GetChamberDetails {
         self.params.clone()
     }
 }
-
-use serde::Deserialize;
 
 /// Request to create a new chamber
 #[derive(Serialize, Deserialize, Clone, Debug)]

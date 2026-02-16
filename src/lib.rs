@@ -1,12 +1,18 @@
+pub mod account;
 pub mod address;
+pub mod auth;
 pub mod chambers;
 pub mod client;
+pub mod districts;
+pub mod error;
 pub mod external;
 pub mod feed;
+pub mod geojson;
 pub mod health;
 pub mod jurisdiction;
 pub mod legislation;
 pub mod likes;
+pub mod location;
 pub mod maps;
 pub mod members;
 pub mod messages;
@@ -30,20 +36,29 @@ pub mod cli;
 pub use cli::{cli, cli_with_client};
 
 pub mod prelude {
-    pub use crate::client::*;
-    pub use crate::paginate::*;
-    pub use crate::params::*;
-    pub use crate::peanut::prelude::*;
-    pub use crate::sync::*;
-
+    pub use crate::account::*;
     pub use crate::address::*;
+    pub use crate::auth::*;
     pub use crate::chambers::*;
+    pub use crate::client::*;
+    pub use crate::districts::*;
+    pub use crate::error::ErrorResponse;
+    pub use crate::external::*;
     pub use crate::feed::*;
+    pub use crate::geojson::*;
     pub use crate::jurisdiction::*;
     pub use crate::legislation::*;
+    pub use crate::location::*;
     pub use crate::maps::*;
     pub use crate::members::*;
+    pub use crate::owner::*;
+    pub use crate::paginate::*;
+    pub use crate::params::*;
+    pub use crate::parties::*;
+    pub use crate::peanut::prelude::*;
     pub use crate::sessions::*;
+    pub use crate::slug::*;
     pub use crate::sponsorships::*;
+    pub use crate::sync::*;
     pub use crate::votes::*;
 }

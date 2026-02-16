@@ -1,14 +1,10 @@
-use std::{borrow::Cow, path::Path};
-
-use crate::peanut::{
-    multipart::{MultipartForm, Part},
+use crate::{
+    peanut::multipart::{MultipartForm, Part},
     prelude::*,
 };
 use anyhow::Context;
-use geojson::GeoJson;
 use serde::{Deserialize, Serialize};
-
-use crate::prelude::*;
+use std::{borrow::Cow, path::Path};
 
 /// List all maps.
 pub struct ListMaps;

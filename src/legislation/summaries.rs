@@ -1,4 +1,4 @@
-use crate::{paginated, views::MemberView};
+use crate::{paginated, prelude::*};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

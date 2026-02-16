@@ -1,15 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::prelude::GetHandler;
-
-pub struct GetAccount;
-
-impl GetHandler for GetAccount {
-    type ResponseBody = AccountView;
-    fn path(&self) -> std::borrow::Cow<'_, str> {
-        "/api/account".into()
-    }
-}
+use crate::prelude::*;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]

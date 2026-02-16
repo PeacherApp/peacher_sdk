@@ -1,15 +1,13 @@
 mod summaries;
 pub use summaries::*;
 
-use crate::prelude::*;
+use crate::{paginated, prelude::*};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::str::FromStr;
 use strum::{Display, EnumString};
 use url::Url;
-
-use crate::{paginated, prelude::*};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]

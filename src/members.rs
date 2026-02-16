@@ -1,8 +1,10 @@
 use std::borrow::Cow;
 
 use crate::{paginated, prelude::*};
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
+use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
@@ -185,9 +187,6 @@ impl GetHandler for GetMemberFollowerData {
         format!("/api/members/{}/followers", self.0).into()
     }
 }
-
-use serde::{Deserialize, Serialize};
-use url::Url;
 
 /// Request to create a new member
 #[derive(Serialize, Deserialize, Clone, Debug)]

@@ -1,4 +1,3 @@
-use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
@@ -25,13 +24,6 @@ pub struct AuthRequest {
     pub code: Option<String>,
     pub state: Option<String>,
     pub error: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct AccountView {
-    pub member: MemberView,
-    pub member_location: Option<ViewerLocationResponse>,
 }
 
 #[derive(
