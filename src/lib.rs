@@ -1,16 +1,27 @@
 pub mod address;
 pub mod chambers;
 pub mod client;
+pub mod external;
 pub mod feed;
+pub mod health;
 pub mod jurisdiction;
 pub mod legislation;
+pub mod likes;
+pub mod maps;
 pub mod members;
+pub mod messages;
+pub mod owner;
 pub mod paginate;
 pub mod params;
+pub mod parties;
 pub mod peanut;
+pub mod posts;
+pub mod reports;
 pub mod sessions;
+pub mod slug;
 pub mod sponsorships;
 pub mod sync;
+pub mod tags;
 pub mod votes;
 
 #[cfg(feature = "cli")]
@@ -30,6 +41,7 @@ pub mod prelude {
     pub use crate::feed::*;
     pub use crate::jurisdiction::*;
     pub use crate::legislation::*;
+    pub use crate::maps::*;
     pub use crate::members::*;
     pub use crate::sessions::*;
     pub use crate::sponsorships::*;

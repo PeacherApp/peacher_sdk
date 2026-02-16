@@ -5,6 +5,7 @@ use crate::peanut::{
     prelude::*,
 };
 use anyhow::Context;
+use geojson::GeoJson;
 use serde::{Deserialize, Serialize};
 
 use crate::prelude::*;
