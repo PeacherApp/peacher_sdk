@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// The sentiment provided for a piece of content
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Copy, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum Sentiment {
     Positive,
