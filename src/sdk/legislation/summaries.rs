@@ -1,8 +1,6 @@
 use crate::{paginated, prelude::*};
-use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
-use uuid::Uuid;
 
 /// Request to create a new summary for a piece of legislation
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -16,13 +14,8 @@ pub enum CreateSummaryRequest {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SummaryView {
-    pub id: Uuid,
-    pub created_at: DateTime<FixedOffset>,
-    pub updated_at: DateTime<FixedOffset>,
-    pub searchable_text: String,
-    pub document: serde_json::Value,
+    pub contents: ContentView,
     pub visibility: Visibility,
-    pub author: Option<MemberView>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
