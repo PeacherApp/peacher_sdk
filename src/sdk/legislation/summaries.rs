@@ -7,7 +7,7 @@ use uuid::Uuid;
 /// Request to create a new summary for a piece of legislation
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(tag = "type", content = "content")]
+#[serde(tag = "type", content = "content", rename_all = "snake_case")]
 pub enum CreateSummaryRequest {
     Document(serde_json::Value),
     Markdown(String),
@@ -26,6 +26,7 @@ pub struct SummaryView {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum Visibility {
     NotVisible,
