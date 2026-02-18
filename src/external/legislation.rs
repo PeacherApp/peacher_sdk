@@ -35,7 +35,10 @@ impl ExternalLegislation {
         CreateLegislationRequest {
             name_id: self.name_id.clone(),
             title: self.title.clone(),
-            summary: self.summary.clone(), // Option<String> passthrough
+            summary: self.summary.map(|summary| CreateSummaryRequest {
+                kind: CreateSummaryKind::PrimarySource,
+                content: summary,
+            }),
             legislation_type: self.legislation_type,
             status_text: self.status_text.clone(),
             status: self.status,
