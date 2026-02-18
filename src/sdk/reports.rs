@@ -8,7 +8,7 @@ use crate::sdk::{AdminContentView, MemberView};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type", content = "id", rename_all = "snake_case")]
 pub enum ReportedKind {
     Content(Uuid),
     Member(i32),
