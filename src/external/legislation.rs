@@ -22,7 +22,7 @@ pub struct ExternalLegislation {
     /// When the status was last updated
     pub status_updated_at: Option<DateTime<FixedOffset>>,
 
-    pub summary: Option<CreateSummaryRequest>,
+    pub summary: Option<SetContentRequest>,
     /// Where the legislation started
     pub chamber_id: ExternalId,
     pub url: Option<Url>,

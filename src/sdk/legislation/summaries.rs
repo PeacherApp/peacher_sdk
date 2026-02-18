@@ -2,15 +2,6 @@ use crate::{paginated, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-/// Request to create a new summary for a piece of legislation
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(tag = "type", content = "content", rename_all = "snake_case")]
-pub enum CreateSummaryRequest {
-    Document(serde_json::Value),
-    Markdown(String),
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SummaryView {

@@ -160,7 +160,7 @@ impl GetHandler for GetLegislationVoteDetails {
 pub struct CreateLegislationRequest {
     pub name_id: String,
     pub title: String,
-    pub summary: Option<CreateSummaryRequest>,
+    pub summary: Option<SetContentRequest>,
     /// When the primary source material was last updated.
     ///
     /// If your API does not provide this data, use `Local::now()`
