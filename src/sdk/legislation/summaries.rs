@@ -65,10 +65,7 @@ pub struct ReviewSummaryRequest {
 pub struct ModeratorSummaryParams {
     pub page: Option<u64>,
     pub page_size: Option<u64>,
-    /// note that on the legislation/{id}/summaries route,
-    /// this value is overwritten.
     pub legislation_id: Option<i32>,
-    /// Note that this parameter is overwritten if the viewer does not have sufficient privileges
     pub visibility: Option<Visibility>,
 }
 
