@@ -57,6 +57,9 @@ pub struct AdminContentView {
     pub reason_removed: Option<String>,
     pub removed_by: Option<i32>,
     pub removed_at: Option<DateTime<FixedOffset>>,
+    /// For summaries, the legislation this summary belongs to
+    /// TODO: we're going to move this into the content type
+    pub legislation_id: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]

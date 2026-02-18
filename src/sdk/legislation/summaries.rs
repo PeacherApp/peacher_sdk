@@ -39,6 +39,7 @@ pub struct CreateSummaryRequest {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SummaryView {
+    pub legislation_id: i32,
     pub contents: ContentView,
     pub visibility: Visibility,
     pub kind: SummaryKind,
