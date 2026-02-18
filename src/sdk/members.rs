@@ -505,3 +505,59 @@ pub struct MemberDistrictsResponse {
 
 // Note: MemberDistrictsResponse and related types are defined in the api crate
 // with additional methods like `load`. Use serde_json::Value in SDK for flexibility.
+
+/// View for a banned member in the admin ban log
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct BannedMemberView {
+    pub member: MemberView,
+    pub banned_by: MemberView,
+    pub ban_date: DateTime<FixedOffset>,
+    pub ban_reason: String,
+    pub admin_context: String,
+}
+
+/// Query parameters for listing bans
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+pub struct BanParams {
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+
+paginated!(BanParams);
+
+/// List all bans (admin/moderator only)
+pub struct ListBans {
+    pub params: BanParams,
+}
+
+impl Default for ListBans {
+    fn default() -> Self {
+        Self {
+            params: BanParams {
+                page: Some(0),
+                page_size: Some(20),
+            },
+        }
+    }
+}
+
+impl ListBans {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl GetHandler for ListBans {
+    type ResponseBody = Paginated<BannedMemberView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/moderation/bans".into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
+    }
+}
