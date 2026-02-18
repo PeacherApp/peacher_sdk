@@ -569,7 +569,6 @@ pub struct LegislationDetailsResponse {
     pub status_text: String,
     pub status_updated_at: DateTime<FixedOffset>,
     pub status: Option<LegislationStatus>,
-    pub summaries: Vec<SummaryView>,
     pub legislation_type: LegislationType,
     pub external: Option<ExternalOwner>,
     pub sponsors: Vec<SponsorInfo>,
