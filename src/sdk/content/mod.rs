@@ -6,7 +6,7 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ContentDetails {
     pub id: Uuid,
@@ -27,7 +27,7 @@ pub struct RemoveContentRequest {
     pub reason: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct RemovedContent {
     pub id: Uuid,
@@ -35,7 +35,31 @@ pub struct RemovedContent {
     pub removed_at: DateTime<FixedOffset>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case")]
+pub enum ContentType {
+    Post,
+    Comment,
+    Summary,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct AdminContentView {
+    pub id: Uuid,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+    pub searchable_text: String,
+    pub document: serde_json::Value,
+    pub kind: ContentType,
+    pub author: Option<i32>,
+    pub reason_removed: Option<String>,
+    pub removed_by: Option<i32>,
+    pub removed_at: Option<DateTime<FixedOffset>>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", content = "content", rename_all = "snake_case")]
 #[expect(clippy::large_enum_variant)]
