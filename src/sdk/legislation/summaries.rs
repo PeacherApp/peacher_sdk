@@ -44,12 +44,19 @@ pub struct SummaryView {
     pub kind: SummaryKind,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum Visibility {
     NotVisible,
     Public,
+}
+
+/// Request to review (approve/reject) a summary as a moderator.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ReviewSummaryRequest {
+    pub visibility: Visibility,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -87,3 +94,4 @@ pub enum SummaryOrder {
 }
 
 paginated!(SummaryParams);
+paginated!(ModeratorSummaryParams);
