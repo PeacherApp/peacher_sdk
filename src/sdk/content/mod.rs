@@ -43,6 +43,14 @@ pub enum ContentView {
     Removed(RemovedContent),
     Content(ContentDetails),
 }
+impl ContentView {
+    pub fn id(&self) -> Uuid {
+        match self {
+            ContentView::Removed(removed) => removed.id,
+            ContentView::Content(content) => content.id,
+        }
+    }
+}
 
 /// Request to create or update content.
 ///
