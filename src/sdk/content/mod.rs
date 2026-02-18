@@ -15,6 +15,10 @@ pub struct ContentDetails {
     pub searchable_text: String,
     pub document: serde_json::Value,
     pub author: Option<MemberView>,
+    /// This is the sum of sentiments where
+    /// +1 is a positive sentiment, and -1 is a negative sentiment.
+    pub rating: i32,
+    pub viewer_sentiment: Option<Sentiment>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
