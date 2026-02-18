@@ -445,7 +445,7 @@ pub struct GetMemberDetailsResponse {
     pub follower_data: FollowResponse,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BanInfo {
     pub ban_date: DateTime<FixedOffset>,

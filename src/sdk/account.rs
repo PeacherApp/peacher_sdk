@@ -16,4 +16,5 @@ impl GetHandler for GetAccount {
 pub struct AccountView {
     pub member: MemberView,
     pub member_location: Option<ViewerLocationResponse>,
+    pub ban: Option<BanInfo>,
 }

@@ -46,20 +46,29 @@ pub enum ContentType {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum ContentTypeId {
+    /// Post ID
+    Post(i32),
+    /// Comment ID
+    Comment(Uuid),
+    /// Legislation ID
+    Summary(Option<i32>),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AdminContentView {
     pub id: Uuid,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub searchable_text: String,
     pub document: serde_json::Value,
-    pub kind: ContentType,
+    pub kind: ContentTypeId,
     pub author: Option<i32>,
     pub reason_removed: Option<String>,
     pub removed_by: Option<i32>,
     pub removed_at: Option<DateTime<FixedOffset>>,
-    /// For summaries, the legislation this summary belongs to
-    /// TODO: we're going to move this into the content type
-    pub legislation_id: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
