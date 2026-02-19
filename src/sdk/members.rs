@@ -65,7 +65,7 @@ impl ListMembers {
     pub fn new() -> Self {
         Self {
             params: MemberParams {
-                page: Some(1),
+                page: Some(0),
                 page_size: Some(20),
                 external_id: None,
                 freetext: None,

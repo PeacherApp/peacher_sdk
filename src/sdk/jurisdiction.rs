@@ -47,7 +47,7 @@ pub struct ListJurisdictions {
 impl ListJurisdictions {
     pub fn new() -> Self {
         Self {
-            page: 1,
+            page: 0,
             page_size: 20,
             external_id: None,
         }

@@ -8,7 +8,7 @@ pub trait PaginatedParams {
     /// the page_size field of the actual param
     fn param_page_size(&self) -> u64;
 
-    /// Set the page (should be 1 minimum)
+    /// Set the page (0-based)
     fn set_page(&mut self, page: u64);
 
     fn set_page_size(&mut self, page_size: u64);

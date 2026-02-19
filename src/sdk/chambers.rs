@@ -55,7 +55,7 @@ pub struct ListChambers {
 impl ListChambers {
     pub fn new() -> Self {
         Self {
-            page: 1,
+            page: 0,
             page_size: 20,
             external_id: None,
             jurisdiction_id: None,

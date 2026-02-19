@@ -173,11 +173,11 @@ impl ListSessionLegislation {
     pub fn new(id: i32) -> Self {
         Self {
             id,
-            page: 1,
+            page: 0,
             page_size: 10,
         }
     }
-    /// Note that pages start at 1
+    /// Note that pages start at 0
     pub fn page(mut self, page: u64) -> Self {
         self.page = page;
         self

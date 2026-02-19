@@ -36,7 +36,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
 
         // Get all existing legislation external_ids for this session
         let mut known_legislation: HashMap<ExternalId, LegislationView> = HashMap::default();
-        let mut page = 1;
+        let mut page = 0;
         loop {
             let params = LegislationParams {
                 session_id: Some(session.id),
@@ -54,7 +54,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                 }
             }
 
-            if result.page >= result.num_pages || is_empty {
+            if result.page + 1 >= result.num_pages || is_empty {
                 break;
             }
             page += 1;
@@ -67,7 +67,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
 
         let mut created = Vec::new();
         let mut updated = Vec::new();
-        let mut ext_page = 1u64;
+        let mut ext_page = 0u64;
         let page_size = 50u64;
         let mut consecutive_known = 0;
         let mut stopped_early = false;
@@ -123,7 +123,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                 }
             }
 
-            if stopped_early || batch.page >= batch.num_pages {
+            if stopped_early || batch.page + 1 >= batch.num_pages {
                 break;
             }
             ext_page += 1;
