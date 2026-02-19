@@ -17,16 +17,25 @@ pub struct LegislationParams {
     pub id: Vec<i32>,
 
     pub freetext: Option<String>,
-    pub legislation_type: Option<String>,
+    pub legislation_type: Option<LegislationType>,
 
     #[serde(default)]
     pub external_id: Vec<ExternalId>,
     pub session_id: Option<i32>,
-    /// Filter by active status (derived from outcome)
-    pub is_active: Option<bool>,
-    /// Filter by specific outcomes
-    #[serde(default)]
-    pub outcome: Vec<String>,
+
+    pub introduced_after: Option<DateTime<FixedOffset>>,
+    pub introduced_before: Option<DateTime<FixedOffset>>,
+    /// include or exclude null introduced at legislation
+    pub introduced_at_null: bool,
+
+    pub status_text: Option<String>,
+    pub status: Option<String>,
+    pub status_updated_after: Option<DateTime<FixedOffset>>,
+    pub status_updated_before: Option<DateTime<FixedOffset>>,
+
+    pub created_after: Option<DateTime<FixedOffset>>,
+    pub created_before: Option<DateTime<FixedOffset>>,
+
     /// id | external_id
     #[serde(default)]
     pub order_by: LegislationOrder,
@@ -58,27 +67,10 @@ impl LegislationParams {
         self
     }
 
-    pub fn legislation_type(&self) -> Option<LegislationType> {
-        self.legislation_type
-            .as_ref()
-            .and_then(|t| LegislationType::from_str(t).ok())
-    }
-
-    pub fn set_is_active(mut self, is_active: bool) -> Self {
-        self.is_active = Some(is_active);
-        self
-    }
-
-    pub fn set_outcomes(mut self, outcomes: impl IntoIterator<Item = LegislationStatus>) -> Self {
-        self.outcome = outcomes.into_iter().map(|o| o.to_string()).collect();
-        self
-    }
-
-    pub fn outcomes(&self) -> Vec<LegislationStatus> {
-        self.outcome
-            .iter()
-            .filter_map(|o| LegislationStatus::from_str(o).ok())
-            .collect()
+    pub fn set_is_active(mut self) -> Self {
+        todo!()
+        // self.is_active = Some(is_active);
+        // self
     }
 }
 
