@@ -133,6 +133,13 @@ impl<T: CommaSeparatable> CommaSeparated<T> {
     }
 }
 
+impl<T: CommaSeparatable + Clone> CommaSeparated<T> {
+    /// helper function commonly used in the api
+    pub fn iter_owned(&self) -> impl Iterator<Item = T> {
+        self.0.iter().cloned()
+    }
+}
+
 impl<T: CommaSeparatable> PartialEq for CommaSeparated<T> {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0

@@ -21,21 +21,30 @@ pub struct LegislationParams {
 
     pub external_id: Vec<ExternalId>,
     pub session_id: Option<i32>,
+    pub chamber_id: Option<i32>,
+
+    /// Filter by category names (through legislation_categories join)
+    pub category: CommaSeparated<String>,
+    /// Filter by sponsor member IDs (through legislation_sponsors join)
+    pub sponsor_id: CommaSeparated<i32>,
+
+    /// Convenience filter: true = status is null or Pending, false = terminal status
+    pub is_active: Option<bool>,
+    pub status: CommaSeparated<LegislationStatus>,
+    pub status_text: Option<String>,
+    pub status_updated_after: Option<DateTime<FixedOffset>>,
+    pub status_updated_before: Option<DateTime<FixedOffset>>,
 
     pub introduced_after: Option<DateTime<FixedOffset>>,
     pub introduced_before: Option<DateTime<FixedOffset>>,
-    /// include or exclude null introduced at legislation
+    /// Include or exclude null introduced_at legislation.
+    /// When None: defaults to false if introduced_after/before is set, true otherwise.
     pub introduced_at_null: Option<bool>,
-
-    pub status_text: Option<String>,
-    pub status: Option<String>,
-    pub status_updated_after: Option<DateTime<FixedOffset>>,
-    pub status_updated_before: Option<DateTime<FixedOffset>>,
 
     pub created_after: Option<DateTime<FixedOffset>>,
     pub created_before: Option<DateTime<FixedOffset>>,
 
-    /// id | external_id
+    /// id | external_id | created_at | introduced_at | status_updated_at | title
     pub order_by: LegislationOrder,
     /// asc | desc
     pub order: Ordering,
@@ -63,11 +72,25 @@ impl LegislationParams {
         self.order = order;
         self
     }
-
-    pub fn set_is_active(mut self) -> Self {
-        todo!()
-        // self.is_active = Some(is_active);
-        // self
+    pub fn set_is_active(mut self, is_active: bool) -> Self {
+        self.is_active = Some(is_active);
+        self
+    }
+    pub fn set_status(mut self, status: impl IntoIterator<Item = LegislationStatus>) -> Self {
+        self.status = status.into_iter().collect();
+        self
+    }
+    pub fn set_chamber_id(mut self, chamber_id: i32) -> Self {
+        self.chamber_id = Some(chamber_id);
+        self
+    }
+    pub fn set_categories(mut self, categories: impl IntoIterator<Item = String>) -> Self {
+        self.category = categories.into_iter().collect();
+        self
+    }
+    pub fn set_sponsor_ids(mut self, sponsor_ids: impl IntoIterator<Item = i32>) -> Self {
+        self.sponsor_id = sponsor_ids.into_iter().collect();
+        self
     }
 }
 
@@ -82,6 +105,10 @@ pub enum LegislationOrder {
     #[default]
     Id,
     ExternalId,
+    CreatedAt,
+    IntroducedAt,
+    StatusUpdatedAt,
+    Title,
 }
 
 impl GetHandler for LegislationParams {
@@ -380,13 +407,18 @@ fn test_query_params_behavior() {
     };
     let ser_params = serde_qs::to_string(&params).unwrap();
 
-    assert_eq!(
-        "id[0]=2&id[1]=4&id[2]=3&order_by=external_id&order=desc&page=2&page_size=13",
-        &ser_params
+    // CommaSeparated<i32> serializes as comma-separated string; HashSet order is non-deterministic
+    assert!(
+        ser_params.starts_with("id="),
+        "expected id= prefix: {ser_params}"
+    );
+    assert!(
+        ser_params.contains("order_by=external_id&order=desc&page=2&page_size=13"),
+        "expected ordering/pagination params: {ser_params}"
     );
 
+    // Round-trip: deserialize back
     let de_params: LegislationParams = serde_qs::from_str(&ser_params).unwrap();
-
     assert_eq!(params, de_params);
 
     // CommaSeparated serializes as comma-separated string
@@ -399,8 +431,8 @@ fn test_query_params_behavior() {
     let ser_params = serde_qs::to_string(&params).unwrap();
     // HashSet order is non-deterministic, so check both possible orderings
     assert!(
-        ser_params == "legislation_type=bill%2Cresolution"
-            || ser_params == "legislation_type=resolution%2Cbill",
+        ser_params.contains("legislation_type=bill%2Cresolution")
+            || ser_params.contains("legislation_type=resolution%2Cbill"),
         "unexpected serialization: {ser_params}"
     );
 
@@ -442,7 +474,18 @@ commaparam!(LegislationType);
 
 /// Outcome of legislation - tracks what ultimately happened to a bill
 #[derive(
-    Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default, Display, EnumString,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Default,
+    Display,
+    EnumString,
+    Hash,
+    strum::VariantArray,
 )]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum LegislationStatus {
@@ -480,6 +523,8 @@ impl LegislationStatus {
         s.and_then(|s| Self::from_str(s).ok())
     }
 }
+
+commaparam!(LegislationStatus);
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
