@@ -1,7 +1,7 @@
 mod summaries;
 pub use summaries::*;
 
-use crate::{paginated, prelude::*};
+use crate::{comma_separatable, paginated, prelude::*};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
@@ -413,7 +413,18 @@ fn test_query_params_behavior() {
 }
 
 #[derive(
-    Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, Default, PartialEq, Eq, Hash,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    Display,
+    EnumString,
+    Default,
+    PartialEq,
+    Eq,
+    Hash,
+    strum::VariantArray,
 )]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
@@ -424,6 +435,8 @@ pub enum LegislationType {
     #[default]
     Other,
 }
+
+comma_separatable!(LegislationType);
 
 /// Outcome of legislation - tracks what ultimately happened to a bill
 #[derive(

@@ -6,8 +6,79 @@ use std::str::FromStr;
 use ahash::HashSet;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-pub trait CommaSeparatable: Eq + Hash + fmt::Display + FromStr {}
-impl<T: Eq + Hash + fmt::Display + FromStr> CommaSeparatable for T {}
+/// Adds supertrait requirements for things that can be in [`CommaSeparated`].
+///
+///
+/// With the `utoipa` feature, this provides OpenAPI schema metadata for types used inside [`CommaSeparated<T>`].
+///
+/// Automatically implemented for all types implementing [`strum::VariantArray`],
+/// which generates the description and example from the enum's variants.
+/// For types implementing [`strum::VariantArray`], use the [`comma_separatable`] macro
+/// For primitive types, use the [`comma_separatable_primitive`] macro.
+pub trait CommaSeparatable: Eq + Hash + fmt::Display + FromStr {
+    /// A description fragment appended to the schema description.
+    /// For enums this lists valid values; for primitives this can be empty.
+    #[cfg(feature = "utoipa")]
+    fn description() -> Option<String>;
+
+    /// An example value for the comma-separated string (e.g. `"bill,resolution"`).
+    #[cfg(feature = "utoipa")]
+    fn example() -> String;
+}
+
+/// Implement [`ParamExample`] for an enum that derives [`strum::VariantArray`].
+/// Generates schema description and example from the enum's variants.
+///
+/// ```ignore
+/// impl_param_example_variants!(LegislationType);
+/// ```
+///
+/// ```ignore
+/// impl_param_example!(i32, "1,2,3");
+/// impl_param_example!(String, "foo,bar,baz");
+/// ```
+#[macro_export]
+macro_rules! comma_separatable {
+    ($ty:ty) => {
+        impl $crate::params::CommaSeparatable for $ty {
+            #[cfg(feature = "utoipa")]
+            fn description() -> Option<String> {
+                let variants: Vec<String> = <$ty as strum::VariantArray>::VARIANTS
+                    .iter()
+                    .map(|v| v.to_string())
+                    .collect();
+                Some(format!("Valid values: {}", variants.join(", ")))
+            }
+
+            #[cfg(feature = "utoipa")]
+            fn example() -> String {
+                <$ty as strum::VariantArray>::VARIANTS
+                    .iter()
+                    .map(|v| v.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            }
+        }
+    };
+
+    ($ty:ty, $example:literal) => {
+        impl $crate::params::CommaSeparatable for $ty {
+            #[cfg(feature = "utoipa")]
+            fn description() -> Option<String> {
+                Some(format!("a $ty"))
+            }
+
+            #[cfg(feature = "utoipa")]
+            fn example() -> String {
+                $example.into()
+            }
+        }
+    };
+}
+
+comma_separatable!(i32, "1,2,3");
+comma_separatable!(i64, "1,2,3");
+comma_separatable!(String, "foo,bar,baz");
 
 /// A `HashSet<T>` that serializes and deserializes as a comma-separated string.
 ///
@@ -62,7 +133,7 @@ impl<T: CommaSeparatable> FromIterator<T> for CommaSeparated<T> {
     }
 }
 
-impl<T: CommaSeparatable + fmt::Display> Serialize for CommaSeparated<T> {
+impl<T: CommaSeparatable> Serialize for CommaSeparated<T> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         if self.0.is_empty() {
             serializer.serialize_none()
@@ -78,7 +149,7 @@ impl<T: CommaSeparatable + fmt::Display> Serialize for CommaSeparated<T> {
     }
 }
 
-impl<'de, T: CommaSeparatable + FromStr> Deserialize<'de> for CommaSeparated<T>
+impl<'de, T: CommaSeparatable> Deserialize<'de> for CommaSeparated<T>
 where
     T::Err: fmt::Display,
 {
@@ -98,9 +169,20 @@ where
 #[cfg(feature = "utoipa")]
 impl<T: CommaSeparatable> utoipa::PartialSchema for CommaSeparated<T> {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        let mut description = "Comma-separated set of values. \
+             Duplicate values are ignored. Order is not guaranteed."
+            .to_string();
+
+        if let Some(extra) = T::description() {
+            description.push_str("\n\n");
+            description.push_str(&extra);
+        }
+
         utoipa::openapi::schema::Object::builder()
             .schema_type(utoipa::openapi::schema::Type::String)
-            .description(Some("Comma-separated list of values"))
+            .description(Some(description))
+            .examples([T::example()])
+            .pattern(Some("^[^,]+(,[^,]+)*$"))
             .into()
     }
 }
@@ -112,7 +194,9 @@ impl<T: CommaSeparatable> utoipa::ToSchema for CommaSeparated<T> {}
 fn comma_separated_param() {
     use pretty_assertions::assert_eq;
     use strum::{Display, EnumString};
-    #[derive(Serialize, Debug, PartialEq, Eq, Deserialize, EnumString, Display, Hash)]
+    #[derive(
+        Serialize, Debug, PartialEq, Eq, Deserialize, EnumString, Display, Hash, strum::VariantArray,
+    )]
     #[serde(rename_all = "snake_case")]
     #[strum(serialize_all = "snake_case")]
     enum TestEnum {
@@ -121,6 +205,7 @@ fn comma_separated_param() {
         #[expect(clippy::upper_case_acronyms)]
         ABC,
     }
+    comma_separatable!(TestEnum);
 
     #[derive(Serialize, Deserialize)]
     struct TestParams {
