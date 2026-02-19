@@ -10,16 +10,15 @@ use strum::{Display, EnumString};
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+#[serde(default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
 pub struct LegislationParams {
-    #[serde(default)]
     pub id: Vec<i32>,
 
     pub freetext: Option<String>,
-    pub legislation_type: Option<LegislationType>,
+    pub legislation_type: CommaSeparated<LegislationType>,
 
-    #[serde(default)]
     pub external_id: Vec<ExternalId>,
     pub session_id: Option<i32>,
 
@@ -37,10 +36,8 @@ pub struct LegislationParams {
     pub created_before: Option<DateTime<FixedOffset>>,
 
     /// id | external_id
-    #[serde(default)]
     pub order_by: LegislationOrder,
     /// asc | desc
-    #[serde(default)]
     pub order: Ordering,
 
     pub page: Option<u64>,
@@ -389,10 +386,34 @@ fn test_query_params_behavior() {
     let de_params: LegislationParams = serde_qs::from_str(&ser_params).unwrap();
 
     assert_eq!(params, de_params);
+
+    // CommaSeparated serializes as comma-separated string
+    let params = LegislationParams {
+        legislation_type: [LegislationType::Bill, LegislationType::Resolution]
+            .into_iter()
+            .collect(),
+        ..Default::default()
+    };
+    let ser_params = serde_qs::to_string(&params).unwrap();
+    // HashSet order is non-deterministic, so check both possible orderings
+    assert!(
+        ser_params == "legislation_type=bill%2Cresolution"
+            || ser_params == "legislation_type=resolution%2Cbill",
+        "unexpected serialization: {ser_params}"
+    );
+
+    // Round-trip: deserialize back
+    let de_params: LegislationParams = serde_qs::from_str(&ser_params).unwrap();
+    assert_eq!(params, de_params);
+
+    // Empty CommaSeparated is omitted from query string
+    let params = LegislationParams::default();
+    let ser_params = serde_qs::to_string(&params).unwrap();
+    assert!(!ser_params.contains("legislation_type"));
 }
 
 #[derive(
-    Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, Default, PartialEq, Eq,
+    Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, Default, PartialEq, Eq, Hash,
 )]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
