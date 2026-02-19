@@ -25,7 +25,7 @@ pub struct LegislationParams {
     pub introduced_after: Option<DateTime<FixedOffset>>,
     pub introduced_before: Option<DateTime<FixedOffset>>,
     /// include or exclude null introduced at legislation
-    pub introduced_at_null: bool,
+    pub introduced_at_null: Option<bool>,
 
     pub status_text: Option<String>,
     pub status: Option<String>,
