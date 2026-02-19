@@ -33,7 +33,7 @@ pub trait PaginatedParams {
 #[macro_export]
 macro_rules! paginated {
     ($name:ident) => {
-        impl PaginatedParams for $name {
+        impl $crate::paginate::PaginatedParams for $name {
             fn page(&self) -> u64 {
                 self.page.unwrap_or_default()
             }
