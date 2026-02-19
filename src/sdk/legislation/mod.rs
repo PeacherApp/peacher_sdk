@@ -360,7 +360,9 @@ impl Handler for PutSponsors {
 
 #[test]
 fn test_query_params_behavior() {
+    use crate::commasep;
     use pretty_assertions::assert_eq;
+
     let list_session_legislation = ListSessionLegislation::new(3);
 
     // ListSessionLegislation returns default pagination params
@@ -371,7 +373,7 @@ fn test_query_params_behavior() {
     let params = LegislationParams {
         page: Some(2),
         page_size: Some(13),
-        id: vec![2, 4, 3],
+        id: commasep![2, 4, 3],
         order: Ordering::Desc,
         order_by: LegislationOrder::ExternalId,
         ..Default::default()

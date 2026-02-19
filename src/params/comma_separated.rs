@@ -80,7 +80,32 @@ commaparam!(i32, "1,2,3");
 commaparam!(i64, "1,2,3");
 commaparam!(String, "foo,bar,baz");
 
+/// Construct a [`CommaSeparated<T>`] from a list of values, similar to [`vec!`].
+///
+/// ```
+/// let types = commasep![LegislationType::Bill, LegislationType::Resolution];
+/// let ids = commasep![1, 2, 3];
+/// let empty: CommaSeparated<i32> = commasep![];
+/// ```
+#[macro_export]
+macro_rules! commasep {
+    () => {
+        $crate::params::CommaSeparated::default()
+    };
+    ($($val:expr),+ $(,)?) => {
+        $crate::params::CommaSeparated::new([$($val),+])
+    };
+}
+
 /// A `HashSet<T>` that serializes and deserializes as a comma-separated string.
+///
+/// The easiest way to create this struct is with the [`commasep`] macro:
+/// ```
+/// let types: CommaSeparated<LegislationType> = commasep![LegislationType::Bill, LegislationType::Resolution];
+/// let ids: CommaSeparated<i32> = commasep![1, 2, 3];
+/// let empty: CommaSeparated<i32> = commasep![];
+/// ```
+///
 ///
 /// In query parameters, this appears as `field=value1,value2,value3` rather than
 /// the default array-indexed format (`field[0]=value1&field[1]=value2`).
