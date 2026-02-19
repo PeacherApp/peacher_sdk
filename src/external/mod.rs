@@ -17,6 +17,7 @@ mod session;
 pub use session::*;
 
 use std::{
+    convert::Infallible,
     fmt::{self, Debug},
     str::FromStr,
 };
@@ -25,6 +26,8 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+use crate::commaparam;
+
 /// An id that's in our database, so not from an external resource.
 #[derive(Clone, Copy)]
 pub struct DatabaseId(pub i32);
@@ -32,6 +35,14 @@ pub struct DatabaseId(pub i32);
 #[derive(Clone, Hash, PartialEq, Eq, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ExternalId(String);
+impl FromStr for ExternalId {
+    type Err = Infallible;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::new(s))
+    }
+}
+
+commaparam!(ExternalId, "ga-114,us-372,il-10");
 
 impl fmt::Display for ExternalId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

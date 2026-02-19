@@ -1,7 +1,7 @@
 mod summaries;
 pub use summaries::*;
 
-use crate::{comma_separatable, paginated, prelude::*};
+use crate::{commaparam, paginated, prelude::*};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
@@ -14,7 +14,7 @@ use url::Url;
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
 pub struct LegislationParams {
-    pub id: Vec<i32>,
+    pub id: CommaSeparated<i32>,
 
     pub freetext: Option<String>,
     pub legislation_type: CommaSeparated<LegislationType>,
@@ -436,7 +436,7 @@ pub enum LegislationType {
     Other,
 }
 
-comma_separatable!(LegislationType);
+commaparam!(LegislationType);
 
 /// Outcome of legislation - tracks what ultimately happened to a bill
 #[derive(

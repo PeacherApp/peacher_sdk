@@ -13,8 +13,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 ///
 /// Automatically implemented for all types implementing [`strum::VariantArray`],
 /// which generates the description and example from the enum's variants.
-/// For types implementing [`strum::VariantArray`], use the [`comma_separatable`] macro
-/// For primitive types, use the [`comma_separatable_primitive`] macro.
+///
+/// This is typically implemented via the the [`commaparam`] macro
 pub trait CommaSeparatable: Eq + Hash + fmt::Display + FromStr {
     /// A description fragment appended to the schema description.
     /// For enums this lists valid values; for primitives this can be empty.
@@ -38,7 +38,7 @@ pub trait CommaSeparatable: Eq + Hash + fmt::Display + FromStr {
 /// impl_param_example!(String, "foo,bar,baz");
 /// ```
 #[macro_export]
-macro_rules! comma_separatable {
+macro_rules! commaparam {
     ($ty:ty) => {
         impl $crate::params::CommaSeparatable for $ty {
             #[cfg(feature = "utoipa")]
@@ -76,9 +76,9 @@ macro_rules! comma_separatable {
     };
 }
 
-comma_separatable!(i32, "1,2,3");
-comma_separatable!(i64, "1,2,3");
-comma_separatable!(String, "foo,bar,baz");
+commaparam!(i32, "1,2,3");
+commaparam!(i64, "1,2,3");
+commaparam!(String, "foo,bar,baz");
 
 /// A `HashSet<T>` that serializes and deserializes as a comma-separated string.
 ///
@@ -205,7 +205,7 @@ fn comma_separated_param() {
         #[expect(clippy::upper_case_acronyms)]
         ABC,
     }
-    comma_separatable!(TestEnum);
+    commaparam!(TestEnum);
 
     #[derive(Serialize, Deserialize)]
     struct TestParams {
