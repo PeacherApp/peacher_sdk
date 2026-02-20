@@ -65,7 +65,7 @@ macro_rules! commaparam {
         impl $crate::params::CommaSeparatable for $ty {
             #[cfg(feature = "utoipa")]
             fn description() -> Option<String> {
-                Some(format!("a $ty"))
+                Some(format!("a list of {} (e.g. {})", stringify!($ty), $example))
             }
 
             #[cfg(feature = "utoipa")]
