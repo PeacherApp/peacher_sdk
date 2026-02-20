@@ -30,6 +30,10 @@ pub trait PaginatedParams {
     }
 }
 
+/// Automatically implements [`PaginatedParams`] for a type.
+///
+/// If you include a second value (a lit number), that
+/// will be considered the max page size.
 #[macro_export]
 macro_rules! paginated {
     ($name:ident) => {
