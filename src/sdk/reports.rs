@@ -2,11 +2,11 @@ use std::borrow::Cow;
 
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
+use strum::{Display, EnumString, VariantArray};
 use uuid::Uuid;
 
 use crate::sdk::{AdminContentView, MemberView};
-use crate::{paginated, prelude::*};
+use crate::{commaparam, paginated, prelude::*};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -31,16 +31,44 @@ pub struct CreateReportRequest {
     pub details: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, EnumString, Display)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    EnumString,
+    Display,
+    Hash,
+    VariantArray,
+)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum ReportType {
     Content,
     Member,
 }
+commaparam!(ReportType);
 
 #[derive(
-    Debug, Serialize, Deserialize, Clone, PartialEq, Eq, EnumString, Display, Default, Hash,
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    EnumString,
+    Display,
+    Default,
+    Hash,
+    VariantArray,
 )]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum ReviewStatus {
     #[default]
@@ -48,6 +76,7 @@ pub enum ReviewStatus {
     Resolved,
     Dismissed,
 }
+commaparam!(ReviewStatus);
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -106,14 +135,15 @@ pub struct BulkReviewResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
 pub struct ListReportParams {
     pub id: Option<i32>,
     /// Note that as a non-moderator, this parameter
     ///
     /// is automatically overwritten to be your member id.
-    pub reporter: Option<i32>,
-    pub report_type: Option<ReportType>,
-    pub review_status: Option<ReviewStatus>,
+    pub reporter: CommaSeparated<i32>,
+    pub report_type: CommaSeparated<ReportType>,
+    pub review_status: CommaSeparated<ReviewStatus>,
     pub created_after: Option<DateTime<FixedOffset>>,
     pub created_before: Option<DateTime<FixedOffset>>,
     pub page: Option<u64>,

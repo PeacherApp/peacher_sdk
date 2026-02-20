@@ -145,6 +145,7 @@ impl<T: CommaSeparatable> PartialEq for CommaSeparated<T> {
         self.0 == other.0
     }
 }
+impl<T: CommaSeparatable> Eq for CommaSeparated<T> {}
 
 impl<T: CommaSeparatable> Deref for CommaSeparated<T> {
     type Target = HashSet<T>;

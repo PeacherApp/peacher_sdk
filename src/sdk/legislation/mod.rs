@@ -6,7 +6,7 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::str::FromStr;
-use strum::{Display, EnumString};
+use strum::{Display, EnumString, VariantArray};
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
@@ -458,7 +458,7 @@ fn test_query_params_behavior() {
     PartialEq,
     Eq,
     Hash,
-    strum::VariantArray,
+    VariantArray,
 )]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
@@ -487,6 +487,7 @@ commaparam!(LegislationType);
     Hash,
     strum::VariantArray,
 )]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum LegislationStatus {
     ///Still in progress
