@@ -199,8 +199,10 @@ where
 }
 
 #[cfg(feature = "utoipa")]
-impl<T: CommaSeparatable> utoipa::PartialSchema for CommaSeparated<T> {
-    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+impl<T: CommaSeparatable> utoipa::__dev::ComposeSchema for CommaSeparated<T> {
+    fn compose(
+        _generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         let mut description = "Comma-separated set of values. \
              Duplicate values are ignored. Order is not guaranteed."
             .to_string();
