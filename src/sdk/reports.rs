@@ -28,7 +28,7 @@ impl ReportedKind {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreateReportRequest {
     pub kind: ReportedKind,
-    pub details: String,
+    pub reason: String,
 }
 
 #[derive(
@@ -102,28 +102,29 @@ impl ReportDetails {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ReportView {
     pub id: i32,
-    pub reporter: Option<i32>,
+    pub reporter: Option<MemberView>,
+    pub report_reason: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub details: ReportDetails,
     pub reviewer: Option<i32>,
     pub review_status: ReviewStatus,
-    pub review_result: String,
+    pub reviewer_message: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ReviewReportRequest {
-    pub review_status: ReviewStatus,
-    pub review_result: String,
+    pub status: ReviewStatus,
+    pub message: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BulkReviewReportsRequest {
     pub filter: ListReportParams,
-    pub review_status: ReviewStatus,
-    pub review_result: String,
+    pub status: ReviewStatus,
+    pub message: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -172,7 +173,7 @@ impl CreateReport {
         Self {
             body: CreateReportRequest {
                 kind: ReportedKind::Content(content_id),
-                details: details.into(),
+                reason: details.into(),
             },
         }
     }
@@ -181,7 +182,7 @@ impl CreateReport {
         Self {
             body: CreateReportRequest {
                 kind: ReportedKind::Member(member_id),
-                details: details.into(),
+                reason: details.into(),
             },
         }
     }
@@ -234,16 +235,12 @@ pub struct ReviewReport {
 }
 
 impl ReviewReport {
-    pub fn new(
-        report_id: i32,
-        review_status: ReviewStatus,
-        review_result: impl Into<String>,
-    ) -> Self {
+    pub fn new(report_id: i32, review_status: ReviewStatus, message: impl Into<String>) -> Self {
         Self {
             report_id,
             body: ReviewReportRequest {
-                review_status,
-                review_result: review_result.into(),
+                status: review_status,
+                message: message.into(),
             },
         }
     }
@@ -279,8 +276,8 @@ impl BulkReviewReports {
         Self {
             body: BulkReviewReportsRequest {
                 filter,
-                review_status,
-                review_result: review_result.into(),
+                status: review_status,
+                message: review_result.into(),
             },
         }
     }
