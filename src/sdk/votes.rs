@@ -2,7 +2,7 @@ use crate::{paginated, prelude::*};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use strum::{Display, EnumString};
+use strum::{Display, EnumString, VariantArray};
 
 #[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
@@ -174,7 +174,21 @@ pub struct VoteView {
     pub vote_value: Vote,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    Display,
+    EnumString,
+    PartialEq,
+    Eq,
+    Hash,
+    VariantArray,
+)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum Vote {
     Yes,
@@ -185,8 +199,21 @@ pub enum Vote {
 
 /// Type of a legislation vote
 #[derive(
-    Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default, Display, EnumString,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    Display,
+    EnumString,
+    PartialEq,
+    Eq,
+    Hash,
+    Default,
+    VariantArray,
 )]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum VoteType {
     #[default]

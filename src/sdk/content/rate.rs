@@ -2,10 +2,25 @@ use std::borrow::Cow;
 
 use crate::prelude::*;
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString, VariantArray};
 use uuid::Uuid;
 
 /// The sentiment provided for a piece of content
-#[derive(Serialize, Deserialize, Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    Display,
+    EnumString,
+    PartialEq,
+    Eq,
+    Hash,
+    VariantArray,
+)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum Sentiment {
     Positive,
