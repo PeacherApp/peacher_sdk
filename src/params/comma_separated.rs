@@ -187,7 +187,9 @@ where
     T::Err: fmt::Display,
 {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let s = String::deserialize(deserializer)?;
+        let Some(s) = Option::<String>::deserialize(deserializer)? else {
+            return Ok(Self::default());
+        };
         if s.is_empty() {
             return Ok(Self::default());
         }
