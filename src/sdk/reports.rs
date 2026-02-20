@@ -93,7 +93,7 @@ pub struct ReviewReportRequest {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BulkReviewReportsRequest {
-    pub filter: ReportParams,
+    pub filter: ListReportParams,
     pub review_status: ReviewStatus,
     pub review_result: String,
 }
@@ -107,8 +107,11 @@ pub struct BulkReviewResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
-pub struct ReportParams {
+pub struct ListReportParams {
     pub id: Option<i32>,
+    /// Note that as a non-moderator, this parameter
+    ///
+    /// is automatically overwritten to be your member id.
     pub reporter: Option<i32>,
     pub report_type: Option<ReportType>,
     pub review_status: Option<ReviewStatus>,
@@ -118,7 +121,7 @@ pub struct ReportParams {
     pub page_size: Option<u64>,
 }
 
-paginated!(ReportParams);
+paginated!(ListReportParams);
 
 /// Handler to create a report
 pub struct CreateReport {
@@ -164,7 +167,7 @@ impl Handler for CreateReport {
 /// Handler to list reports (moderator+)
 #[derive(Default)]
 pub struct ListReports {
-    pub params: ReportParams,
+    pub params: ListReportParams,
 }
 
 impl ListReports {
@@ -230,7 +233,7 @@ pub struct BulkReviewReports {
 
 impl BulkReviewReports {
     pub fn new(
-        filter: ReportParams,
+        filter: ListReportParams,
         review_status: ReviewStatus,
         review_result: impl Into<String>,
     ) -> Self {
