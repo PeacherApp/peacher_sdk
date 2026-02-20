@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 use uuid::Uuid;
 
-use crate::paginated;
 use crate::prelude::*;
 use crate::sdk::{AdminContentView, MemberView};
 
@@ -121,7 +120,34 @@ pub struct ListReportParams {
     pub page_size: Option<u64>,
 }
 
-paginated!(ListReportParams);
+impl PaginatedParams for ListReportParams {
+    fn page(&self) -> u64 {
+        self.page.unwrap_or_default()
+    }
+    fn param_page_size(&self) -> u64 {
+        self.page_size.unwrap_or(10)
+    }
+    fn set_page(&mut self, page: u64) {
+        self.page = Some(page)
+    }
+    fn set_page_size(&mut self, page_size: u64) {
+        self.page_size = Some(page_size)
+    }
+    /// we manually implement paginated params for listreportparams
+    fn page_size(&self) -> u64 {
+        self.param_page_size()
+    }
+}
+
+#[test]
+fn ensure_list_reports_page_size_unbounded() {
+    let params = ListReportParams {
+        page_size: Some(10000),
+        ..Default::default()
+    };
+
+    assert_eq!(params.page_size(), 10000);
+}
 
 /// Handler to create a report
 pub struct CreateReport {
