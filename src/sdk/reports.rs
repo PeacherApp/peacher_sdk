@@ -1,9 +1,12 @@
+use std::borrow::Cow;
+
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 use uuid::Uuid;
 
 use crate::paginated;
+use crate::prelude::*;
 use crate::sdk::{AdminContentView, MemberView};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -116,3 +119,143 @@ pub struct ReportParams {
 }
 
 paginated!(ReportParams);
+
+/// Handler to create a report
+pub struct CreateReport {
+    body: CreateReportRequest,
+}
+
+impl CreateReport {
+    pub fn content(content_id: Uuid, details: impl Into<String>) -> Self {
+        Self {
+            body: CreateReportRequest {
+                kind: ReportedKind::Content(content_id),
+                details: details.into(),
+            },
+        }
+    }
+
+    pub fn member(member_id: i32, details: impl Into<String>) -> Self {
+        Self {
+            body: CreateReportRequest {
+                kind: ReportedKind::Member(member_id),
+                details: details.into(),
+            },
+        }
+    }
+}
+
+impl Handler for CreateReport {
+    type ResponseBody = ReportView;
+
+    fn method(&self) -> Method {
+        Method::Post
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/reports".into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
+/// Handler to list reports (moderator+)
+#[derive(Default)]
+pub struct ListReports {
+    pub params: ReportParams,
+}
+
+impl ListReports {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl GetHandler for ListReports {
+    type ResponseBody = Paginated<ReportView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/reports".into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
+    }
+}
+
+/// Handler to review a single report (moderator+)
+pub struct ReviewReport {
+    report_id: i32,
+    body: ReviewReportRequest,
+}
+
+impl ReviewReport {
+    pub fn new(
+        report_id: i32,
+        review_status: ReviewStatus,
+        review_result: impl Into<String>,
+    ) -> Self {
+        Self {
+            report_id,
+            body: ReviewReportRequest {
+                review_status,
+                review_result: review_result.into(),
+            },
+        }
+    }
+}
+
+impl Handler for ReviewReport {
+    type ResponseBody = ReportView;
+
+    fn method(&self) -> Method {
+        Method::Patch
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/reports/{}", self.report_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
+/// Handler to bulk review reports (moderator+)
+pub struct BulkReviewReports {
+    body: BulkReviewReportsRequest,
+}
+
+impl BulkReviewReports {
+    pub fn new(
+        filter: ReportParams,
+        review_status: ReviewStatus,
+        review_result: impl Into<String>,
+    ) -> Self {
+        Self {
+            body: BulkReviewReportsRequest {
+                filter,
+                review_status,
+                review_result: review_result.into(),
+            },
+        }
+    }
+}
+
+impl Handler for BulkReviewReports {
+    type ResponseBody = BulkReviewResponse;
+
+    fn method(&self) -> Method {
+        Method::Patch
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/reports".into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
