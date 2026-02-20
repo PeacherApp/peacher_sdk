@@ -48,4 +48,23 @@ macro_rules! paginated {
             }
         }
     };
+    ($name:ident, $max_page:literal) => {
+        impl $crate::paginate::PaginatedParams for $name {
+            fn page(&self) -> u64 {
+                self.page.unwrap_or_default()
+            }
+            fn param_page_size(&self) -> u64 {
+                self.page_size.unwrap_or(10)
+            }
+            fn set_page(&mut self, page: u64) {
+                self.page = Some(page);
+            }
+            fn set_page_size(&mut self, page_size: u64) {
+                self.page_size = Some(page_size);
+            }
+            fn page_size(&self) -> u64 {
+                self.param_page_size().clamp(1, $max_page)
+            }
+        }
+    };
 }
