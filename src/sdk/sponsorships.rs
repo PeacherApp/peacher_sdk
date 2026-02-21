@@ -1,5 +1,6 @@
 use crate::{paginated, prelude::*};
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString, VariantArray};
 
 #[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
@@ -10,7 +11,21 @@ pub struct SponsorshipParams {
 }
 paginated!(SponsorshipParams);
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    Display,
+    EnumString,
+    PartialEq,
+    Eq,
+    Hash,
+    VariantArray,
+)]
+#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum SponsorshipType {
     Primary,

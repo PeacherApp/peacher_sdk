@@ -1,37 +1,52 @@
 mod summaries;
 pub use summaries::*;
 
-use crate::{paginated, prelude::*};
+use crate::{commaparam, paginated, prelude::*};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::str::FromStr;
-use strum::{Display, EnumString};
+use strum::{Display, EnumString, VariantArray};
 use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+#[serde(default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
 pub struct LegislationParams {
-    #[serde(default)]
-    pub id: Vec<i32>,
+    pub id: CommaSeparated<i32>,
 
     pub freetext: Option<String>,
-    pub legislation_type: Option<String>,
+    pub legislation_type: CommaSeparated<LegislationType>,
 
-    #[serde(default)]
     pub external_id: Vec<ExternalId>,
     pub session_id: Option<i32>,
-    /// Filter by active status (derived from outcome)
+    pub chamber_id: Option<i32>,
+
+    /// Filter by category names (through legislation_categories join)
+    pub category: CommaSeparated<String>,
+    /// Filter by sponsor member IDs (through legislation_sponsors join)
+    pub sponsor_id: CommaSeparated<i32>,
+
+    /// Convenience filter: true = status is null or Pending, false = terminal status
     pub is_active: Option<bool>,
-    /// Filter by specific outcomes
-    #[serde(default)]
-    pub outcome: Vec<String>,
-    /// id | external_id
-    #[serde(default)]
+    pub status: CommaSeparated<LegislationStatus>,
+    pub status_text: Option<String>,
+    pub status_updated_after: Option<DateTime<FixedOffset>>,
+    pub status_updated_before: Option<DateTime<FixedOffset>>,
+
+    pub introduced_after: Option<DateTime<FixedOffset>>,
+    pub introduced_before: Option<DateTime<FixedOffset>>,
+    /// Include or exclude null introduced_at legislation.
+    /// When None: defaults to false if introduced_after/before is set, true otherwise.
+    pub introduced_at_null: Option<bool>,
+
+    pub created_after: Option<DateTime<FixedOffset>>,
+    pub created_before: Option<DateTime<FixedOffset>>,
+
+    /// id | external_id | created_at | introduced_at | status_updated_at | title
     pub order_by: LegislationOrder,
     /// asc | desc
-    #[serde(default)]
     pub order: Ordering,
 
     pub page: Option<u64>,
@@ -57,28 +72,25 @@ impl LegislationParams {
         self.order = order;
         self
     }
-
-    pub fn legislation_type(&self) -> Option<LegislationType> {
-        self.legislation_type
-            .as_ref()
-            .and_then(|t| LegislationType::from_str(t).ok())
-    }
-
     pub fn set_is_active(mut self, is_active: bool) -> Self {
         self.is_active = Some(is_active);
         self
     }
-
-    pub fn set_outcomes(mut self, outcomes: impl IntoIterator<Item = LegislationStatus>) -> Self {
-        self.outcome = outcomes.into_iter().map(|o| o.to_string()).collect();
+    pub fn set_status(mut self, status: impl IntoIterator<Item = LegislationStatus>) -> Self {
+        self.status = status.into_iter().collect();
         self
     }
-
-    pub fn outcomes(&self) -> Vec<LegislationStatus> {
-        self.outcome
-            .iter()
-            .filter_map(|o| LegislationStatus::from_str(o).ok())
-            .collect()
+    pub fn set_chamber_id(mut self, chamber_id: i32) -> Self {
+        self.chamber_id = Some(chamber_id);
+        self
+    }
+    pub fn set_categories(mut self, categories: impl IntoIterator<Item = String>) -> Self {
+        self.category = categories.into_iter().collect();
+        self
+    }
+    pub fn set_sponsor_ids(mut self, sponsor_ids: impl IntoIterator<Item = i32>) -> Self {
+        self.sponsor_id = sponsor_ids.into_iter().collect();
+        self
     }
 }
 
@@ -93,6 +105,10 @@ pub enum LegislationOrder {
     #[default]
     Id,
     ExternalId,
+    CreatedAt,
+    IntroducedAt,
+    StatusUpdatedAt,
+    Title,
 }
 
 impl GetHandler for LegislationParams {
@@ -371,7 +387,9 @@ impl Handler for PutSponsors {
 
 #[test]
 fn test_query_params_behavior() {
+    use crate::commasep;
     use pretty_assertions::assert_eq;
+
     let list_session_legislation = ListSessionLegislation::new(3);
 
     // ListSessionLegislation returns default pagination params
@@ -382,25 +400,65 @@ fn test_query_params_behavior() {
     let params = LegislationParams {
         page: Some(2),
         page_size: Some(13),
-        id: vec![2, 4, 3],
+        id: commasep![2, 4, 3],
         order: Ordering::Desc,
         order_by: LegislationOrder::ExternalId,
         ..Default::default()
     };
     let ser_params = serde_qs::to_string(&params).unwrap();
 
-    assert_eq!(
-        "id[0]=2&id[1]=4&id[2]=3&order_by=external_id&order=desc&page=2&page_size=13",
-        &ser_params
+    // CommaSeparated<i32> serializes as comma-separated string; HashSet order is non-deterministic
+    assert!(
+        ser_params.starts_with("id="),
+        "expected id= prefix: {ser_params}"
+    );
+    assert!(
+        ser_params.contains("order_by=external_id&order=desc&page=2&page_size=13"),
+        "expected ordering/pagination params: {ser_params}"
     );
 
+    // Round-trip: deserialize back
     let de_params: LegislationParams = serde_qs::from_str(&ser_params).unwrap();
-
     assert_eq!(params, de_params);
+
+    // CommaSeparated serializes as comma-separated string
+    let params = LegislationParams {
+        legislation_type: [LegislationType::Bill, LegislationType::Resolution]
+            .into_iter()
+            .collect(),
+        ..Default::default()
+    };
+    let ser_params = serde_qs::to_string(&params).unwrap();
+    // HashSet order is non-deterministic, so check both possible orderings
+    assert!(
+        ser_params.contains("legislation_type=bill%2Cresolution")
+            || ser_params.contains("legislation_type=resolution%2Cbill"),
+        "unexpected serialization: {ser_params}"
+    );
+
+    // Round-trip: deserialize back
+    let de_params: LegislationParams = serde_qs::from_str(&ser_params).unwrap();
+    assert_eq!(params, de_params);
+
+    // Empty CommaSeparated is omitted from query string
+    let params = LegislationParams::default();
+    let ser_params = serde_qs::to_string(&params).unwrap();
+    assert!(!ser_params.contains("legislation_type"));
 }
 
 #[derive(
-    Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, Default, PartialEq, Eq,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    Display,
+    EnumString,
+    Default,
+    PartialEq,
+    Eq,
+    Hash,
+    VariantArray,
 )]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
@@ -412,10 +470,24 @@ pub enum LegislationType {
     Other,
 }
 
+commaparam!(LegislationType);
+
 /// Outcome of legislation - tracks what ultimately happened to a bill
 #[derive(
-    Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default, Display, EnumString,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Default,
+    Display,
+    EnumString,
+    Hash,
+    strum::VariantArray,
 )]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum LegislationStatus {
     ///Still in progress
@@ -452,6 +524,8 @@ impl LegislationStatus {
         s.and_then(|s| Self::from_str(s).ok())
     }
 }
+
+commaparam!(LegislationStatus);
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -579,7 +653,7 @@ pub struct LegislationDetailsResponse {
 #[derive(Serialize, Deserialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SponsorInfo {
-    pub member: MemberView,
+    pub member: MemberWithPartyView,
     pub sponsor_type: SponsorshipType,
 }
 
@@ -631,7 +705,7 @@ pub struct LegislationVoteDetailsResponse {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SponsoredLegislationView {
-    pub sponsor: MemberView,
+    pub sponsor: MemberWithPartyView,
     pub legislation: LegislationView,
     pub sponsored_at: Option<DateTime<FixedOffset>>,
 }

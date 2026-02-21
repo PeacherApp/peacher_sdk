@@ -49,6 +49,9 @@ pub use maps::*;
 mod members;
 pub use members::*;
 
+mod moderation;
+pub use moderation::*;
+
 mod messages;
 pub use messages::*;
 

@@ -78,3 +78,17 @@ pub enum QueryError<C> {
     #[error("(Client) {0}")]
     Client(C),
 }
+impl<C> QueryError<C> {
+    /// returns true if the error is unauthorized
+    pub fn is_unauthorized(&self) -> bool {
+        matches!(self.status(), Some(StatusCode::UNAUTHORIZED))
+    }
+    /// returns a status code if the error has one
+    pub fn status(&self) -> Option<StatusCode> {
+        if let QueryError::Status(status_code, _) = self {
+            Some(*status_code)
+        } else {
+            None
+        }
+    }
+}

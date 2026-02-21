@@ -253,7 +253,7 @@ impl AsTable for Vec<LegislationView> {
     }
 }
 
-impl AsTable for Vec<Arc<MemberView>> {
+impl AsTable for Vec<Arc<MemberWithPartyView>> {
     type TableRow<'a>
         = MemberRow
     where
@@ -264,7 +264,12 @@ impl AsTable for Vec<Arc<MemberView>> {
             id: m.id,
             display_name: m.display_name.clone(),
             handle: m.handle.clone(),
-            party: m.party.name.clone(),
+            party: m
+                .party
+                .as_ref()
+                .map(|p| p.name.as_str())
+                .unwrap_or("Unaffiliated")
+                .to_string(),
         })
     }
     fn nest(&self) -> usize {
@@ -272,7 +277,7 @@ impl AsTable for Vec<Arc<MemberView>> {
     }
 }
 
-impl AsTable for Vec<MemberView> {
+impl AsTable for Vec<MemberWithPartyView> {
     type TableRow<'a>
         = MemberRow
     where
@@ -283,7 +288,12 @@ impl AsTable for Vec<MemberView> {
             id: m.id,
             display_name: m.display_name.clone(),
             handle: m.handle.clone(),
-            party: m.party.name.clone(),
+            party: m
+                .party
+                .as_ref()
+                .map(|p| p.name.as_str())
+                .unwrap_or("Unaffiliated")
+                .to_string(),
         })
     }
     fn nest(&self) -> usize {
