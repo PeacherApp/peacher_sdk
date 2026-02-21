@@ -44,8 +44,8 @@ impl ExternalLegislation {
             status: self.status,
             status_updated_at: self.status_updated_at.unwrap_or(self.external_update_at),
             introduced_at: self.introduced_at,
-            external_id: Some(self.external_id.val_str().to_owned()),
-            external_url: self.url.as_ref().map(|u| u.to_string()),
+            external_id: Some(self.external_id.clone()),
+            external_url: self.url.clone(),
             externally_updated_at: Some(self.external_update_at),
         }
     }
@@ -54,7 +54,7 @@ impl ExternalLegislation {
     pub fn needs_update(&self, view: &LegislationView) -> bool {
         view.external_id
             .as_ref()
-            .is_some_and(|val| val == self.external_id.val_str())
+            .is_some_and(|val| *val == self.external_id)
             && (self.status != view.status
                 || self.title != view.title
                 || self.status_text != view.status_text
@@ -62,7 +62,7 @@ impl ExternalLegislation {
                 || self
                     .status_updated_at
                     .is_some_and(|status| status != view.status_updated_at)
-                || view.external_url.as_ref().and_then(|u| Url::parse(u).ok()) != self.url
+                || view.external_url != self.url
                 || view.legislation_type != self.legislation_type)
     }
 

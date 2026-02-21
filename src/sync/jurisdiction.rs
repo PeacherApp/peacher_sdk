@@ -55,7 +55,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
                 let mut req = CreateJurisdiction::new(&client_provided_jurisdiction.name)
                     .external_id(external_id.val_str());
                 if let Some(url) = &client_provided_jurisdiction.url {
-                    req = req.external_url(url.to_string());
+                    req = req.external_url(url.clone());
                 }
                 let created = req.request(self.mapper.client()).await?;
                 let created = self.mapper.store_jurisdiction(created);
@@ -97,7 +97,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
                         CreateChamber::new(jurisdiction.id, &client_provided_chamber.name)
                             .external_id(client_provided_chamber.external_id.val_str());
                     if let Some(url) = &client_provided_chamber.url {
-                        chamber_req = chamber_req.external_url(url.to_string());
+                        chamber_req = chamber_req.external_url(url.clone());
                     }
 
                     let created = chamber_req.request(self.mapper.client()).await?;

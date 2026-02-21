@@ -17,6 +17,7 @@ pub use external_map::*;
 
 use crate::prelude::*;
 use chrono::NaiveDate;
+use url::Url;
 
 /// Result of syncing members
 #[derive(Debug, Clone)]

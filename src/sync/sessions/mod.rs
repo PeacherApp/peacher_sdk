@@ -130,7 +130,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
 
                     session_req = session_req.external_id(ext_session.external_id.val_str());
                     if let Some(url) = &ext_session.url {
-                        session_req = session_req.external_url(url.to_string());
+                        session_req = session_req.external_url(url.clone());
                     }
 
                     let response = CreateSession::new(jurisdiction.id, session_req)

@@ -49,13 +49,13 @@ impl CreateVoteRequest {
         }
     }
 
-    pub fn external_id(mut self, id: impl Into<String>) -> Self {
+    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
         self.external_id = Some(id.into());
         self
     }
 
-    pub fn external_url(mut self, url: impl Into<String>) -> Self {
-        self.external_url = Some(url.into());
+    pub fn external_url(mut self, url: Url) -> Self {
+        self.external_url = Some(url);
         self
     }
 }

@@ -23,7 +23,7 @@ impl JurisdictionParams {
         Self::default()
     }
 
-    pub fn with_external_id(mut self, external_id: impl Into<String>) -> Self {
+    pub fn with_external_id(mut self, external_id: impl Into<ExternalId>) -> Self {
         self.external_id = Some(external_id.into());
         self
     }
@@ -64,7 +64,7 @@ impl ListJurisdictions {
         self
     }
 
-    pub fn with_external_id(mut self, external_id: impl Into<String>) -> Self {
+    pub fn with_external_id(mut self, external_id: impl Into<ExternalId>) -> Self {
         self.external_id = Some(external_id.into());
         self
     }
@@ -115,12 +115,12 @@ impl CreateJurisdiction {
             external_url: None,
         }
     }
-    pub fn external_id(mut self, id: impl Into<String>) -> Self {
+    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
         self.external_id = Some(id.into());
         self
     }
-    pub fn external_url(mut self, url: impl Into<String>) -> Self {
-        self.external_url = Some(url.into());
+    pub fn external_url(mut self, url: Url) -> Self {
+        self.external_url = Some(url);
         self
     }
 }

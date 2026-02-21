@@ -245,7 +245,7 @@ async fn sync_legislation_votes<P: Client>(
         )
         .external_id(ext_vote.external_id.val_str());
         if let Some(url) = &ext_vote.url {
-            vote_req = vote_req.external_url(url.to_string());
+            vote_req = vote_req.external_url(url.clone());
         }
 
         match CreateVote::new(legislation.id, vote_req)

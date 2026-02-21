@@ -99,7 +99,7 @@ impl ExternalMember {
 
         req = req.external_id(self.external_id.val_str());
         if let Some(url) = &self.url {
-            req = req.external_url(url.to_string());
+            req = req.external_url(url.clone());
         }
 
         req
