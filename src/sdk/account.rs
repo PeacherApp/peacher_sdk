@@ -72,6 +72,20 @@ impl Handler for RequestEmailVerification {
     }
 }
 
+pub struct ClearEmail;
+
+impl Handler for ClearEmail {
+    type ResponseBody = AccountView;
+
+    fn method(&self) -> Method {
+        Method::Delete
+    }
+
+    fn path(&self) -> std::borrow::Cow<'_, str> {
+        "/api/account/email".into()
+    }
+}
+
 pub struct VerifyEmail {
     pub token: String,
 }
