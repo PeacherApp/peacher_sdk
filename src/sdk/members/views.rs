@@ -159,7 +159,7 @@ pub struct BannedMemberView {
     pub admin_context: String,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Trust {
     Untrusted,
     NewMember,
