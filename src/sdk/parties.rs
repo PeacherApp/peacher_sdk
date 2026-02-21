@@ -10,20 +10,20 @@ pub struct PartyView {
     pub primary_color: String,
     pub secondary_color: String,
 }
-impl Default for PartyView {
-    fn default() -> Self {
-        Self::unaffiliated()
-    }
-}
+// impl Default for PartyView {
+//     fn default() -> Self {
+//         Self::unaffiliated()
+//     }
+// }
 
-impl PartyView {
-    pub fn unaffiliated() -> Self {
-        Self {
-            id: -1,
-            name: "Unaffiliated".to_string(),
-            photo_url: None,
-            primary_color: "#AAA".to_string(),
-            secondary_color: "#AAA".to_string(),
-        }
-    }
-}
+// impl PartyView {
+//     pub fn unaffiliated() -> Self {
+//         Self {
+//             id: -1,
+//             name: "Unaffiliated".to_string(),
+//             photo_url: None,
+//             primary_color: "#AAA".to_string(),
+//             secondary_color: "#AAA".to_string(),
+//         }
+//     }
+// }

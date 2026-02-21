@@ -273,7 +273,7 @@ pub struct LegislationVote {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberVoteValue {
-    pub member: MemberView,
+    pub member: MemberWithPartyView,
     pub vote: Vote,
 }
 

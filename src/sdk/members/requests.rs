@@ -96,7 +96,7 @@ impl ListMembers {
 }
 
 impl GetHandler for ListMembers {
-    type ResponseBody = Paginated<MemberView>;
+    type ResponseBody = Paginated<MemberWithPartyView>;
 
     fn path(&self) -> Cow<'_, str> {
         "/api/members".into()
@@ -310,7 +310,7 @@ impl CreateMember {
 }
 
 impl Handler for CreateMember {
-    type ResponseBody = MemberView;
+    type ResponseBody = MemberWithPartyView;
 
     fn method(&self) -> Method {
         Method::Post
@@ -338,7 +338,7 @@ impl UpdateMember {
 }
 
 impl Handler for UpdateMember {
-    type ResponseBody = MemberView;
+    type ResponseBody = MemberWithPartyView;
 
     fn method(&self) -> Method {
         Method::Patch

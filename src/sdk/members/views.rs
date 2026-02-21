@@ -26,7 +26,8 @@ pub struct MemberView {
 }
 
 impl MemberView {
-    pub fn with_party(self, party: PartyView) -> MemberWithPartyView {
+    pub fn with_party(self, party: Option<PartyView>) -> MemberWithPartyView {
+        debug_assert_eq!(self.party_id, party.as_ref().map(|p| p.id));
         MemberWithPartyView {
             id: self.id,
             bio: self.bio,
@@ -47,7 +48,7 @@ pub struct MemberWithPartyView {
     pub bio: String,
     pub full_name: Option<String>,
     pub handle: Slug,
-    pub party: PartyView,
+    pub party: Option<PartyView>,
     pub photo: Option<String>,
     pub display_name: String,
     pub auth_level: AuthLevel,
@@ -60,11 +61,7 @@ impl MemberWithPartyView {
             bio: self.bio,
             full_name: self.full_name,
             handle: self.handle,
-            party_id: if self.party.id == -1 {
-                None
-            } else {
-                Some(self.party.id)
-            },
+            party_id: self.party.map(|p| p.id),
             photo: self.photo,
             display_name: self.display_name,
             auth_level: self.auth_level,
@@ -75,7 +72,7 @@ impl MemberWithPartyView {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ExternalMemberResponse {
-    pub member: MemberView,
+    pub member: MemberWithPartyView,
     pub external: ExternalOwner,
 }
 
@@ -88,7 +85,7 @@ pub struct GetMemberDetailsResponse {
     pub handle: Slug,
     pub photo: Option<String>,
     pub display_name: String,
-    pub party: PartyView,
+    pub party: Option<PartyView>,
     pub auth_level: AuthLevel,
     pub external: Option<ExternalOwner>,
     pub ban: Option<BanInfo>,
@@ -105,7 +102,7 @@ pub struct BanInfo {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ChamberMemberActivityView {
-    pub member: MemberView,
+    pub member: MemberWithPartyView,
     pub activity: MemberActivity,
 }
 

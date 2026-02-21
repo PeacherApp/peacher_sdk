@@ -4,7 +4,6 @@ pub use rate::*;
 use std::borrow::Cow;
 
 use crate::prelude::*;
-use crate::sdk::MemberView;
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -17,7 +16,7 @@ pub struct ContentDetails {
     pub updated_at: DateTime<FixedOffset>,
     pub searchable_text: String,
     pub document: serde_json::Value,
-    pub author: Option<MemberView>,
+    pub author: Option<MemberWithPartyView>,
     /// This is the sum of sentiments where
     /// +1 is a positive sentiment, and -1 is a negative sentiment.
     pub rating: i32,

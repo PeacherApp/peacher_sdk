@@ -653,7 +653,7 @@ pub struct LegislationDetailsResponse {
 #[derive(Serialize, Deserialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SponsorInfo {
-    pub member: MemberView,
+    pub member: MemberWithPartyView,
     pub sponsor_type: SponsorshipType,
 }
 
@@ -705,7 +705,7 @@ pub struct LegislationVoteDetailsResponse {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SponsoredLegislationView {
-    pub sponsor: MemberView,
+    pub sponsor: MemberWithPartyView,
     pub legislation: LegislationView,
     pub sponsored_at: Option<DateTime<FixedOffset>>,
 }

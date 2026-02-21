@@ -25,5 +25,5 @@ pub struct BoundaryView {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BoundaryChambers {
     pub chamber: ChamberView,
-    pub members: Vec<MemberView>,
+    pub members: Vec<MemberWithPartyView>,
 }

@@ -430,7 +430,7 @@ pub struct ListChamberResponse {
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ChamberSessionMember {
-    pub member: MemberView,
+    pub member: MemberWithPartyView,
     /// This does fit. We should definitely have this value in the get session response.
     /// makes life way easier.
     pub external: Option<ExternalOwner>,
@@ -453,7 +453,7 @@ pub struct ChamberSessionView {
 pub struct ChamberDistrictView {
     pub id: i32,
     pub name: String,
-    pub representatives: Vec<MemberView>,
+    pub representatives: Vec<MemberWithPartyView>,
 }
 
 /// Response for getting chamber details with session support
