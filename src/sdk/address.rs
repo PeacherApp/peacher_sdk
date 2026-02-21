@@ -11,7 +11,6 @@ pub struct UpdateAccountRequest {
     pub handle: Option<String>,
     pub address: Option<SetLocation>,
     pub public: Option<bool>,
-    pub photo_url: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
