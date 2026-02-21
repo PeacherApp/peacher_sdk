@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::{paginated, prelude::*};
 
@@ -12,7 +13,7 @@ use chrono::NaiveDate;
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
 pub struct ChamberParams {
     /// Filter by external ID
-    pub external_id: Option<String>,
+    pub external_id: Option<ExternalId>,
     /// Filter by jurisdiction ID
     pub jurisdiction_id: Option<i32>,
     pub page: Option<u64>,
@@ -25,7 +26,7 @@ impl ChamberParams {
         Self::default()
     }
 
-    pub fn with_external_id(mut self, external_id: impl Into<String>) -> Self {
+    pub fn with_external_id(mut self, external_id: impl Into<ExternalId>) -> Self {
         self.external_id = Some(external_id.into());
         self
     }
@@ -48,7 +49,7 @@ pub struct ChamberDetailsParams {
 pub struct ListChambers {
     page: u64,
     page_size: u64,
-    external_id: Option<String>,
+    external_id: Option<ExternalId>,
     jurisdiction_id: Option<i32>,
 }
 
@@ -72,7 +73,7 @@ impl ListChambers {
         self
     }
 
-    pub fn with_external_id(mut self, external_id: impl Into<String>) -> Self {
+    pub fn with_external_id(mut self, external_id: impl Into<ExternalId>) -> Self {
         self.external_id = Some(external_id.into());
         self
     }
@@ -102,7 +103,7 @@ impl GetHandler for ListChambers {
             page: u64,
             page_size: u64,
             #[serde(skip_serializing_if = "Option::is_none")]
-            external_id: Option<String>,
+            external_id: Option<ExternalId>,
             #[serde(skip_serializing_if = "Option::is_none")]
             jurisdiction_id: Option<i32>,
         }
@@ -160,19 +161,26 @@ impl GetHandler for GetChamberDetails {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreateChamberRequest {
     pub name: String,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 impl CreateChamberRequest {
     pub fn new(name: impl Into<String>) -> Self {
         Self {
             name: name.into(),
-            external_metadata: None,
+            external_id: None,
+            external_url: None,
         }
     }
 
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
+    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
+        self.external_id = Some(id.into());
+        self
+    }
+
+    pub fn external_url(mut self, url: Url) -> Self {
+        self.external_url = Some(url);
         self
     }
 }
@@ -188,8 +196,12 @@ impl CreateChamber {
             request: CreateChamberRequest::new(chamber_name),
         }
     }
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.request = self.request.external_metadata(metadata);
+    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
+        self.request.external_id = Some(id.into());
+        self
+    }
+    pub fn external_url(mut self, url: Url) -> Self {
+        self.request.external_url = Some(url);
         self
     }
 }
@@ -399,12 +411,17 @@ pub struct ChamberView {
     pub jurisdiction: BasicJurisdictionView,
 }
 impl ChamberView {
-    pub fn into_get_chamber_response(self, external: Option<ExternalOwner>) -> GetChamberResponse {
+    pub fn into_get_chamber_response(
+        self,
+        external_id: Option<ExternalId>,
+        external_url: Option<Url>,
+    ) -> GetChamberResponse {
         GetChamberResponse {
             id: self.id,
             name: self.name,
             jurisdiction: self.jurisdiction,
-            external,
+            external_id,
+            external_url,
         }
     }
 }
@@ -415,7 +432,8 @@ pub struct GetChamberResponse {
     pub id: i32,
     pub name: String,
     pub jurisdiction: BasicJurisdictionView,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -423,7 +441,8 @@ pub struct GetChamberResponse {
 pub struct ListChamberResponse {
     pub id: i32,
     pub name: String,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 /// A member within a chamber session
@@ -433,7 +452,8 @@ pub struct ChamberSessionMember {
     pub member: MemberWithPartyView,
     /// This does fit. We should definitely have this value in the get session response.
     /// makes life way easier.
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub district_id: Option<i32>,
 }
 
@@ -443,7 +463,8 @@ pub struct ChamberSessionMember {
 pub struct ChamberSessionView {
     pub chamber_id: i32,
     pub chamber_name: String,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub members: Vec<ChamberSessionMember>,
 }
 
@@ -463,7 +484,8 @@ pub struct GetChamberDetailsResponse {
     pub id: i32,
     pub name: String,
     pub jurisdiction: BasicJurisdictionView,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     /// All sessions available for this chamber
     pub sessions: Vec<SessionSummary>,
     /// The currently selected session

@@ -97,13 +97,10 @@ impl ExternalMember {
             req = req.photo_url(photo.clone());
         }
 
-        let ext_metadata = ExternalMetadata {
-            external_id: self.external_id.clone(),
-            externally_updated_at: self.external_update_at,
-            url: self.url.clone(),
-        };
-
-        req = req.external_metadata(ext_metadata);
+        req = req.external_id(self.external_id.val_str());
+        if let Some(url) = &self.url {
+            req = req.external_url(url.clone());
+        }
 
         req
     }

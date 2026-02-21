@@ -55,9 +55,6 @@ pub use moderation::*;
 mod messages;
 pub use messages::*;
 
-mod owner;
-pub use owner::*;
-
 mod parties;
 pub use parties::*;
 

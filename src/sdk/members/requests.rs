@@ -17,7 +17,7 @@ pub struct MemberParams {
     /// A query for members that are followed by this member
     pub members_followed_by: Option<i32>,
     /// Filter by external ID
-    pub external_id: Option<String>,
+    pub external_id: Option<ExternalId>,
 
     #[serde(default)]
     pub order_by: MemberOrder,
@@ -34,7 +34,7 @@ impl MemberParams {
         self.freetext.as_deref()
     }
     pub fn external_id(&self) -> Option<&str> {
-        self.external_id.as_deref()
+        self.external_id.as_ref().map(|e| e.val_str())
     }
     pub fn order(&self) -> Ordering {
         self.order
@@ -84,7 +84,7 @@ impl ListMembers {
         self
     }
 
-    pub fn with_external_id(mut self, external_id: impl Into<String>) -> Self {
+    pub fn with_external_id(mut self, external_id: impl Into<ExternalId>) -> Self {
         self.params.external_id = Some(external_id.into());
         self
     }
@@ -197,7 +197,8 @@ pub struct CreateMemberRequest {
     pub bio: String,
     pub party: String,
     pub photo_url: Option<String>,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 impl NewMember for CreateMemberRequest {
@@ -236,7 +237,8 @@ impl CreateMemberRequest {
             bio: bio.into(),
             party: party.into(),
             photo_url: None,
-            external_metadata: None,
+            external_id: None,
+            external_url: None,
         }
     }
 
@@ -250,8 +252,13 @@ impl CreateMemberRequest {
         self
     }
 
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
+    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
+        self.external_id = Some(id.into());
+        self
+    }
+
+    pub fn external_url(mut self, url: Url) -> Self {
+        self.external_url = Some(url);
         self
     }
 }
