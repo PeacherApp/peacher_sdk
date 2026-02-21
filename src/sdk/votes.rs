@@ -24,7 +24,8 @@ pub struct CreateVoteRequest {
     pub member_votes: Vec<MemberVoteInput>,
     /// The chamber where the vote occurs
     pub chamber: i32,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
     pub vote_type: VoteType,
 }
 
@@ -42,12 +43,18 @@ impl CreateVoteRequest {
             member_votes,
             chamber,
             vote_type,
-            external_metadata: None,
+            external_id: None,
+            external_url: None,
         }
     }
 
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
+    pub fn external_id(mut self, id: impl Into<String>) -> Self {
+        self.external_id = Some(id.into());
+        self
+    }
+
+    pub fn external_url(mut self, url: impl Into<String>) -> Self {
+        self.external_url = Some(url.into());
         self
     }
 }

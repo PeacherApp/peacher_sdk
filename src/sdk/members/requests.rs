@@ -197,7 +197,8 @@ pub struct CreateMemberRequest {
     pub bio: String,
     pub party: String,
     pub photo_url: Option<String>,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
 }
 
 impl NewMember for CreateMemberRequest {
@@ -236,7 +237,8 @@ impl CreateMemberRequest {
             bio: bio.into(),
             party: party.into(),
             photo_url: None,
-            external_metadata: None,
+            external_id: None,
+            external_url: None,
         }
     }
 
@@ -250,8 +252,13 @@ impl CreateMemberRequest {
         self
     }
 
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
+    pub fn external_id(mut self, id: impl Into<String>) -> Self {
+        self.external_id = Some(id.into());
+        self
+    }
+
+    pub fn external_url(mut self, url: impl Into<String>) -> Self {
+        self.external_url = Some(url.into());
         self
     }
 }

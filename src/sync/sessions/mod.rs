@@ -39,12 +39,12 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
     ) -> SyncResult<SessionSync<'m, 'client, E, P>> {
         let session = GetSession(id).request(self.mapper.client()).await?;
 
-        let Some(external_owner) = session.external else {
+        let Some(external_id) = session.external_id else {
             return Err(SyncError::no_external_id(session));
         };
 
         Ok(SessionSync::new(
-            external_owner.external_id,
+            ExternalId::new(external_id),
             self.external,
             self.mapper,
         ))
@@ -86,8 +86,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
                 .data
                 .into_iter()
                 .filter_map(|session| {
-                    let external_id = session.external.as_ref()?.external_id.clone();
-                    Some((external_id, session))
+                    let external_id = session.external_id.clone()?;
+                    Some((ExternalId::new(external_id), session))
                 })
                 .collect::<HashMap<_, _>>();
 
@@ -128,12 +128,10 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
                         session_req = session_req.ends_at(ends_at);
                     }
 
-                    let ext_metadata = ExternalMetadata {
-                        external_id: ext_session.external_id.clone(),
-                        url: ext_session.url.clone(),
-                        externally_updated_at: None,
-                    };
-                    session_req = session_req.external_metadata(ext_metadata);
+                    session_req = session_req.external_id(ext_session.external_id.val_str());
+                    if let Some(url) = &ext_session.url {
+                        session_req = session_req.external_url(url.to_string());
+                    }
 
                     let response = CreateSession::new(jurisdiction.id, session_req)
                         .request(self.mapper.client())

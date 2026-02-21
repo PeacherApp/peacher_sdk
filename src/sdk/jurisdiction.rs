@@ -102,18 +102,24 @@ impl GetHandler for ListJurisdictions {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreateJurisdiction {
     pub name: String,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
 }
 
 impl CreateJurisdiction {
     pub fn new(name: impl Into<String>) -> Self {
         Self {
             name: name.into(),
-            external_metadata: None,
+            external_id: None,
+            external_url: None,
         }
     }
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
+    pub fn external_id(mut self, id: impl Into<String>) -> Self {
+        self.external_id = Some(id.into());
+        self
+    }
+    pub fn external_url(mut self, url: impl Into<String>) -> Self {
+        self.external_url = Some(url.into());
         self
     }
 }
@@ -241,7 +247,8 @@ pub struct GetJurisdictionResponse {
     pub name: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
     pub chambers: Vec<ListChamberResponse>,
 }
 
@@ -259,7 +266,8 @@ pub struct JurisdictionView {
     pub name: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
     pub chambers: Vec<SmallChamberView>,
 }
 
@@ -280,7 +288,8 @@ pub struct SessionSummary {
 pub struct JurisdictionChamberView {
     pub id: i32,
     pub name: String,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
     pub member_count: i32,
 }
 
@@ -290,7 +299,8 @@ pub struct JurisdictionChamberView {
 pub struct GetJurisdictionDetailsResponse {
     pub id: i32,
     pub name: String,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
     /// All sessions for this jurisdiction (for session picker)
     pub sessions: Vec<SessionSummary>,
     /// The currently selected session (defaults to current session)

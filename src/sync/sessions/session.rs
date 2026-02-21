@@ -50,11 +50,11 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
         let mut responses = Vec::with_capacity(session.chambers.len());
 
         for chamber in &session.chambers {
-            let Some(external) = &chamber.external else {
+            let Some(ref external_id) = chamber.external_id else {
                 continue;
             };
 
-            match self.members(&external.external_id).sync().await {
+            match self.members(&ExternalId::new(external_id.clone())).sync().await {
                 Ok(result) => responses.push(result),
                 Err(SyncError::NotFound(_)) => {}
                 Err(e) => return Err(e),

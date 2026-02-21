@@ -22,9 +22,7 @@ use std::{
     str::FromStr,
 };
 
-use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
-use url::Url;
 
 use crate::commaparam;
 
@@ -94,11 +92,3 @@ impl ExternalId {
     }
 }
 
-/// Metadata for external resources that tracks the external ID and URL
-#[derive(Clone, Hash, PartialEq, Eq, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ExternalMetadata {
-    pub external_id: ExternalId,
-    pub url: Option<Url>,
-    pub externally_updated_at: Option<DateTime<FixedOffset>>,
-}

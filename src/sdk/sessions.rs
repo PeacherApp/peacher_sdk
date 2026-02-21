@@ -209,7 +209,8 @@ pub struct CreateSessionRequest {
     pub name: String,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
 }
 
 impl CreateSessionRequest {
@@ -218,7 +219,8 @@ impl CreateSessionRequest {
             name: name.into(),
             starts_at: None,
             ends_at: None,
-            external_metadata: None,
+            external_id: None,
+            external_url: None,
         }
     }
 
@@ -232,8 +234,13 @@ impl CreateSessionRequest {
         self
     }
 
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
+    pub fn external_id(mut self, id: impl Into<String>) -> Self {
+        self.external_id = Some(id.into());
+        self
+    }
+
+    pub fn external_url(mut self, url: impl Into<String>) -> Self {
+        self.external_url = Some(url.into());
         self
     }
 }
@@ -384,7 +391,8 @@ pub struct GetSessionResponse {
     pub id: i32,
     pub name: String,
     pub current: bool,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
     pub jurisdiction: BasicJurisdictionView,

@@ -55,7 +55,7 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
             .members
             .into_iter()
             .filter_map(|m| {
-                let external_id = m.external.as_ref()?.external_id.clone();
+                let external_id = ExternalId::new(m.external_id.clone()?);
 
                 Some((external_id, m))
             })

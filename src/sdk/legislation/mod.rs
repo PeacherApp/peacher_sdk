@@ -188,7 +188,9 @@ pub struct CreateLegislationRequest {
     /// If your API does not provide this data, use `Local::now()`
     pub status_updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
+    pub externally_updated_at: Option<DateTime<FixedOffset>>,
 }
 
 /// Handler for creating legislation
@@ -544,7 +546,8 @@ pub struct LegislationView {
     /// Human-readable status text from external source
     pub status_text: String,
     pub status_updated_at: DateTime<FixedOffset>,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
 }
 
 impl LegislationView {
@@ -566,7 +569,8 @@ impl LegislationView {
             legislation_type: self.legislation_type,
             status: self.status,
             status_text: self.status_text,
-            external: self.external,
+            external_id: self.external_id,
+            external_url: self.external_url,
             votes: votes.into_iter().collect(),
             sponsors: sponsors.into_iter().collect(),
         }
@@ -590,7 +594,8 @@ pub struct DetailedLegislationView {
     /// Human-readable status text from external source
     pub status_text: String,
     pub status_updated_at: DateTime<FixedOffset>,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
     pub votes: Vec<LegislationViewVote>,
     pub sponsors: Vec<LegislationViewSponsor>,
 }
@@ -610,7 +615,8 @@ impl DetailedLegislationView {
             status_updated_at: self.status_updated_at,
             status: self.status,
             status_text: self.status_text,
-            external: self.external,
+            external_id: self.external_id,
+            external_url: self.external_url,
         }
     }
 }
@@ -644,7 +650,8 @@ pub struct LegislationDetailsResponse {
     pub status_updated_at: DateTime<FixedOffset>,
     pub status: Option<LegislationStatus>,
     pub legislation_type: LegislationType,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<String>,
+    pub external_url: Option<String>,
     pub sponsors: Vec<SponsorInfo>,
     pub chamber: Option<ChamberView>,
     pub session: Option<SessionView>,

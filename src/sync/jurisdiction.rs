@@ -52,16 +52,12 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
             Ok(jurisdiction) => (jurisdiction, false),
             Err(SyncError::NotFound(external_id)) => {
                 // Create jurisdiction
-                let ext_metadata = ExternalMetadata {
-                    external_id,
-                    url: client_provided_jurisdiction.url,
-                    externally_updated_at: None,
-                };
-
-                let created = CreateJurisdiction::new(&client_provided_jurisdiction.name)
-                    .external_metadata(ext_metadata)
-                    .request(self.mapper.client())
-                    .await?;
+                let mut req = CreateJurisdiction::new(&client_provided_jurisdiction.name)
+                    .external_id(external_id.val_str());
+                if let Some(url) = &client_provided_jurisdiction.url {
+                    req = req.external_url(url.to_string());
+                }
+                let created = req.request(self.mapper.client()).await?;
                 let created = self.mapper.store_jurisdiction(created);
 
                 info!(
@@ -82,8 +78,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
             .data
             .into_iter()
             .filter_map(|known_chamber| {
-                let external_id = known_chamber.external.as_ref()?.external_id.clone();
-                Some((external_id, known_chamber))
+                let external_id = known_chamber.external_id.clone()?;
+                Some((ExternalId::new(external_id), known_chamber))
             })
             .collect::<HashMap<_, _>>();
 
@@ -98,15 +94,11 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
                 }
                 None => {
                     let mut chamber_req =
-                        CreateChamber::new(jurisdiction.id, &client_provided_chamber.name);
-
-                    let ext_metadata = ExternalMetadata {
-                        external_id: client_provided_chamber.external_id.clone(),
-                        url: client_provided_chamber.url.clone(),
-                        externally_updated_at: None,
-                    };
-
-                    chamber_req = chamber_req.external_metadata(ext_metadata);
+                        CreateChamber::new(jurisdiction.id, &client_provided_chamber.name)
+                            .external_id(client_provided_chamber.external_id.val_str());
+                    if let Some(url) = &client_provided_chamber.url {
+                        chamber_req = chamber_req.external_url(url.to_string());
+                    }
 
                     let created = chamber_req.request(self.mapper.client()).await?;
                     info!(
