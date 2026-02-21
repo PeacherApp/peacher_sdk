@@ -3,6 +3,7 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use strum::{Display, EnumString, VariantArray};
+use url::Url;
 
 #[derive(Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
@@ -24,7 +25,8 @@ pub struct CreateVoteRequest {
     pub member_votes: Vec<MemberVoteInput>,
     /// The chamber where the vote occurs
     pub chamber: i32,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub vote_type: VoteType,
 }
 
@@ -42,12 +44,18 @@ impl CreateVoteRequest {
             member_votes,
             chamber,
             vote_type,
-            external_metadata: None,
+            external_id: None,
+            external_url: None,
         }
     }
 
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
+    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
+        self.external_id = Some(id.into());
+        self
+    }
+
+    pub fn external_url(mut self, url: Url) -> Self {
+        self.external_url = Some(url);
         self
     }
 }

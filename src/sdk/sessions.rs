@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::{paginated, prelude::*};
 
@@ -15,7 +16,7 @@ pub struct SessionParams {
     /// Filter by jurisdiction ID
     pub jurisdiction_id: Option<i32>,
     /// Filter by external ID
-    pub external_id: Option<String>,
+    pub external_id: Option<ExternalId>,
     /// Sort order: "name", "recent", "oldest"
     pub sort: Option<String>,
     pub page: Option<u64>,
@@ -38,7 +39,7 @@ impl SessionParams {
         self
     }
 
-    pub fn with_external_id(mut self, external_id: impl Into<String>) -> Self {
+    pub fn with_external_id(mut self, external_id: impl Into<ExternalId>) -> Self {
         self.external_id = Some(external_id.into());
         self
     }
@@ -209,7 +210,8 @@ pub struct CreateSessionRequest {
     pub name: String,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
-    pub external_metadata: Option<ExternalMetadata>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 impl CreateSessionRequest {
@@ -218,7 +220,8 @@ impl CreateSessionRequest {
             name: name.into(),
             starts_at: None,
             ends_at: None,
-            external_metadata: None,
+            external_id: None,
+            external_url: None,
         }
     }
 
@@ -232,8 +235,13 @@ impl CreateSessionRequest {
         self
     }
 
-    pub fn external_metadata(mut self, metadata: ExternalMetadata) -> Self {
-        self.external_metadata = Some(metadata);
+    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
+        self.external_id = Some(id.into());
+        self
+    }
+
+    pub fn external_url(mut self, url: Url) -> Self {
+        self.external_url = Some(url);
         self
     }
 }
@@ -384,7 +392,8 @@ pub struct GetSessionResponse {
     pub id: i32,
     pub name: String,
     pub current: bool,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
     pub jurisdiction: BasicJurisdictionView,

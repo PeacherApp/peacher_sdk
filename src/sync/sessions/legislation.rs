@@ -49,8 +49,9 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
             let is_empty = result.data.is_empty();
 
             for leg in result.data {
-                if let Some(ref ext) = leg.external {
-                    known_legislation.insert(ext.external_id.clone(), leg.into_legislation_view());
+                if let Some(ref ext_id) = leg.external_id {
+                    known_legislation
+                        .insert(ExternalId::new(ext_id.clone()), leg.into_legislation_view());
                 }
             }
 
@@ -232,23 +233,21 @@ async fn sync_legislation_votes<P: Client>(
 
         // Create vote
         //
-        let ext_metadata = ExternalMetadata {
-            external_id: ext_vote.external_id.clone(),
-            url: ext_vote.url.clone(),
-            externally_updated_at: None,
-        };
         let chamber = mapper.chamber(&ext_vote.chamber_id).await.unwrap();
 
         let vote_name = ext_vote.vote_name.clone();
         let ext_vote_id = ext_vote.external_id.val_str().to_owned();
-        let vote_req = CreateVoteRequest {
-            name: ext_vote.vote_name.clone(),
-            chamber: chamber.id,
-            occurred_at: ext_vote.date_occurred,
-            member_votes: member_votes.clone(),
-            external_metadata: Some(ext_metadata),
-            vote_type: ext_vote.vote_type,
-        };
+        let mut vote_req = CreateVoteRequest::new(
+            ext_vote.vote_name.clone(),
+            ext_vote.date_occurred,
+            member_votes.clone(),
+            chamber.id,
+            ext_vote.vote_type,
+        )
+        .external_id(ext_vote.external_id.val_str());
+        if let Some(url) = &ext_vote.url {
+            vote_req = vote_req.external_url(url.clone());
+        }
 
         match CreateVote::new(legislation.id, vote_req)
             .request(mapper.client())

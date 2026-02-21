@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::prelude::*;
 
@@ -69,13 +70,6 @@ impl MemberWithPartyView {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ExternalMemberResponse {
-    pub member: MemberWithPartyView,
-    pub external: ExternalOwner,
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct GetMemberDetailsResponse {
@@ -87,7 +81,8 @@ pub struct GetMemberDetailsResponse {
     pub display_name: String,
     pub party: Option<PartyView>,
     pub auth_level: AuthLevel,
-    pub external: Option<ExternalOwner>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub ban: Option<BanInfo>,
     pub follower_data: FollowResponse,
 }

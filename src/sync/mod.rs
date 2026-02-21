@@ -17,6 +17,7 @@ pub use external_map::*;
 
 use crate::prelude::*;
 use chrono::NaiveDate;
+use url::Url;
 
 /// Result of syncing members
 #[derive(Debug, Clone)]
@@ -56,7 +57,8 @@ pub struct SyncSessionView {
     pub id: i32,
     pub name: String,
     pub current: bool,
-    pub external: ExternalOwner,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
     pub chambers: Vec<SmallChamberView>,
