@@ -253,7 +253,7 @@ impl AsTable for Vec<LegislationView> {
     }
 }
 
-impl AsTable for Vec<Arc<MemberView>> {
+impl AsTable for Vec<Arc<MemberWithPartyView>> {
     type TableRow<'a>
         = MemberRow
     where
@@ -272,7 +272,7 @@ impl AsTable for Vec<Arc<MemberView>> {
     }
 }
 
-impl AsTable for Vec<MemberView> {
+impl AsTable for Vec<MemberWithPartyView> {
     type TableRow<'a>
         = MemberRow
     where

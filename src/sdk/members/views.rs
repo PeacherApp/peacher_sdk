@@ -21,9 +21,57 @@ pub struct MemberView {
     pub handle: Slug,
     pub photo: Option<String>,
     pub display_name: String,
-    pub party: PartyView,
+    pub party_id: Option<i32>,
     pub auth_level: AuthLevel,
 }
+
+impl MemberView {
+    pub fn with_party(self, party: PartyView) -> MemberWithPartyView {
+        MemberWithPartyView {
+            id: self.id,
+            bio: self.bio,
+            full_name: self.full_name,
+            handle: self.handle,
+            party,
+            photo: self.photo,
+            display_name: self.display_name,
+            auth_level: self.auth_level,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct MemberWithPartyView {
+    pub id: i32,
+    pub bio: String,
+    pub full_name: Option<String>,
+    pub handle: Slug,
+    pub party: PartyView,
+    pub photo: Option<String>,
+    pub display_name: String,
+    pub auth_level: AuthLevel,
+}
+
+impl MemberWithPartyView {
+    pub fn into_member_view(self) -> MemberView {
+        MemberView {
+            id: self.id,
+            bio: self.bio,
+            full_name: self.full_name,
+            handle: self.handle,
+            party_id: if self.party.id == -1 {
+                None
+            } else {
+                Some(self.party.id)
+            },
+            photo: self.photo,
+            display_name: self.display_name,
+            auth_level: self.auth_level,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ExternalMemberResponse {
