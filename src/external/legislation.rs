@@ -62,11 +62,7 @@ impl ExternalLegislation {
                 || self
                     .status_updated_at
                     .is_some_and(|status| status != view.status_updated_at)
-                || view
-                    .external_url
-                    .as_ref()
-                    .map(|u| Url::parse(u).ok())
-                    .flatten() != self.url
+                || view.external_url.as_ref().and_then(|u| Url::parse(u).ok()) != self.url
                 || view.legislation_type != self.legislation_type)
     }
 
