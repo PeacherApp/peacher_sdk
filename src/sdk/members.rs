@@ -561,3 +561,21 @@ impl GetHandler for ListBans {
         self.params.clone()
     }
 }
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Trust {
+    Untrusted,
+    NewMember,
+    Standard,
+    Privileged,
+    Moderator,
+    Admin,
+}
+impl Trust {
+    pub fn initial_summary_visibility(&self) -> Visibility {
+        match self {
+            Trust::Untrusted | Trust::NewMember => Visibility::NotVisible,
+            _ => Visibility::Public,
+        }
+    }
+}
