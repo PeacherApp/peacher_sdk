@@ -4,7 +4,7 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::prelude::*;
+use crate::{paginated, prelude::*};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -70,5 +70,50 @@ impl GetHandler for GetMemberModerationDetails {
 
     fn path(&self) -> Cow<'_, str> {
         format!("/api/moderation/members/{}", self.0).into()
+    }
+}
+
+/// Query parameters for listing bans
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+pub struct BanParams {
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+
+paginated!(BanParams);
+
+/// List all bans (admin/moderator only)
+pub struct ListBans {
+    pub params: BanParams,
+}
+
+impl Default for ListBans {
+    fn default() -> Self {
+        Self {
+            params: BanParams {
+                page: Some(0),
+                page_size: Some(20),
+            },
+        }
+    }
+}
+
+impl ListBans {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl GetHandler for ListBans {
+    type ResponseBody = Paginated<BannedMemberView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/moderation/bans".into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
     }
 }
