@@ -313,11 +313,14 @@ impl AsTable for Vec<JurisdictionChamberView> {
         self.iter().map(|c| ChamberRow {
             id: c.id,
             name: c.name.clone(),
-            external_id: c.external_id.as_ref().map(|e| e.to_string()).unwrap_or_else(|| "-".to_string()),
+            external_id: c
+                .external_id
+                .as_ref()
+                .map(|e| e.to_string())
+                .unwrap_or_else(|| "-".to_string()),
         })
     }
 }
-
 
 impl AsTable for Vec<GetJurisdictionResponse> {
     type TableRow<'a>
@@ -329,7 +332,11 @@ impl AsTable for Vec<GetJurisdictionResponse> {
         self.iter().map(|j| JurisdictionRow {
             id: j.id,
             name: j.name.clone(),
-            external_id: j.external_id.as_ref().map(|e| e.to_string()).unwrap_or_else(|| "-".to_string()),
+            external_id: j
+                .external_id
+                .as_ref()
+                .map(|e| e.to_string())
+                .unwrap_or_else(|| "-".to_string()),
             chamber_count: j.chambers.len(),
         })
     }

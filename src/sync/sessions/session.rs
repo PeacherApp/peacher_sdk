@@ -54,7 +54,11 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
                 continue;
             };
 
-            match self.members(&ExternalId::new(external_id.clone())).sync().await {
+            match self
+                .members(&ExternalId::new(external_id.clone()))
+                .sync()
+                .await
+            {
                 Ok(result) => responses.push(result),
                 Err(SyncError::NotFound(_)) => {}
                 Err(e) => return Err(e),

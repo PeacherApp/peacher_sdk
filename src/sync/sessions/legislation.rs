@@ -50,7 +50,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
 
             for leg in result.data {
                 if let Some(ref ext_id) = leg.external_id {
-                    known_legislation.insert(ExternalId::new(ext_id.clone()), leg.into_legislation_view());
+                    known_legislation
+                        .insert(ExternalId::new(ext_id.clone()), leg.into_legislation_view());
                 }
             }
 
