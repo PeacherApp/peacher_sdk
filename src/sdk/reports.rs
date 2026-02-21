@@ -88,12 +88,18 @@ pub struct CreateReportResponse {}
 pub enum ReportDetails {
     Content(AdminContentView),
     Member(MemberView),
+    Undisplayable(serde_json::Value),
 }
 impl ReportDetails {
-    pub fn report_type(&self) -> ReportType {
+    pub fn from_json(json: serde_json::Value) -> Self {
+        serde_json::from_value(json.clone()).unwrap_or(Self::Undisplayable(json))
+    }
+
+    pub fn report_type(&self) -> Option<ReportType> {
         match self {
-            ReportDetails::Content(_) => ReportType::Content,
-            ReportDetails::Member(_) => ReportType::Member,
+            ReportDetails::Content(_) => Some(ReportType::Content),
+            ReportDetails::Member(_) => Some(ReportType::Member),
+            ReportDetails::Undisplayable(_) => None,
         }
     }
 }
