@@ -17,7 +17,7 @@ pub struct MemberParams {
     /// A query for members that are followed by this member
     pub members_followed_by: Option<i32>,
     /// Filter by external ID
-    pub external_id: Option<String>,
+    pub external_id: Option<ExternalId>,
 
     #[serde(default)]
     pub order_by: MemberOrder,
@@ -197,8 +197,8 @@ pub struct CreateMemberRequest {
     pub bio: String,
     pub party: String,
     pub photo_url: Option<String>,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 impl NewMember for CreateMemberRequest {

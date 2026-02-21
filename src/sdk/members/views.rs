@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::prelude::*;
 
@@ -80,8 +81,8 @@ pub struct GetMemberDetailsResponse {
     pub display_name: String,
     pub party: Option<PartyView>,
     pub auth_level: AuthLevel,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub ban: Option<BanInfo>,
     pub follower_data: FollowResponse,
 }

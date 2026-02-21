@@ -83,8 +83,9 @@ impl AsTable for Vec<GetSessionResponse> {
                 .unwrap_or_else(|| "-".to_string()),
             external_id: s
                 .external_id
-                .clone()
-                .unwrap_or_else(|| "-".to_string()),
+                .as_ref()
+                .map(|s| s.to_string())
+                .unwrap_or("-".to_string()),
         })
     }
 }
@@ -99,7 +100,8 @@ impl GetSessionResponse {
 
         let ext_id = self
             .external_id
-            .as_deref()
+            .as_ref()
+            .map(|e| e.val_str())
             .unwrap_or("-");
 
         println!(
@@ -129,7 +131,8 @@ impl GetSessionResponse {
             for chamber in &self.chambers {
                 let chamber_ext = chamber
                     .external_id
-                    .as_deref()
+                    .as_ref()
+                    .map(|e| e.val_str())
                     .unwrap_or("-");
 
                 println!(
@@ -174,8 +177,10 @@ impl AsTable for Vec<ListChamberResponse> {
             name: c.name.clone(),
             external_id: c
                 .external_id
-                .clone()
-                .unwrap_or_else(|| "-".to_string()),
+                .as_ref()
+                .map(|e| e.val_str())
+                .unwrap_or("-")
+                .to_string(),
         })
     }
     fn nest(&self) -> usize {
@@ -242,8 +247,10 @@ impl AsTable for Vec<LegislationView> {
             status: l.status_text.clone(),
             external_id: l
                 .external_id
-                .clone()
-                .unwrap_or_else(|| "-".to_string()),
+                .as_ref()
+                .map(|e| e.val_str())
+                .unwrap_or("-")
+                .to_string(),
         })
     }
 }
@@ -306,10 +313,7 @@ impl AsTable for Vec<JurisdictionChamberView> {
         self.iter().map(|c| ChamberRow {
             id: c.id,
             name: c.name.clone(),
-            external_id: c
-                .external_id
-                .clone()
-                .unwrap_or_else(|| "-".to_string()),
+            external_id: c.external_id.clone().unwrap_or_else(|| "-".to_string()),
         })
     }
 }
@@ -324,10 +328,7 @@ impl AsTable for Vec<GetJurisdictionResponse> {
         self.iter().map(|j| JurisdictionRow {
             id: j.id,
             name: j.name.clone(),
-            external_id: j
-                .external_id
-                .clone()
-                .unwrap_or_else(|| "-".to_string()),
+            external_id: j.external_id.clone().unwrap_or_else(|| "-".to_string()),
             chamber_count: j.chambers.len(),
         })
     }
@@ -339,10 +340,7 @@ impl AsTable for Vec<GetJurisdictionResponse> {
         }
 
         for j in self.iter() {
-            let ext_id = j
-                .external_id
-                .as_deref()
-                .unwrap_or("-");
+            let ext_id = j.external_id.as_deref().unwrap_or("-");
 
             println!(
                 "{} {} {}",

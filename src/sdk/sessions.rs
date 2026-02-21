@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::{paginated, prelude::*};
 
@@ -15,7 +16,7 @@ pub struct SessionParams {
     /// Filter by jurisdiction ID
     pub jurisdiction_id: Option<i32>,
     /// Filter by external ID
-    pub external_id: Option<String>,
+    pub external_id: Option<ExternalId>,
     /// Sort order: "name", "recent", "oldest"
     pub sort: Option<String>,
     pub page: Option<u64>,
@@ -209,8 +210,8 @@ pub struct CreateSessionRequest {
     pub name: String,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 impl CreateSessionRequest {
@@ -391,8 +392,8 @@ pub struct GetSessionResponse {
     pub id: i32,
     pub name: String,
     pub current: bool,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
     pub jurisdiction: BasicJurisdictionView,

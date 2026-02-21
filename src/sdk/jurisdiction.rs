@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use chrono::{DateTime, FixedOffset, NaiveDate};
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 use crate::{paginated, prelude::*};
 
@@ -11,7 +12,7 @@ use crate::{paginated, prelude::*};
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
 pub struct JurisdictionParams {
     /// Filter by external ID
-    pub external_id: Option<String>,
+    pub external_id: Option<ExternalId>,
     pub page: Option<u64>,
     pub page_size: Option<u64>,
 }
@@ -41,7 +42,7 @@ pub struct JurisdictionDetailsParams {
 pub struct ListJurisdictions {
     page: u64,
     page_size: u64,
-    external_id: Option<String>,
+    external_id: Option<ExternalId>,
 }
 
 impl ListJurisdictions {
@@ -88,7 +89,7 @@ impl GetHandler for ListJurisdictions {
             page: u64,
             page_size: u64,
             #[serde(skip_serializing_if = "Option::is_none")]
-            external_id: Option<String>,
+            external_id: Option<ExternalId>,
         }
         Params {
             page: self.page,
@@ -102,8 +103,8 @@ impl GetHandler for ListJurisdictions {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreateJurisdiction {
     pub name: String,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 impl CreateJurisdiction {
@@ -247,8 +248,8 @@ pub struct GetJurisdictionResponse {
     pub name: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub chambers: Vec<ListChamberResponse>,
 }
 
@@ -266,8 +267,8 @@ pub struct JurisdictionView {
     pub name: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub chambers: Vec<SmallChamberView>,
 }
 
@@ -288,8 +289,8 @@ pub struct SessionSummary {
 pub struct JurisdictionChamberView {
     pub id: i32,
     pub name: String,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub member_count: i32,
 }
 
@@ -299,8 +300,8 @@ pub struct JurisdictionChamberView {
 pub struct GetJurisdictionDetailsResponse {
     pub id: i32,
     pub name: String,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     /// All sessions for this jurisdiction (for session picker)
     pub sessions: Vec<SessionSummary>,
     /// The currently selected session (defaults to current session)

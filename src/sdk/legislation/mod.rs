@@ -188,8 +188,8 @@ pub struct CreateLegislationRequest {
     /// If your API does not provide this data, use `Local::now()`
     pub status_updated_at: DateTime<FixedOffset>,
     pub introduced_at: Option<DateTime<FixedOffset>>,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub externally_updated_at: Option<DateTime<FixedOffset>>,
 }
 
@@ -546,8 +546,8 @@ pub struct LegislationView {
     /// Human-readable status text from external source
     pub status_text: String,
     pub status_updated_at: DateTime<FixedOffset>,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 
 impl LegislationView {
@@ -594,8 +594,8 @@ pub struct DetailedLegislationView {
     /// Human-readable status text from external source
     pub status_text: String,
     pub status_updated_at: DateTime<FixedOffset>,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub votes: Vec<LegislationViewVote>,
     pub sponsors: Vec<LegislationViewSponsor>,
 }
@@ -650,8 +650,8 @@ pub struct LegislationDetailsResponse {
     pub status_updated_at: DateTime<FixedOffset>,
     pub status: Option<LegislationStatus>,
     pub legislation_type: LegislationType,
-    pub external_id: Option<String>,
-    pub external_url: Option<String>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub sponsors: Vec<SponsorInfo>,
     pub chamber: Option<ChamberView>,
     pub session: Option<SessionView>,
