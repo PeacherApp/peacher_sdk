@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::{paginated, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
@@ -70,6 +72,8 @@ pub struct ModeratorSummaryParams {
     pub visibility: Option<Visibility>,
 }
 
+paginated!(ModeratorSummaryParams);
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
@@ -79,6 +83,8 @@ pub struct SummaryParams {
     pub page: Option<u64>,
     pub page_size: Option<u64>,
 }
+
+paginated!(SummaryParams);
 
 #[derive(
     Default, Clone, Copy, EnumString, Display, Debug, PartialEq, Eq, Serialize, Deserialize,
@@ -91,5 +97,118 @@ pub enum SummaryOrder {
     Weight,
 }
 
-paginated!(SummaryParams);
-paginated!(ModeratorSummaryParams);
+/// Handler to create a summary on legislation
+pub struct CreateSummary {
+    legislation_id: i32,
+    body: SetContentRequest,
+}
+
+impl CreateSummary {
+    pub fn markdown(legislation_id: i32, markdown: impl Into<String>) -> Self {
+        Self {
+            legislation_id,
+            body: SetContentRequest::Markdown(markdown.into()),
+        }
+    }
+
+    pub fn document(legislation_id: i32, doc: serde_json::Value) -> Self {
+        Self {
+            legislation_id,
+            body: SetContentRequest::Document(doc),
+        }
+    }
+}
+
+impl Handler for CreateSummary {
+    type ResponseBody = SummaryView;
+
+    fn method(&self) -> Method {
+        Method::Post
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/summaries", self.legislation_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
+/// Handler to list summaries needing moderator approval
+pub struct ListModerationSummaries {
+    pub params: ModeratorSummaryParams,
+}
+
+impl Default for ListModerationSummaries {
+    fn default() -> Self {
+        Self {
+            params: ModeratorSummaryParams {
+                page: None,
+                page_size: None,
+                legislation_id: None,
+                visibility: None,
+            },
+        }
+    }
+}
+
+impl ListModerationSummaries {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl GetHandler for ListModerationSummaries {
+    type ResponseBody = Paginated<SummaryView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/moderation/summaries".into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
+    }
+}
+
+/// Handler to review (approve/reject) a summary
+pub struct ReviewSummary {
+    summary_id: uuid::Uuid,
+    body: ReviewSummaryRequest,
+}
+
+impl ReviewSummary {
+    pub fn approve(summary_id: uuid::Uuid) -> Self {
+        Self {
+            summary_id,
+            body: ReviewSummaryRequest {
+                visibility: Visibility::Public,
+            },
+        }
+    }
+
+    pub fn reject(summary_id: uuid::Uuid) -> Self {
+        Self {
+            summary_id,
+            body: ReviewSummaryRequest {
+                visibility: Visibility::NotVisible,
+            },
+        }
+    }
+}
+
+impl Handler for ReviewSummary {
+    type ResponseBody = SummaryView;
+
+    fn method(&self) -> Method {
+        Method::Patch
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/moderation/summaries/{}", self.summary_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}

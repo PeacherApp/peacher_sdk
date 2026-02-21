@@ -14,7 +14,7 @@ impl GetHandler for GetAccount {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AccountView {
-    pub member: MemberView,
+    pub member: MemberWithPartyView,
     pub member_location: Option<ViewerLocationResponse>,
     pub ban: Option<BanInfo>,
 }

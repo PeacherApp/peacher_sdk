@@ -21,8 +21,8 @@ use chrono::NaiveDate;
 /// Result of syncing members
 #[derive(Debug, Clone)]
 pub struct MembersSyncResult {
-    pub created: Vec<Arc<MemberView>>,
-    pub updated: Vec<Arc<MemberView>>,
+    pub created: Vec<Arc<MemberWithPartyView>>,
+    pub updated: Vec<Arc<MemberWithPartyView>>,
 }
 
 /// Result of syncing legislation

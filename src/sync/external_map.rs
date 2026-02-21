@@ -9,7 +9,7 @@ pub struct ClientMapper<'p, P> {
     jurisdiction: Option<Arc<GetJurisdictionResponse>>,
     chambers: HashMap<ExternalId, Arc<ListChamberResponse>>,
     sessions: HashMap<ExternalId, Arc<GetSessionResponse>>,
-    members: HashMap<ExternalId, Arc<MemberView>>,
+    members: HashMap<ExternalId, Arc<MemberWithPartyView>>,
 }
 
 impl<'p, P: Client> ClientMapper<'p, P> {
@@ -73,7 +73,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
         }
     }
 
-    pub async fn member(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<MemberView>> {
+    pub async fn member(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<MemberWithPartyView>> {
         if let Some(member) = self.members.get(ext_id) {
             return Ok(member.clone());
         }
@@ -96,7 +96,11 @@ impl<'p, P: Client> ClientMapper<'p, P> {
         }
     }
 
-    pub fn store_member(&mut self, id: ExternalId, member: MemberView) -> Arc<MemberView> {
+    pub fn store_member(
+        &mut self,
+        id: ExternalId,
+        member: MemberWithPartyView,
+    ) -> Arc<MemberWithPartyView> {
         let m = Arc::new(member);
         self.members.insert(id, m.clone());
         m
