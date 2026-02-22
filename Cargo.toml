@@ -51,7 +51,42 @@ pretty_assertions = { version = "1.4" }
 tokio = { version = "1", features = ["full"] }
 
 [features]
+# default features enable all structs
+default = [
+  "account",
+  "address",
+  "attachments",
+  "auth",
+  "categories",
+  "chambers",
+  "content",
+  "districts",
+  "feed",
+  "health",
+  "jurisdiction",
+  "legislation",
+  "likes",
+  "location",
+  "maps",
+  "members",
+  "messages",
+  "moderation",
+  "notifications",
+  "parties",
+  "posts",
+  "reports",
+  "sessions",
+  "sponsorships",
+  "tags",
+  "votes"
+]
+account = []
+address = []
+attachments = []
+auth = []
 axum_test = ["dep:axum-test"]
+categories = []
+chambers = []
 cli = [
   "dep:clap",
   "dep:console",
@@ -61,5 +96,25 @@ cli = [
   "dep:tabled",
   "dep:toml"
 ]
+content = []
+districts = []
+feed = []
 geo = ["dep:geo", "dep:geojson"]
+health = []
+jurisdiction = []
+legislation = []
+likes = []
+location = []
+maps = []
+members = []
+messages = []
+moderation = []
+notifications = []
+parties = []
+posts = []
+reports = []
+sessions = []
+sponsorships = []
+tags = []
 utoipa = ["dep:utoipa"]
+votes = []
