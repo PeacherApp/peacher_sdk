@@ -4,6 +4,9 @@ pub use account::*;
 mod address;
 pub use address::*;
 
+mod notifications;
+pub use notifications::*;
+
 mod auth;
 pub use auth::*;
 
