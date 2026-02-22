@@ -25,6 +25,20 @@ pub struct NotificationPreference<P> {
     pub preference: P,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum NotificationPreferenceKind {
+    InApp(InAppNotificationPreferences),
+    Email(EmailNotificationPreferences),
+}
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct UpdateNotificationPreferenceResponse {
+    pub updated_at: DateTime<FixedOffset>,
+    pub preference: NotificationPreferenceKind,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Display, EnumString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -33,7 +47,7 @@ pub enum PreferenceType {
     Email,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct InAppNotificationPreferences {
     enabled: bool,
@@ -44,7 +58,7 @@ impl Default for InAppNotificationPreferences {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct EmailNotificationPreferences {
     enabled: bool,
