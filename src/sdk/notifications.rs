@@ -50,7 +50,7 @@ pub enum PreferenceType {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct InAppNotificationPreferences {
-    enabled: bool,
+    pub enabled: bool,
 }
 impl Default for InAppNotificationPreferences {
     fn default() -> Self {
@@ -61,7 +61,7 @@ impl Default for InAppNotificationPreferences {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct EmailNotificationPreferences {
-    enabled: bool,
+    pub enabled: bool,
 }
 
 #[expect(clippy::derivable_impls)]
