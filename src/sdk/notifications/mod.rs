@@ -4,8 +4,31 @@ pub use reports::*;
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
+use uuid::Uuid;
 
-use crate::sdk::{BulkReviewReportsRequest, MemberView, ReviewStatus};
+use crate::{
+    paginated,
+    sdk::{BulkReviewReportsRequest, MemberView, ReviewStatus},
+};
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+pub struct NotificationParams {
+    #[serde(skip)]
+    pub member_id: Option<i32>,
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+paginated!(NotificationParams);
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct NotificationView {
+    pub created_at: DateTime<FixedOffset>,
+    pub id: Uuid,
+    pub details: Notification,
+}
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -77,7 +100,7 @@ impl Default for EmailNotificationPreferences {
 }
 
 /// A notification ready for delivery to a member.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum Notification {
@@ -86,14 +109,14 @@ pub enum Notification {
     NewReports(Vec<ReportCreated>),
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct NotifyBulkReview {
     pub reviewer: MemberView,
     pub reviews: Vec<InnerBulkReview>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct InnerBulkReview {
     pub ids: Vec<i32>,
@@ -101,7 +124,7 @@ pub struct InnerBulkReview {
     pub review: BulkReviewReportsRequest,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct NotifyReportReviewed {
     pub report_id: i32,
