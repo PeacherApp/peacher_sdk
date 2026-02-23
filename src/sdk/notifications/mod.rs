@@ -1,6 +1,11 @@
+mod reports;
+pub use reports::*;
+
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
+
+use crate::sdk::{BulkReviewReportsRequest, MemberView, ReviewStatus};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -69,4 +74,38 @@ impl Default for EmailNotificationPreferences {
     fn default() -> Self {
         Self { enabled: false }
     }
+}
+
+/// A notification ready for delivery to a member.
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "data", rename_all = "snake_case")]
+pub enum Notification {
+    BulkReviews(NotifyBulkReview),
+    ReportReviewed(NotifyReportReviewed),
+    NewReports(Vec<ReportCreated>),
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct NotifyBulkReview {
+    pub reviewer: MemberView,
+    pub reviews: Vec<InnerBulkReview>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct InnerBulkReview {
+    pub ids: Vec<i32>,
+    pub reviewed_at: DateTime<FixedOffset>,
+    pub review: BulkReviewReportsRequest,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct NotifyReportReviewed {
+    pub report_id: i32,
+    pub reviewed_at: DateTime<FixedOffset>,
+    pub message: String,
+    pub status: ReviewStatus,
 }
