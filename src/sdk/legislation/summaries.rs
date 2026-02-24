@@ -197,6 +197,40 @@ impl ReviewSummary {
     }
 }
 
+/// Handler to list summaries for a piece of legislation
+pub struct ListSummaries {
+    legislation_id: i32,
+    params: SummaryParams,
+}
+
+impl ListSummaries {
+    pub fn new(legislation_id: i32) -> Self {
+        Self {
+            legislation_id,
+            params: SummaryParams::default(),
+        }
+    }
+
+    pub fn with_params(legislation_id: i32, params: SummaryParams) -> Self {
+        Self {
+            legislation_id,
+            params,
+        }
+    }
+}
+
+impl GetHandler for ListSummaries {
+    type ResponseBody = Paginated<SummaryView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/summaries", self.legislation_id).into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
+    }
+}
+
 impl Handler for ReviewSummary {
     type ResponseBody = SummaryView;
 
