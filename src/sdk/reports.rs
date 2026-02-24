@@ -27,13 +27,6 @@ impl ReportedKind {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreateReportRequest {
-    pub kind: ReportedKind,
-    pub reason: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct NewReportRequest {
     pub reason: String,
 }
 
@@ -177,14 +170,15 @@ fn ensure_list_reports_page_size_limit() {
 
 /// Handler to create a report
 pub struct CreateReport {
+    kind: ReportedKind,
     body: CreateReportRequest,
 }
 
 impl CreateReport {
     pub fn content(content_id: Uuid, details: impl Into<String>) -> Self {
         Self {
+            kind: ReportedKind::Content(content_id),
             body: CreateReportRequest {
-                kind: ReportedKind::Content(content_id),
                 reason: details.into(),
             },
         }
@@ -192,8 +186,8 @@ impl CreateReport {
 
     pub fn member(member_id: i32, details: impl Into<String>) -> Self {
         Self {
+            kind: ReportedKind::Member(member_id),
             body: CreateReportRequest {
-                kind: ReportedKind::Member(member_id),
                 reason: details.into(),
             },
         }
@@ -208,7 +202,15 @@ impl Handler for CreateReport {
     }
 
     fn path(&self) -> Cow<'_, str> {
-        "/api/reports".into()
+        match self.kind {
+            ReportedKind::Content(content) => {
+                format!("/api/content/{content}/reports")
+            }
+            ReportedKind::Member(id) => {
+                format!("/api/members/{id}/reports")
+            }
+        }
+        .into()
     }
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {

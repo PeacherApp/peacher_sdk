@@ -57,14 +57,14 @@ pub enum Visibility {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
-pub struct ModeratorSummaryParams {
+pub struct ModeratorContentParams {
     pub page: Option<u64>,
     pub page_size: Option<u64>,
     pub legislation_id: Option<i32>,
     pub review_state: CommaSeparated<ReviewState>,
 }
 
-paginated!(ModeratorSummaryParams);
+paginated!(ModeratorContentParams);
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
@@ -128,14 +128,14 @@ impl Handler for CreateSummary {
 }
 
 /// Handler to list summaries needing moderator approval
-pub struct ListModerationSummaries {
-    pub params: ModeratorSummaryParams,
+pub struct ListContentNeedingReview {
+    pub params: ModeratorContentParams,
 }
 
-impl Default for ListModerationSummaries {
+impl Default for ListContentNeedingReview {
     fn default() -> Self {
         Self {
-            params: ModeratorSummaryParams {
+            params: ModeratorContentParams {
                 page: None,
                 page_size: None,
                 legislation_id: None,
@@ -145,17 +145,17 @@ impl Default for ListModerationSummaries {
     }
 }
 
-impl ListModerationSummaries {
+impl ListContentNeedingReview {
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl GetHandler for ListModerationSummaries {
+impl GetHandler for ListContentNeedingReview {
     type ResponseBody = Paginated<SummaryView>;
 
     fn path(&self) -> Cow<'_, str> {
-        "/api/moderation/summaries".into()
+        "/api/content/review".into()
     }
 
     fn params(&self) -> impl SdkParams {
