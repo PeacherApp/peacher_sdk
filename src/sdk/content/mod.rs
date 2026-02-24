@@ -187,3 +187,51 @@ impl Handler for RemoveContent {
         builder.json(&self.body)
     }
 }
+
+/// Request to review (approve/reject) a summary as a moderator.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "content")]
+pub enum ReviewContentRequest {
+    Approve,
+    Remove(RemoveContentRequest),
+}
+/// Handler to review (approve/reject) a summary
+pub struct ReviewContent {
+    summary_id: uuid::Uuid,
+    body: ReviewContentRequest,
+}
+
+impl ReviewContent {
+    pub fn approve(summary_id: uuid::Uuid) -> Self {
+        Self {
+            summary_id,
+            body: ReviewContentRequest::Approve,
+        }
+    }
+
+    pub fn reject(summary_id: uuid::Uuid, reason: impl Into<String>) -> Self {
+        Self {
+            summary_id,
+            body: ReviewContentRequest::Remove(RemoveContentRequest {
+                reason: reason.into(),
+            }),
+        }
+    }
+}
+
+impl Handler for ReviewContent {
+    type ResponseBody = ContentView;
+
+    fn method(&self) -> Method {
+        Method::Post
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/content/{}/review", self.summary_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}

@@ -54,15 +54,6 @@ pub enum Visibility {
     Public,
 }
 
-/// Request to review (approve/reject) a summary as a moderator.
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(tag = "type", content = "content")]
-pub enum ReviewSummaryRequest {
-    Approve,
-    Remove(RemoveContentRequest),
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
@@ -172,30 +163,6 @@ impl GetHandler for ListModerationSummaries {
     }
 }
 
-/// Handler to review (approve/reject) a summary
-pub struct ReviewSummary {
-    summary_id: uuid::Uuid,
-    body: ReviewSummaryRequest,
-}
-
-impl ReviewSummary {
-    pub fn approve(summary_id: uuid::Uuid) -> Self {
-        Self {
-            summary_id,
-            body: ReviewSummaryRequest::Approve,
-        }
-    }
-
-    pub fn reject(summary_id: uuid::Uuid, reason: impl Into<String>) -> Self {
-        Self {
-            summary_id,
-            body: ReviewSummaryRequest::Remove(RemoveContentRequest {
-                reason: reason.into(),
-            }),
-        }
-    }
-}
-
 /// Handler to list summaries for a piece of legislation
 pub struct ListSummaries {
     legislation_id: i32,
@@ -227,21 +194,5 @@ impl GetHandler for ListSummaries {
 
     fn params(&self) -> impl SdkParams {
         self.params.clone()
-    }
-}
-
-impl Handler for ReviewSummary {
-    type ResponseBody = SummaryView;
-
-    fn method(&self) -> Method {
-        Method::Patch
-    }
-
-    fn path(&self) -> Cow<'_, str> {
-        format!("/api/moderation/summaries/{}", self.summary_id).into()
-    }
-
-    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
-        builder.json(&self.body)
     }
 }
