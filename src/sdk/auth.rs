@@ -49,3 +49,9 @@ pub enum AuthLevel {
     Moderator,
     Admin,
 }
+
+impl AuthLevel {
+    pub fn elevated(&self) -> bool {
+        matches!(self, AuthLevel::Admin | AuthLevel::Moderator)
+    }
+}
