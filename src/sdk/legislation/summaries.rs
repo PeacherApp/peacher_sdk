@@ -43,7 +43,6 @@ pub struct CreateSummaryRequest {
 pub struct SummaryView {
     pub legislation_id: i32,
     pub contents: ContentView,
-    pub visibility: Visibility,
     pub kind: SummaryKind,
 }
 
@@ -58,8 +57,10 @@ pub enum Visibility {
 /// Request to review (approve/reject) a summary as a moderator.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ReviewSummaryRequest {
-    pub visibility: Visibility,
+#[serde(tag = "type", content = "content")]
+pub enum ReviewSummaryRequest {
+    Approve,
+    Remove(RemoveContentRequest),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -69,7 +70,7 @@ pub struct ModeratorSummaryParams {
     pub page: Option<u64>,
     pub page_size: Option<u64>,
     pub legislation_id: Option<i32>,
-    pub visibility: Option<Visibility>,
+    pub review_state: CommaSeparated<ReviewState>,
 }
 
 paginated!(ModeratorSummaryParams);
@@ -147,7 +148,7 @@ impl Default for ListModerationSummaries {
                 page: None,
                 page_size: None,
                 legislation_id: None,
-                visibility: None,
+                review_state: CommaSeparated::default(),
             },
         }
     }
@@ -181,18 +182,16 @@ impl ReviewSummary {
     pub fn approve(summary_id: uuid::Uuid) -> Self {
         Self {
             summary_id,
-            body: ReviewSummaryRequest {
-                visibility: Visibility::Public,
-            },
+            body: ReviewSummaryRequest::Approve,
         }
     }
 
-    pub fn reject(summary_id: uuid::Uuid) -> Self {
+    pub fn reject(summary_id: uuid::Uuid, reason: impl Into<String>) -> Self {
         Self {
             summary_id,
-            body: ReviewSummaryRequest {
-                visibility: Visibility::NotVisible,
-            },
+            body: ReviewSummaryRequest::Remove(RemoveContentRequest {
+                reason: reason.into(),
+            }),
         }
     }
 }

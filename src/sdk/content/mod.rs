@@ -1,12 +1,26 @@
 mod rate;
 pub use rate::*;
+use strum::{Display, EnumString, VariantArray};
 
 use std::borrow::Cow;
 
-use crate::prelude::*;
+use crate::{commaparam, prelude::*};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+#[derive(
+    Serialize, Deserialize, Clone, Debug, PartialEq, Eq, EnumString, Display, Hash, VariantArray,
+)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub enum ReviewState {
+    Public,
+    UnderReview,
+    Reviewed,
+}
+commaparam!(ReviewState);
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -80,12 +94,14 @@ pub struct AdminContentView {
 pub enum ContentView {
     Removed(RemovedContent),
     Content(ContentDetails),
+    UnderReview(Uuid),
 }
 impl ContentView {
     pub fn id(&self) -> Uuid {
         match self {
             ContentView::Removed(removed) => removed.id,
             ContentView::Content(content) => content.id,
+            ContentView::UnderReview(id) => *id,
         }
     }
 }

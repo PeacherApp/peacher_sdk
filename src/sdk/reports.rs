@@ -31,6 +31,12 @@ pub struct CreateReportRequest {
     pub reason: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct NewReportRequest {
+    pub reason: String,
+}
+
 #[derive(
     Debug,
     Serialize,
