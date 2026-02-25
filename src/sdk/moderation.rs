@@ -117,3 +117,11 @@ impl GetHandler for ListBans {
         self.params.clone()
     }
 }
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "reason", rename_all = "snake_case")]
+pub enum ToggleAccountCreation {
+    Disable(String),
+    Enable,
+}
