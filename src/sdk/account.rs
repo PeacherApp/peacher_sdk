@@ -23,6 +23,7 @@ pub struct AccountView {
     #[cfg_attr(feature = "utoipa", schema(value_type = Option<String>, format = DateTime))]
     pub email_verified_at: Option<DateTime<FixedOffset>>,
     pub pending_email: Option<String>,
+    pub trust: Trust,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
