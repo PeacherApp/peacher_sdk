@@ -59,6 +59,7 @@ default = [
   "auth",
   "categories",
   "chambers",
+  "communities",
   "content",
   "districts",
   "feed",
@@ -87,6 +88,7 @@ auth = []
 axum_test = ["dep:axum-test"]
 categories = []
 chambers = []
+communities = []
 cli = [
   "dep:clap",
   "dep:console",

@@ -23,6 +23,11 @@ mod categories;
 #[cfg(feature = "categories")]
 pub use categories::*;
 
+#[cfg(feature = "communities")]
+mod communities;
+#[cfg(feature = "communities")]
+pub use communities::*;
+
 #[cfg(feature = "chambers")]
 mod chambers;
 #[cfg(feature = "chambers")]
