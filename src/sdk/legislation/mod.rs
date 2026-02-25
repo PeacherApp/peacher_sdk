@@ -398,7 +398,7 @@ fn test_query_params_behavior() {
     let params = Handler::params(&list_session_legislation)
         .into_params()
         .unwrap();
-    assert_eq!("order_by=id&order=desc&page=1&page_size=10", &params);
+    assert_eq!("order_by=id&order=desc&page=0&page_size=10", &params);
     let params = LegislationParams {
         page: Some(2),
         page_size: Some(13),
