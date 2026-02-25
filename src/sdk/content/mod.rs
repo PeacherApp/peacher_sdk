@@ -24,6 +24,24 @@ commaparam!(ReviewState);
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case")]
+pub enum ContentStatus {
+    /// Indicates that the content has been posted
+    /// as public, but has not been placed under review
+    /// or approved.
+    Public,
+    /// Indicates that some content is currently under review.
+    ///
+    /// In this state, only the author of the content
+    /// and moderation will observe this value in [`ContentDetails`].
+    UnderReview,
+    /// Indicates that some content was explictly approved
+    /// by the moderation team
+    Approved,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ContentDetails {
     pub id: Uuid,
     pub created_at: DateTime<FixedOffset>,
@@ -31,6 +49,7 @@ pub struct ContentDetails {
     pub searchable_text: String,
     pub document: serde_json::Value,
     pub author: Option<MemberWithPartyView>,
+    pub status: ContentStatus,
     /// This is the sum of sentiments where
     /// +1 is a positive sentiment, and -1 is a negative sentiment.
     pub rating: i32,
@@ -92,8 +111,13 @@ pub struct AdminContentView {
 #[serde(tag = "type", content = "content", rename_all = "snake_case")]
 #[expect(clippy::large_enum_variant)]
 pub enum ContentView {
+    /// Content that has been removed
     Removed(RemovedContent),
+    /// Viewable content based on the viewer
     Content(ContentDetails),
+    /// Some content that is currently under review.
+    ///
+    /// Viewers that see this variant are not part of the moderation team.
     UnderReview(Uuid),
 }
 impl ContentView {
