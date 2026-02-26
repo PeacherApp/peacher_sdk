@@ -89,6 +89,17 @@ impl GetSessionChamber {
     }
 }
 
+impl GetHandler for GetSessionChamber {
+    type ResponseBody = GetSessionChamberResponse;
+    fn path(&self) -> Cow<'_, str> {
+        format!(
+            "/api/sessions/{}/chambers/{}",
+            self.session_id, self.chamber_id
+        )
+        .into()
+    }
+}
+
 pub struct DeleteSession(pub i32);
 
 impl Handler for DeleteSession {
@@ -98,17 +109,6 @@ impl Handler for DeleteSession {
     }
     fn path(&self) -> Cow<'_, str> {
         format!("/api/sessions/{}", self.0).into()
-    }
-}
-
-impl GetHandler for GetSessionChamber {
-    type ResponseBody = GetSessionChamberResponse;
-    fn path(&self) -> Cow<'_, str> {
-        format!(
-            "/api/sessions/{}/chambers/{}",
-            self.session_id, self.chamber_id
-        )
-        .into()
     }
 }
 
@@ -416,6 +416,8 @@ pub struct GetSessionChamberResponse {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ChamberSessionMember {
     pub member: MemberWithPartyView,
+    pub appointed_at: Option<NaiveDate>,
+    pub expunged_at: Option<NaiveDate>,
     pub district_id: Option<i32>,
 }
 
