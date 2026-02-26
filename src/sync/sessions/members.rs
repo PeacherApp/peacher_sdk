@@ -42,14 +42,12 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
             .list_members(self.session_external_id, self.chamber_external_id)
             .await?;
 
-        info!("here 1.5");
         // Get existing members - we need to check by external_id
         // Note: The current API doesn't have a session/chamber filter on ListMembers
         // We'll get all members and filter, or use the chamber session endpoint
         let chamber_session = GetSessionChamber::new(chamber.id, session.id)
             .request(self.mapper.client())
             .await?;
-        info!("here 2");
 
         let known_members = chamber_session
             .members

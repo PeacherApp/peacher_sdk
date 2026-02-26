@@ -210,13 +210,6 @@ impl GetSessionView {
                     cyan(&format!("[{}]", chamber_ext))
                 );
 
-                // if chamber.members.is_empty() {
-                //     println!("    {}", dim("No members"));
-                // } else {
-                //     let members: Vec<_> =
-                //         chamber.members.iter().map(|m| m.member.clone()).collect();
-                //     members.print();
-                // }
                 println!();
             }
         }

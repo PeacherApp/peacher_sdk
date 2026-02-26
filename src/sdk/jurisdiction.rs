@@ -85,56 +85,6 @@ impl Handler for CreateJurisdiction {
     }
 }
 
-// pub struct GetAccountJurisdictions;
-// impl GetHandler for GetAccountJurisdictions {
-//     type ResponseBody = Vec<JurisdictionWithChambers>;
-//     fn path(&self) -> Cow<'_, str> {
-//         "/api/account/jurisdictions".into()
-//     }
-// }
-
-// #[derive(Serialize, Deserialize)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct CreateSession {
-//     pub name: String,
-//     pub current: bool,
-//     pub external_id: ExternalId,
-//     pub url: Option<String>,
-// }
-
-// pub struct CreateSessionMember {
-//     chamber_id: i32,
-//     session_id: i32,
-//     member: ExternalMember,
-// }
-// impl CreateSessionMember {
-//     pub fn new(chamber_id: i32, session_id: i32, member: ExternalMember) -> Self {
-//         Self {
-//             chamber_id,
-//             session_id,
-//             member,
-//         }
-//     }
-// }
-
-// impl Handler for CreateSessionMember {
-//     type ResponseBody = ChamberSessionMember;
-//     fn method(&self) -> Method {
-//         Method::Post
-//     }
-//     fn path(&self) -> Cow<'_, str> {
-//         format!(
-//             "/chamber/{}/session/{}/members",
-//             self.chamber_id, self.session_id
-//         )
-//         .into()
-//     }
-
-//     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
-//         builder.json(&self.member)
-//     }
-// }
-
 /// Get a jurisdiction by ID
 pub struct GetJurisdiction(pub i32);
 
@@ -144,14 +94,6 @@ impl GetHandler for GetJurisdiction {
         format!("/api/jurisdictions/{}", self.0).into()
     }
 }
-
-// #[derive(Serialize, Deserialize)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct JurisdictionChamber {
-//     pub name: String,
-//     pub external_id: ExternalId,
-//     pub url: Option<String>,
-// }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -238,24 +180,3 @@ pub struct JurisdictionWithChambers {
     pub created_by_id: Option<i32>,
     pub chambers: Vec<ChamberView>,
 }
-
-// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct SessionSummary {
-//     pub id: i32,
-//     pub name: String,
-//     pub current: bool,
-//     pub starts_at: Option<NaiveDate>,
-//     pub ends_at: Option<NaiveDate>,
-// }
-
-// /// Summary of a chamber within a jurisdiction
-// #[derive(Serialize, Deserialize, Debug, Clone)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct JurisdictionChamberView {
-//     pub id: i32,
-//     pub name: String,
-//     pub external_id: Option<ExternalId>,
-//     pub external_url: Option<Url>,
-//     pub member_count: i32,
-// }

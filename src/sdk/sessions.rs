@@ -411,16 +411,6 @@ pub struct GetSessionChamberResponse {
     pub members: Vec<ChamberSessionMember>,
 }
 
-// /// A chamber within a session
-// #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct ChamberSession {
-//     // the session has a top level jurisdiction view
-//     pub chamber: ChamberView,
-//     pub session: SessionView,
-//     pub members: Vec<ChamberSessionMember>,
-// }
-
 /// A member within a chamber session
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]

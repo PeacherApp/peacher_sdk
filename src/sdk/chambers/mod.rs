@@ -129,36 +129,6 @@ impl GetHandler for GetChamber {
     }
 }
 
-// /// Get chamber details with session-aware data
-// pub struct GetChamberDetails {
-//     pub id: i32,
-//     pub params: ChamberDetailsParams,
-// }
-
-// impl GetChamberDetails {
-//     pub fn new(id: i32) -> Self {
-//         Self {
-//             id,
-//             params: ChamberDetailsParams::default(),
-//         }
-//     }
-
-//     pub fn with_session(mut self, session_id: i32) -> Self {
-//         self.params.session = Some(session_id);
-//         self
-//     }
-// }
-
-// impl GetHandler for GetChamberDetails {
-//     type ResponseBody = GetChamberDetailsResponse;
-//     fn path(&self) -> Cow<'_, str> {
-//         format!("/api/chambers/{}/details", self.id).into()
-//     }
-//     fn params(&self) -> impl SdkParams {
-//         self.params.clone()
-//     }
-// }
-
 /// Request to create a new chamber
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -397,42 +367,3 @@ impl Handler for VacateMemberFromChamber {
         builder.json(&request_body)
     }
 }
-
-// // TODO: this will be removed when the N+1 query problem is resolved
-// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct SmallChamberView {
-//     pub id: i32,
-//     pub name: String,
-// }
-
-// map this to chamberview
-// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct ListChamberResponse {
-//     pub id: i32,
-//     pub name: String,
-//     pub external_id: Option<ExternalId>,
-//     pub external_url: Option<Url>,
-// }
-
-// /// Response for getting chamber details with session support
-// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct GetChamberDetailsResponse {
-//     pub id: i32,
-//     pub name: String,
-//     pub jurisdiction: JurisdictionView,
-//     pub external_id: Option<ExternalId>,
-//     pub external_url: Option<Url>,
-//     /// All sessions available for this chamber
-//     pub sessions: Vec<SessionSummary>,
-//     /// The currently selected session
-//     pub current_session: Option<SessionSummary>,
-//     /// Members with their activity for the selected session
-//     pub members: Vec<ChamberMemberActivityView>,
-//     /// Districts in this chamber for the selected session
-//     pub districts: Vec<ChamberDistrictView>,
-//     /// Map ID for the chamber in the selected session
-//     pub map_id: Option<i32>,
-// }
