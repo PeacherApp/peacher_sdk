@@ -18,7 +18,7 @@ impl CreateJurisdictionSession {
 }
 
 impl Handler for CreateJurisdictionSession {
-    type ResponseBody = GetSessionResponse;
+    type ResponseBody = GetSessionView;
     fn method(&self) -> Method {
         Method::Post
     }

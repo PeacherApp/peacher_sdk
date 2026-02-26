@@ -24,6 +24,9 @@ pub struct MemberView {
     pub photo: Option<String>,
     pub display_name: String,
     pub party_id: Option<i32>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: Option<i32>,
     pub auth_level: AuthLevel,
 }
 
@@ -38,6 +41,9 @@ impl MemberView {
             party,
             photo: self.photo,
             display_name: self.display_name,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            created_by_id: self.created_by_id,
             auth_level: self.auth_level,
         }
     }
@@ -53,6 +59,9 @@ pub struct MemberWithPartyView {
     pub party: Option<PartyView>,
     pub photo: Option<String>,
     pub display_name: String,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: Option<i32>,
     pub auth_level: AuthLevel,
 }
 
@@ -66,6 +75,9 @@ impl MemberWithPartyView {
             party_id: self.party.map(|p| p.id),
             photo: self.photo,
             display_name: self.display_name,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            created_by_id: self.created_by_id,
             auth_level: self.auth_level,
         }
     }

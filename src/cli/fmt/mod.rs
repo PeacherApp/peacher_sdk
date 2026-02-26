@@ -58,7 +58,7 @@ pub struct SessionRow {
     pub external_id: String,
 }
 
-impl AsTable for Vec<GetSessionResponse> {
+impl AsTable for Vec<GetSessionView> {
     type TableRow<'a>
         = SessionRow
     where
@@ -90,7 +90,7 @@ impl AsTable for Vec<GetSessionResponse> {
     }
 }
 
-impl GetSessionResponse {
+impl GetSessionView {
     pub fn print(&self) {
         let current_marker = if self.current {
             format!(" {}", green("● Current"))
@@ -137,18 +137,18 @@ impl GetSessionResponse {
 
                 println!(
                     "  {} {} {}",
-                    bold(&chamber.chamber_name),
-                    dim(&format!("(ID: {})", chamber.chamber_id)),
+                    bold(&chamber.name),
+                    dim(&format!("(ID: {})", chamber.id)),
                     cyan(&format!("[{}]", chamber_ext))
                 );
 
-                if chamber.members.is_empty() {
-                    println!("    {}", dim("No members"));
-                } else {
-                    let members: Vec<_> =
-                        chamber.members.iter().map(|m| m.member.clone()).collect();
-                    members.print();
-                }
+                // if chamber.members.is_empty() {
+                //     println!("    {}", dim("No members"));
+                // } else {
+                //     let members: Vec<_> =
+                //         chamber.members.iter().map(|m| m.member.clone()).collect();
+                //     members.print();
+                // }
                 println!();
             }
         }

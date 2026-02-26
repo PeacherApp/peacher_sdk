@@ -44,29 +44,6 @@ pub struct GetChamberView {
     pub created_by_id: Option<i32>,
 }
 
-/// A member within a chamber session
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ChamberSessionMember {
-    pub member: MemberWithPartyView,
-    /// This does fit. We should definitely have this value in the get session response.
-    /// makes life way easier.
-    pub external_id: Option<ExternalId>,
-    pub external_url: Option<Url>,
-    pub district_id: Option<i32>,
-}
-
-/// A chamber within a session
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ChamberSessionView {
-    pub chamber_id: i32,
-    pub chamber_name: String,
-    pub external_id: Option<ExternalId>,
-    pub external_url: Option<Url>,
-    pub members: Vec<ChamberSessionMember>,
-}
-
 /// A district within a chamber
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
