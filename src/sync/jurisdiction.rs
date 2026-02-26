@@ -11,7 +11,7 @@ pub struct JurisdictionAndChambersSyncResult {
     pub jurisdiction_id: i32,
     pub jurisdiction_name: String,
     pub jurisdiction_created: bool,
-    pub chambers_created: Vec<GetChamberView>,
+    pub chambers_created: Vec<ChamberView>,
     pub chambers_updated: Vec<GetChamberView>,
 }
 

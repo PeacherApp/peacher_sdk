@@ -207,7 +207,7 @@ impl CreateChamber {
 }
 
 impl Handler for CreateChamber {
-    type ResponseBody = GetChamberView;
+    type ResponseBody = ChamberView;
 
     fn method(&self) -> Method {
         Method::Post
