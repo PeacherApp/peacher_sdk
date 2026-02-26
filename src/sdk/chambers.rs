@@ -265,7 +265,7 @@ impl UpdateChamber {
 }
 
 impl Handler for UpdateChamber {
-    type ResponseBody = GetChamberView;
+    type ResponseBody = ChamberView;
 
     fn method(&self) -> Method {
         Method::Patch
