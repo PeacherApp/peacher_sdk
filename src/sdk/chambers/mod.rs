@@ -219,6 +219,7 @@ impl UpdateChamberRequest {
 pub struct LinkMemberToChamberRequest {
     pub member_id: i32,
     pub district_id: Option<i32>,
+    pub district_id_set: bool,
     pub appointed_at_set: bool,
     pub appointed_at: Option<NaiveDate>,
     pub expunged_at_set: bool,
@@ -267,6 +268,7 @@ impl LinkMemberToChamber {
             session_id,
             request: LinkMemberToChamberRequest {
                 member_id,
+                district_id_set: false,
                 district_id: None,
                 appointed_at_set: false,
                 appointed_at: None,
@@ -286,10 +288,12 @@ impl LinkMemberToChamber {
         self
     }
     pub fn district(mut self, district_id: Option<i32>) -> Self {
+        self.request.district_id_set = true;
         self.request.district_id = district_id;
         self
     }
     pub fn set_district(&mut self, district_id: Option<i32>) {
+        self.request.district_id_set = true;
         self.request.district_id = district_id;
     }
 }
