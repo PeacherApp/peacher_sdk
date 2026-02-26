@@ -31,6 +31,7 @@ impl JurisdictionParams {
 }
 
 /// List jurisdictions with optional filters
+#[derive(Default)]
 pub struct ListJurisdictions(pub JurisdictionParams);
 
 impl GetHandler for ListJurisdictions {

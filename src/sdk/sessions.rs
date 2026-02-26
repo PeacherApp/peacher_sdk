@@ -139,12 +139,12 @@ impl GetHandler for GetChamberSessionActivity {
 }
 
 /// Get the map for a chamber in a specific session
-pub struct GetChamberSessionMap {
+pub struct GetSessionChamberMap {
     session_id: i32,
     chamber_id: i32,
 }
 
-impl GetChamberSessionMap {
+impl GetSessionChamberMap {
     pub fn new(session_id: i32, chamber_id: i32) -> Self {
         Self {
             session_id,
@@ -153,7 +153,7 @@ impl GetChamberSessionMap {
     }
 }
 
-impl GetHandler for GetChamberSessionMap {
+impl GetHandler for GetSessionChamberMap {
     // Use serde_json::Value for flexibility with GeoJson types
     type ResponseBody = serde_json::Value;
     fn path(&self) -> Cow<'_, str> {
