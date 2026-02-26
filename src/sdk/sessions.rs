@@ -400,7 +400,7 @@ pub struct GetSessionResponse {
     pub chambers: Vec<ChamberSessionView>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SessionView {
     pub id: i32,

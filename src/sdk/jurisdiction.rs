@@ -250,6 +250,7 @@ pub struct GetJurisdictionResponse {
     pub updated_at: DateTime<FixedOffset>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
+    pub current_session: Option<SessionView>,
     pub chambers: Vec<ListChamberResponse>,
 }
 
