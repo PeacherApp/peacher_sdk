@@ -314,7 +314,7 @@ impl CreateSession {
 }
 
 impl Handler for CreateSession {
-    type ResponseBody = GetSessionView;
+    type ResponseBody = SessionView;
 
     fn method(&self) -> Method {
         Method::Post
@@ -342,7 +342,7 @@ impl UpdateSession {
 }
 
 impl Handler for UpdateSession {
-    type ResponseBody = GetSessionView;
+    type ResponseBody = SessionView;
 
     fn method(&self) -> Method {
         Method::Patch

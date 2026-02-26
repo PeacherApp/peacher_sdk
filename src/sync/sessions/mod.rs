@@ -15,8 +15,8 @@ use crate::prelude::*;
 /// Result of syncing sessions
 #[derive(Debug, Clone)]
 pub struct SessionsSyncResult {
-    pub created: Vec<GetSessionView>,
-    pub updated: Vec<GetSessionView>,
+    pub created: Vec<SessionView>,
+    pub updated: Vec<SessionView>,
 }
 
 pub struct AllSessionsSync<'caller, 'client, E, P> {
