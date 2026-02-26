@@ -5,7 +5,7 @@ use crate::{paginated, prelude::*};
 
 use std::borrow::Cow;
 
-use chrono::NaiveDate;
+use chrono::{DateTime, FixedOffset, NaiveDate};
 
 /// Parameters for listing chambers
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -407,6 +407,8 @@ impl Handler for VacateMemberFromChamber {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ChamberView {
     pub id: i32,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
     pub name: String,
     pub jurisdiction_id: i32,
     pub external_id: Option<ExternalId>,

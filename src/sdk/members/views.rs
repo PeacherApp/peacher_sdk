@@ -136,7 +136,7 @@ pub struct MemberVotesResponse {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberDistrictInfo {
     pub district: SimpleBoundaryView,
-    pub chamber: ChamberView,
+    pub chamber: GetChamberView,
     pub session: SessionView,
 }
 
