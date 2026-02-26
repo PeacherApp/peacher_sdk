@@ -72,7 +72,7 @@ impl CreateJurisdiction {
 }
 
 impl Handler for CreateJurisdiction {
-    type ResponseBody = GetJurisdictionView;
+    type ResponseBody = JurisdictionView;
 
     fn method(&self) -> Method {
         Method::Post
@@ -211,6 +211,19 @@ pub struct GetJurisdictionView {
     pub created_by_id: Option<i32>,
     pub current_session: Option<SessionView>,
     pub chambers: Vec<ChamberView>,
+}
+impl GetJurisdictionView {
+    pub fn into_jurisdiction_view(self) -> JurisdictionView {
+        JurisdictionView {
+            id: self.id,
+            name: self.name,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            external_url: self.external_url,
+            external_id: self.external_id,
+            created_by_id: self.created_by_id,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

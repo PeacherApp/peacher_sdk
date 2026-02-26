@@ -6,7 +6,7 @@ use crate::prelude::*;
 pub struct ClientMapper<'p, P> {
     peacher: &'p P,
 
-    jurisdiction: Option<Arc<GetJurisdictionView>>,
+    jurisdiction: Option<Arc<JurisdictionView>>,
     chambers: HashMap<ExternalId, Arc<GetChamberView>>,
     sessions: HashMap<ExternalId, Arc<GetSessionResponse>>,
     members: HashMap<ExternalId, Arc<MemberWithPartyView>>,
@@ -106,19 +106,13 @@ impl<'p, P: Client> ClientMapper<'p, P> {
         m
     }
 
-    pub fn store_jurisdiction(
-        &mut self,
-        jurisdiction: GetJurisdictionView,
-    ) -> Arc<GetJurisdictionView> {
+    pub fn store_jurisdiction(&mut self, jurisdiction: JurisdictionView) -> Arc<JurisdictionView> {
         let j = Arc::new(jurisdiction);
         self.jurisdiction = Some(j.clone());
         j
     }
 
-    pub async fn jurisdiction(
-        &mut self,
-        ext_id: &ExternalId,
-    ) -> SyncResult<Arc<GetJurisdictionView>> {
+    pub async fn jurisdiction(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<JurisdictionView>> {
         if let Some(jurisdiction) = self.jurisdiction.as_ref() {
             return Ok(jurisdiction.clone());
         }
@@ -134,7 +128,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
                 ext_id, jurisdictions
             )))
         } else {
-            let value = Arc::new(jurisdictions.data.swap_remove(0));
+            let value = Arc::new(jurisdictions.data.swap_remove(0).into_jurisdiction_view());
             self.jurisdiction = Some(value.clone());
             Ok(value)
         }

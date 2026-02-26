@@ -25,7 +25,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> JurisdictionSync<'caller, '
         Self { external, mapper }
     }
 
-    pub async fn get(&mut self) -> SyncResult<Arc<GetJurisdictionView>> {
+    pub async fn get(&mut self) -> SyncResult<Arc<JurisdictionView>> {
         let client_provided_jurisdiction = self.external.get_jurisdiction();
         let val = self
             .mapper
