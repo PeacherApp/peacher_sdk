@@ -417,7 +417,7 @@ pub struct GetSessionChamberResponse {
 pub struct ChamberSessionMember {
     pub member: MemberWithPartyView,
     pub appointed_at: Option<NaiveDate>,
-    pub expunged_at: Option<NaiveDate>,
+    pub vacated_at: Option<NaiveDate>,
     pub district_id: Option<i32>,
 }
 

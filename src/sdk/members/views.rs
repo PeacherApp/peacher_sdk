@@ -1,4 +1,4 @@
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, FixedOffset, NaiveDate};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
 use url::Url;
@@ -150,6 +150,8 @@ pub struct MemberDistrictInfo {
     pub district: SimpleBoundaryView,
     pub chamber: GetChamberView,
     pub session: SessionView,
+    pub appointed_at: Option<NaiveDate>,
+    pub vacated_at: Option<NaiveDate>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
