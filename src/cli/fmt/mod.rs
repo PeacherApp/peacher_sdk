@@ -165,7 +165,7 @@ pub struct ChamberRow {
     pub external_id: String,
 }
 
-impl AsTable for Vec<ListChamberResponse> {
+impl AsTable for Vec<GetChamberView> {
     type TableRow<'a>
         = ChamberRow
     where
@@ -303,7 +303,7 @@ impl AsTable for Vec<MemberWithPartyView> {
     }
 }
 
-impl AsTable for Vec<JurisdictionChamberView> {
+impl AsTable for Vec<ChamberView> {
     type TableRow<'a>
         = ChamberRow
     where
@@ -322,7 +322,7 @@ impl AsTable for Vec<JurisdictionChamberView> {
     }
 }
 
-impl AsTable for Vec<GetJurisdictionResponse> {
+impl AsTable for Vec<GetJurisdictionView> {
     type TableRow<'a>
         = JurisdictionRow
     where

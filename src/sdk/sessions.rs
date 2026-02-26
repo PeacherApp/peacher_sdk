@@ -396,7 +396,7 @@ pub struct GetSessionResponse {
     pub external_url: Option<Url>,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
-    pub jurisdiction: BasicJurisdictionView,
+    pub jurisdiction: JurisdictionView,
     pub chambers: Vec<ChamberSessionView>,
 }
 

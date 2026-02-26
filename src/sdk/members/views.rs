@@ -117,7 +117,7 @@ pub struct MemberActivity {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberActivityResponse {
     pub session: SessionView,
-    pub chamber: SmallChamberView,
+    pub chamber: ChamberView,
     pub activity: MemberActivity,
 }
 
