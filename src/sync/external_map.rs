@@ -122,10 +122,10 @@ impl<'p, P: Client> ClientMapper<'p, P> {
         if let Some(jurisdiction) = self.jurisdiction.as_ref() {
             return Ok(jurisdiction.clone());
         }
-        let mut jurisdictions = ListJurisdictions::default()
-            .with_external_id(ext_id.val_str())
-            .request(self.peacher)
-            .await?;
+        let mut jurisdictions =
+            ListJurisdictions(JurisdictionParams::default().with_external_id(ext_id.val_str()))
+                .request(self.peacher)
+                .await?;
         if jurisdictions.data.is_empty() {
             Err(SyncError::NotFound(ext_id.clone()))
         } else if jurisdictions.data.len() > 1 {

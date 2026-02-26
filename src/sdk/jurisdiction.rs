@@ -13,6 +13,7 @@ use crate::{paginated, prelude::*};
 pub struct JurisdictionParams {
     /// Filter by external ID
     pub external_id: Option<ExternalId>,
+    pub created_by_id: Option<i32>,
     pub page: Option<u64>,
     pub page_size: Option<u64>,
 }
@@ -30,42 +31,7 @@ impl JurisdictionParams {
 }
 
 /// List jurisdictions with optional filters
-pub struct ListJurisdictions {
-    page: u64,
-    page_size: u64,
-    external_id: Option<ExternalId>,
-}
-
-impl ListJurisdictions {
-    pub fn new() -> Self {
-        Self {
-            page: 0,
-            page_size: 20,
-            external_id: None,
-        }
-    }
-
-    pub fn page(mut self, page: u64) -> Self {
-        self.page = page;
-        self
-    }
-
-    pub fn page_size(mut self, page_size: u64) -> Self {
-        self.page_size = page_size;
-        self
-    }
-
-    pub fn with_external_id(mut self, external_id: impl Into<ExternalId>) -> Self {
-        self.external_id = Some(external_id.into());
-        self
-    }
-}
-
-impl Default for ListJurisdictions {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+pub struct ListJurisdictions(pub JurisdictionParams);
 
 impl GetHandler for ListJurisdictions {
     type ResponseBody = Paginated<GetJurisdictionView>;
@@ -75,18 +41,7 @@ impl GetHandler for ListJurisdictions {
     }
 
     fn params(&self) -> impl SdkParams {
-        #[derive(Serialize)]
-        struct Params {
-            page: u64,
-            page_size: u64,
-            #[serde(skip_serializing_if = "Option::is_none")]
-            external_id: Option<ExternalId>,
-        }
-        Params {
-            page: self.page,
-            page_size: self.page_size,
-            external_id: self.external_id.clone(),
-        }
+        self.0.clone()
     }
 }
 
@@ -130,13 +85,13 @@ impl Handler for CreateJurisdiction {
     }
 }
 
-pub struct GetAccountJurisdictions;
-impl GetHandler for GetAccountJurisdictions {
-    type ResponseBody = Vec<JurisdictionWithChambers>;
-    fn path(&self) -> Cow<'_, str> {
-        "/api/account/jurisdictions".into()
-    }
-}
+// pub struct GetAccountJurisdictions;
+// impl GetHandler for GetAccountJurisdictions {
+//     type ResponseBody = Vec<JurisdictionWithChambers>;
+//     fn path(&self) -> Cow<'_, str> {
+//         "/api/account/jurisdictions".into()
+//     }
+// }
 
 // #[derive(Serialize, Deserialize)]
 // #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
