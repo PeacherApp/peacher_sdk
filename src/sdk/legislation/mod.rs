@@ -653,7 +653,7 @@ pub struct LegislationDetailsResponse {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub sponsors: Vec<SponsorInfo>,
-    pub chamber: Option<ChamberView>,
+    pub chamber: Option<GetChamberView>,
     pub session: Option<SessionView>,
 }
 

@@ -103,6 +103,7 @@ impl Default for EmailNotificationPreferences {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
+#[expect(clippy::large_enum_variant)]
 pub enum Notification {
     BulkReviews(NotifyBulkReview),
     ReportReviewed(NotifyReportReviewed),

@@ -61,12 +61,12 @@ pub struct SyncSessionView {
     pub external_url: Option<Url>,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
-    pub chambers: Vec<SmallChamberView>,
+    pub chambers: Vec<ChamberView>,
 }
 
 pub struct SyncChamberSessionView {
     pub session_id: i32,
-    pub chamber: ChamberSessionView,
+    pub chamber: GetSessionChamber,
 }
 
 /// Coordinates synchronization between an external data source and the Peacher API.

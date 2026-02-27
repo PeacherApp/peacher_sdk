@@ -6,9 +6,9 @@ use crate::prelude::*;
 pub struct ClientMapper<'p, P> {
     peacher: &'p P,
 
-    jurisdiction: Option<Arc<GetJurisdictionResponse>>,
-    chambers: HashMap<ExternalId, Arc<ListChamberResponse>>,
-    sessions: HashMap<ExternalId, Arc<GetSessionResponse>>,
+    jurisdiction: Option<Arc<JurisdictionView>>,
+    chambers: HashMap<ExternalId, Arc<GetChamberView>>,
+    sessions: HashMap<ExternalId, Arc<GetSessionView>>,
     members: HashMap<ExternalId, Arc<MemberWithPartyView>>,
 }
 
@@ -27,7 +27,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
         self.peacher
     }
 
-    pub async fn chamber(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<ListChamberResponse>> {
+    pub async fn chamber(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<GetChamberView>> {
         if let Some(chamber) = self.chambers.get(ext_id) {
             return Ok(chamber.clone());
         }
@@ -50,7 +50,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
             Ok(value)
         }
     }
-    pub async fn session(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<GetSessionResponse>> {
+    pub async fn session(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<GetSessionView>> {
         if let Some(session) = self.sessions.get(ext_id) {
             return Ok(session.clone());
         }
@@ -106,26 +106,20 @@ impl<'p, P: Client> ClientMapper<'p, P> {
         m
     }
 
-    pub fn store_jurisdiction(
-        &mut self,
-        jurisdiction: GetJurisdictionResponse,
-    ) -> Arc<GetJurisdictionResponse> {
+    pub fn store_jurisdiction(&mut self, jurisdiction: JurisdictionView) -> Arc<JurisdictionView> {
         let j = Arc::new(jurisdiction);
         self.jurisdiction = Some(j.clone());
         j
     }
 
-    pub async fn jurisdiction(
-        &mut self,
-        ext_id: &ExternalId,
-    ) -> SyncResult<Arc<GetJurisdictionResponse>> {
+    pub async fn jurisdiction(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<JurisdictionView>> {
         if let Some(jurisdiction) = self.jurisdiction.as_ref() {
             return Ok(jurisdiction.clone());
         }
-        let mut jurisdictions = ListJurisdictions::default()
-            .with_external_id(ext_id.val_str())
-            .request(self.peacher)
-            .await?;
+        let mut jurisdictions =
+            ListJurisdictions(JurisdictionParams::default().with_external_id(ext_id.val_str()))
+                .request(self.peacher)
+                .await?;
         if jurisdictions.data.is_empty() {
             Err(SyncError::NotFound(ext_id.clone()))
         } else if jurisdictions.data.len() > 1 {
@@ -134,7 +128,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
                 ext_id, jurisdictions
             )))
         } else {
-            let value = Arc::new(jurisdictions.data.swap_remove(0));
+            let value = Arc::new(jurisdictions.data.swap_remove(0).into_jurisdiction_view());
             self.jurisdiction = Some(value.clone());
             Ok(value)
         }

@@ -24,6 +24,8 @@ pub struct BoundaryView {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BoundaryChambers {
-    pub chamber: ChamberView,
-    pub members: Vec<MemberWithPartyView>,
+    pub chamber: GetChamberView,
+    pub session: SessionView,
+    /// members intersected with
+    pub members: Vec<ChamberSessionMember>,
 }
