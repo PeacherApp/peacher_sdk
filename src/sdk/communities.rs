@@ -224,6 +224,21 @@ impl Handler for LeaveCommunity {
     }
 }
 
+/// Delete a community
+pub struct DeleteCommunity(pub i32);
+
+impl Handler for DeleteCommunity {
+    type ResponseBody = NoResponse;
+
+    fn method(&self) -> Method {
+        Method::Delete
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/communities/{}", self.0).into()
+    }
+}
+
 /// Get community membership status for the current viewer
 pub struct GetCommunityMembership(pub i32);
 
