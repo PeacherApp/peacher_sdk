@@ -131,6 +131,11 @@ mod tags;
 #[cfg(feature = "tags")]
 pub use tags::*;
 
+#[cfg(feature = "uploads")]
+mod uploads;
+#[cfg(feature = "uploads")]
+pub use uploads::*;
+
 #[cfg(feature = "votes")]
 mod votes;
 #[cfg(feature = "votes")]

@@ -79,6 +79,7 @@ default = [
   "sessions",
   "sponsorships",
   "tags",
+  "uploads",
   "votes"
 ]
 account = []
@@ -118,5 +119,6 @@ reports = []
 sessions = []
 sponsorships = []
 tags = []
+uploads = []
 utoipa = ["dep:utoipa"]
 votes = []
