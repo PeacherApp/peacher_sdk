@@ -24,6 +24,8 @@ geo = { version = "0.32", optional = true }
 geojson = { version = "0.24", optional = true }
 http = "1.4"
 indicatif = { version = "0.17", optional = true }
+loco-rs = { version = "0.16.4", optional = true }
+markdown = { version = "1.0.0", optional = true }
 mime = "0.3.17"
 rand = "0.9"
 reqwest = { version = "0.12", default-features = false, features = [
@@ -52,7 +54,10 @@ tokio = { version = "1", features = ["full"] }
 
 [features]
 # default features enable all structs
-default = [
+default = ["all_routes"]
+account = []
+address = []
+all_routes = [
   "account",
   "address",
   "attachments",
@@ -82,14 +87,11 @@ default = [
   "uploads",
   "votes"
 ]
-account = []
-address = []
 attachments = []
 auth = []
 axum_test = ["dep:axum-test"]
 categories = []
 chambers = []
-communities = []
 cli = [
   "dep:clap",
   "dep:console",
@@ -99,7 +101,8 @@ cli = [
   "dep:tabled",
   "dep:toml"
 ]
-content = []
+communities = []
+content = ["tippytappy"]
 districts = []
 feed = []
 geo = ["dep:geo", "dep:geojson"]
@@ -108,6 +111,7 @@ jurisdiction = []
 legislation = []
 likes = []
 location = []
+loco = ["dep:loco-rs"]
 maps = []
 members = []
 messages = []
@@ -119,6 +123,7 @@ reports = []
 sessions = []
 sponsorships = []
 tags = []
+tippytappy = ["dep:markdown"]
 uploads = []
 utoipa = ["dep:utoipa"]
 votes = []
