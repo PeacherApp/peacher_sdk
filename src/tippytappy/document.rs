@@ -3,12 +3,14 @@ use markdown::{ParseOptions, mdast::Node as MdNode};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct View;
 
 impl State for View {
     type TextNode = TextNodeView;
 }
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", rename = "doc")]
 pub struct Document {
     content: Vec<Node<View>>,
@@ -16,6 +18,14 @@ pub struct Document {
 
 impl Document {
     pub fn parse_json(value: serde_json::Value) -> Result<Self, ParseError> {
+        let value = serde_json::from_value(value).map_err(|e| {
+            tracing::error!("Invalid value passed for document. Error: {e}");
+            ParseError::Json(e)
+        })?;
+
+        Ok(value)
+    }
+    pub fn parse_compiled_json(value: serde_json::Value) -> Result<Self, ParseError> {
         let value = serde_json::from_value(value).map_err(|e| {
             tracing::error!("Invalid value passed for document. Error: {e}");
             ParseError::Json(e)

@@ -19,5 +19,14 @@ pub use compiled::*;
 use serde::{Serialize, de::DeserializeOwned};
 
 pub trait State: Default {
+    #[cfg(feature = "utoipa")]
+    type TextNode: DeserializeOwned
+        + Serialize
+        + std::fmt::Debug
+        + PartialEq
+        + Eq
+        + Clone
+        + utoipa::ToSchema;
+    #[cfg(not(feature = "utoipa"))]
     type TextNode: DeserializeOwned + Serialize + std::fmt::Debug + PartialEq + Eq + Clone;
 }

@@ -4,7 +4,11 @@ use strum::{Display, EnumString, VariantArray};
 
 use std::borrow::Cow;
 
-use crate::{commaparam, prelude::*};
+use crate::{
+    commaparam,
+    prelude::*,
+    tippytappy::{self, Document},
+};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -47,7 +51,7 @@ pub struct ContentDetails {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub searchable_text: String,
-    pub document: serde_json::Value,
+    pub document: tippytappy::Document,
     pub author: Option<MemberWithPartyView>,
     pub status: ContentStatus,
     /// This is the sum of sentiments where
@@ -98,7 +102,7 @@ pub struct AdminContentView {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub searchable_text: String,
-    pub document: serde_json::Value,
+    pub document: Document,
     pub kind: ContentTypeId,
     pub author: Option<i32>,
     pub reason_removed: Option<String>,
@@ -137,7 +141,7 @@ impl ContentView {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", content = "content", rename_all = "snake_case")]
 pub enum SetContentRequest {
-    Document(serde_json::Value),
+    Document(Document),
     Markdown(String),
 }
 
@@ -155,7 +159,7 @@ impl UpdateContent {
         }
     }
 
-    pub fn document(content_id: Uuid, doc: serde_json::Value) -> Self {
+    pub fn document(content_id: Uuid, doc: Document) -> Self {
         Self {
             content_id,
             body: SetContentRequest::Document(doc),

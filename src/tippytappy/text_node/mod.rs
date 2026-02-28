@@ -8,6 +8,7 @@ use crate::tippytappy::{CompileCarriage, Compiled, State, View};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub struct TextNode<S: State> {
     #[serde(flatten)]
@@ -37,6 +38,7 @@ impl TextNode<View> {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", rename = "text", rename_all = "camelCase")]
 pub struct Text {
     pub text: String,
@@ -45,6 +47,7 @@ pub struct Text {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Mark {
     Highlight,
@@ -56,6 +59,7 @@ pub enum Mark {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct LinkAttributes {
     pub href: String,
     pub target: Option<String>,

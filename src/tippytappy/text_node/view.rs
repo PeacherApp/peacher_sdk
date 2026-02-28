@@ -5,6 +5,7 @@ use crate::tippytappy::{CompileCarriage, CompiledTextNode, Text};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum TextNodeView {
     Text(Text),
     MemberMention { attrs: Mention<i32> },
@@ -46,6 +47,7 @@ impl TextNodeView {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct Mention<Id> {
     // should be i32

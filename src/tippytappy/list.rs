@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::tippytappy::{CompileCarriage, Compiled, Node, State, View};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct OrderedList<S: State> {
     pub attrs: ListAttributes,
@@ -36,6 +37,7 @@ impl<S: State> OrderedList<S> {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum ListChild<S: State> {
     ListItem { content: Vec<Node<S>> },
@@ -60,6 +62,7 @@ impl<S: State> ListChild<S> {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct ListAttributes {
     pub start: u32,
@@ -68,6 +71,7 @@ pub struct ListAttributes {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct BulletListNode<S: State> {
     pub content: Vec<ListChild<S>>,

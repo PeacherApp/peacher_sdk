@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::{paginated, prelude::*};
+use crate::{paginated, prelude::*, tippytappy::Document};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
@@ -103,7 +103,7 @@ impl CreateSummary {
         }
     }
 
-    pub fn document(legislation_id: i32, doc: serde_json::Value) -> Self {
+    pub fn document(legislation_id: i32, doc: Document) -> Self {
         Self {
             legislation_id,
             body: SetContentRequest::Document(doc),
