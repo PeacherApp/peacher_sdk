@@ -7,7 +7,7 @@ use std::borrow::Cow;
 use crate::{
     commaparam,
     prelude::*,
-    tippytappy::{self, CompiledDocument, DocumentView},
+    tippytappy::{self, DocumentView},
 };
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
