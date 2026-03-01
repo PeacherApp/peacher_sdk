@@ -29,7 +29,7 @@ impl CompileCarriage {
             relationships: ContentRelationships {
                 legislation_nameids: self.legislation_ids,
                 member_handles: self.member_ids,
-                sibling_content_ids: self.sibling_content_ids,
+                sibling_labels: self.sibling_content_ids,
             },
             document,
         }
