@@ -12,11 +12,11 @@ impl State for View {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", rename = "doc")]
-pub struct Document {
+pub struct DocumentView {
     content: Vec<Node<View>>,
 }
 
-impl Document {
+impl DocumentView {
     pub fn parse_json(value: serde_json::Value) -> Result<Self, ParseError> {
         let value = serde_json::from_value(value).map_err(|e| {
             tracing::error!("Invalid value passed for document. Error: {e}");

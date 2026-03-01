@@ -5,6 +5,7 @@ use url::Url;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "utoipa", schema(no_recursion))]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Node<S: State> {
     Image {
@@ -340,7 +341,7 @@ fn collect_text_nodes(node: MdNode, marks: &[Mark]) -> Vec<TextNode<View>> {
 
 #[cfg(test)]
 fn parse_nodes(md: &str) -> Vec<Node<View>> {
-    let doc = Document::parse_markdown(md).unwrap();
+    let doc = DocumentView::parse_markdown(md).unwrap();
     let json = serde_json::to_value(&doc).unwrap();
     // Extract the content vec by round-tripping through the Document
     // We can't access doc.content directly (private), but we can
@@ -890,7 +891,7 @@ fn autolink_gfm() {
 #[test]
 fn search_text_extracts_all_content() {
     let md = "# Title\n\nParagraph with `code` and [link](https://x.com).\n\n- one\n- two";
-    let doc = Document::parse_markdown(md).unwrap();
+    let doc = DocumentView::parse_markdown(md).unwrap();
     let text = doc.compile().searchable_text;
     for expected in &["Title", "Paragraph with ", "code", "link", "one", "two"] {
         assert!(
@@ -902,7 +903,7 @@ fn search_text_extracts_all_content() {
 
 #[test]
 fn search_text_from_blockquote() {
-    let doc = Document::parse_markdown("> important quote").unwrap();
+    let doc = DocumentView::parse_markdown("> important quote").unwrap();
     assert!(doc.compile().searchable_text.contains("important quote"));
 }
 
@@ -1018,9 +1019,9 @@ fn empty_paragraphs_not_duplicated() {
 #[test]
 fn json_round_trip() {
     let md = "# Hello\n\nWorld with `code`.";
-    let doc = Document::parse_markdown(md).unwrap();
+    let doc = DocumentView::parse_markdown(md).unwrap();
     let json = serde_json::to_value(&doc).unwrap();
-    let doc2: Document = serde_json::from_value(json.clone()).unwrap();
+    let doc2: DocumentView = serde_json::from_value(json.clone()).unwrap();
     let json2 = serde_json::to_value(&doc2).unwrap();
     assert_eq!(json, json2);
 }
