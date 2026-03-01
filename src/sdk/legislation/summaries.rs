@@ -4,7 +4,7 @@ use crate::{paginated, prelude::*, tippytappy::DocumentView};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum SummaryKind {
@@ -38,7 +38,7 @@ pub struct CreateSummaryRequest {
     pub content: SetContentRequest,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SummaryView {
     pub legislation_id: i32,
