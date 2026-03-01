@@ -16,13 +16,25 @@ pub struct ContentRelationships {
 }
 
 impl ContentRelationships {
+    pub fn from_iters(
+        legislation: impl IntoIterator<Item = (i32, String)>,
+        members: impl IntoIterator<Item = (i32, String)>,
+        siblings: impl IntoIterator<Item = (Uuid, String)>,
+    ) -> Self {
+        Self {
+            legislation_nameids: legislation.into_iter().collect(),
+            member_handles: members.into_iter().collect(),
+            sibling_labels: siblings.into_iter().collect(),
+        }
+    }
+
     pub fn legislation_ids(&self) -> impl Iterator<Item = i32> {
         self.legislation_nameids.keys().copied()
     }
     pub fn member_ids(&self) -> impl Iterator<Item = i32> {
         self.member_handles.keys().copied()
     }
-    pub fn sibling_labels(&self) -> impl Iterator<Item = Uuid> {
+    pub fn sibling_ids(&self) -> impl Iterator<Item = Uuid> {
         self.sibling_labels.keys().copied()
     }
 

@@ -5,7 +5,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::{paginated, prelude::*};
 
-// --- View types ---
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SmallCommunityView {
+    pub id: i32,
+    pub name: String,
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]

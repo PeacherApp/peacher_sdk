@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use url::Url;
 use uuid::Uuid;
 
 use crate::{paginated, prelude::*};
@@ -19,17 +20,13 @@ pub struct ArticleView {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PostView {
-    pub content_item_id: Uuid,
     pub title: String,
-    pub community_id: i32,
-    pub community_name: String,
+    pub community: SmallCommunityView,
     pub article: Option<ArticleView>,
     pub cover_image_url: Option<String>,
     pub pinned: bool,
     pub content: ContentView,
     pub editable_until: Option<DateTime<FixedOffset>>,
-    pub created_at: DateTime<FixedOffset>,
-    pub updated_at: DateTime<FixedOffset>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -52,7 +49,7 @@ pub struct CreatePostRequest {
     pub title: String,
     pub community_id: i32,
     pub body: SetContentRequest,
-    pub article_url: Option<String>,
+    pub article_url: Option<Url>,
     pub cover_image_url: Option<String>,
 }
 
