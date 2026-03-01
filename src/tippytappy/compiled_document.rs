@@ -76,11 +76,3 @@ impl CompiledDocument {
         )
     }
 }
-
-pub trait ViewCarriage {
-    /// returns a nameid associated with legislation
-    fn get_legislation_nameid(&self, id: i32) -> Option<String>;
-    /// returns a label associated with a member.
-    fn get_member_handle(&self, id: i32) -> Option<String>;
-    fn get_content_label(&self, id: Uuid) -> Option<String>;
-}

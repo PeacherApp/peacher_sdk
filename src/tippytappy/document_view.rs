@@ -1,5 +1,4 @@
 use crate::tippytappy::*;
-use ahash::HashMap;
 use markdown::{ParseOptions, mdast::Node as MdNode};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -12,25 +11,13 @@ impl State for View {
     type TextNode = TextNodeView;
 }
 
-// /// Required to convert a compiled document into a view
-// pub struct ViewCarriage {
-//     pub legislation: HashMap<i32, String>,
-//     pub members: HashMap<i32, String>,
-//     pub siblings: HashMap<Uuid, String>,
-// }
-// impl ViewCarriage {
-//     pub fn new_from_iterators(
-//         legislation: impl IntoIterator<Item = (i32, String)>,
-//         members: impl IntoIterator<Item = (i32, String)>,
-//         siblings: impl IntoIterator<Item = (Uuid, String)>,
-//     ) -> Self {
-//         Self {
-//             legislation: legislation.into_iter().collect(),
-//             members: members.into_iter().collect(),
-//             siblings: siblings.into_iter().collect(),
-//         }
-//     }
-// }
+pub trait ViewCarriage {
+    /// returns a nameid associated with legislation
+    fn get_legislation_nameid(&self, id: i32) -> Option<String>;
+    /// returns a label associated with a member.
+    fn get_member_handle(&self, id: i32) -> Option<String>;
+    fn get_content_label(&self, id: Uuid) -> Option<String>;
+}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
