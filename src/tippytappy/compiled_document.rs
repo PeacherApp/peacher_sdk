@@ -67,4 +67,20 @@ impl CompiledDocument {
             content: nodes.into_iter().collect(),
         }
     }
+
+    pub fn to_view(self, carriage: &impl ViewCarriage) -> DocumentView {
+        DocumentView::from_nodes(
+            self.content
+                .into_iter()
+                .map(|node| node.into_view(carriage)),
+        )
+    }
+}
+
+pub trait ViewCarriage {
+    /// returns a nameid associated with legislation
+    fn get_legislation_nameid(&self, id: i32) -> Option<String>;
+    /// returns a label associated with a member.
+    fn get_member_handle(&self, id: i32) -> Option<String>;
+    fn get_content_label(&self, id: Uuid) -> Option<String>;
 }

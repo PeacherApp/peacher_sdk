@@ -4,7 +4,7 @@ pub use view::*;
 mod compiled;
 pub use compiled::*;
 
-use crate::tippytappy::{CompileCarriage, Compiled, State, View};
+use crate::tippytappy::{CompileCarriage, Compiled, State, View, ViewCarriage};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
@@ -17,8 +17,6 @@ pub struct TextNode<S: State> {
 
 impl TextNode<View> {
     pub fn compile(self, carriage: &mut CompileCarriage) -> TextNode<Compiled> {
-        carriage.push_str(self.inner.text());
-
         let new_inner = self.inner.compile(carriage);
         TextNode { inner: new_inner }
     }
@@ -34,6 +32,14 @@ impl TextNode<View> {
     }
     pub fn inner(&self) -> &TextNodeView {
         &self.inner
+    }
+}
+
+impl TextNode<Compiled> {
+    pub fn into_view(self, carriage: &impl ViewCarriage) -> TextNode<View> {
+        let new_inner = self.inner.into_view(carriage);
+
+        TextNode { inner: new_inner }
     }
 }
 

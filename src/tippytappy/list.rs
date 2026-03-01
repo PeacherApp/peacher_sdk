@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::tippytappy::{CompileCarriage, Compiled, Node, State, View};
+use crate::tippytappy::{CompileCarriage, Compiled, Node, State, View, ViewCarriage};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -16,6 +16,19 @@ impl OrderedList<View> {
             .content
             .into_iter()
             .map(|child| child.compile(carriage))
+            .collect();
+        OrderedList {
+            attrs: self.attrs,
+            content: new_children,
+        }
+    }
+}
+impl OrderedList<Compiled> {
+    pub fn into_view(self, carriage: &impl ViewCarriage) -> OrderedList<View> {
+        let new_children = self
+            .content
+            .into_iter()
+            .map(|child| child.into_view(carriage))
             .collect();
         OrderedList {
             attrs: self.attrs,
@@ -47,6 +60,18 @@ impl ListChild<View> {
         match self {
             ListChild::ListItem { content } => {
                 let new_content = content.into_iter().map(|node| node.compile(carriage));
+                ListChild::ListItem {
+                    content: new_content.collect(),
+                }
+            }
+        }
+    }
+}
+impl ListChild<Compiled> {
+    pub fn into_view(self, carriage: &impl ViewCarriage) -> ListChild<View> {
+        match self {
+            ListChild::ListItem { content } => {
+                let new_content = content.into_iter().map(|node| node.into_view(carriage));
                 ListChild::ListItem {
                     content: new_content.collect(),
                 }
@@ -86,6 +111,20 @@ impl BulletListNode<View> {
         }
     }
 }
+
+impl BulletListNode<Compiled> {
+    pub fn into_view(self, carriage: &impl ViewCarriage) -> BulletListNode<View> {
+        let new_content = self
+            .content
+            .into_iter()
+            .map(|node| node.into_view(carriage));
+
+        BulletListNode {
+            content: new_content.collect(),
+        }
+    }
+}
+
 impl<S: State> BulletListNode<S> {
     pub(crate) fn new(content: Vec<ListChild<S>>) -> Self {
         Self { content }

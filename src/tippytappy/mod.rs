@@ -10,11 +10,11 @@ pub use list::*;
 mod text_node;
 pub use text_node::*;
 
-mod document;
-pub use document::*;
+mod document_view;
+pub use document_view::*;
 
-mod compiled;
-pub use compiled::*;
+mod compiled_document;
+pub use compiled_document::*;
 
 use serde::{Serialize, de::DeserializeOwned};
 
