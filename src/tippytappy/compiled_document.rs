@@ -68,7 +68,7 @@ impl CompiledDocument {
         }
     }
 
-    pub fn to_view(self, carriage: &impl ViewCarriage) -> DocumentView {
+    pub fn to_view(self, carriage: &impl ContentLabeler) -> DocumentView {
         DocumentView::from_nodes(
             self.content
                 .into_iter()

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::tippytappy::{CompileCarriage, Compiled, Node, State, View, ViewCarriage};
+use crate::tippytappy::{CompileCarriage, Compiled, ContentLabeler, Node, State, View};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -24,7 +24,7 @@ impl OrderedList<View> {
     }
 }
 impl OrderedList<Compiled> {
-    pub fn into_view(self, carriage: &impl ViewCarriage) -> OrderedList<View> {
+    pub fn into_view(self, carriage: &impl ContentLabeler) -> OrderedList<View> {
         let new_children = self
             .content
             .into_iter()
@@ -68,7 +68,7 @@ impl ListChild<View> {
     }
 }
 impl ListChild<Compiled> {
-    pub fn into_view(self, carriage: &impl ViewCarriage) -> ListChild<View> {
+    pub fn into_view(self, carriage: &impl ContentLabeler) -> ListChild<View> {
         match self {
             ListChild::ListItem { content } => {
                 let new_content = content.into_iter().map(|node| node.into_view(carriage));
@@ -113,7 +113,7 @@ impl BulletListNode<View> {
 }
 
 impl BulletListNode<Compiled> {
-    pub fn into_view(self, carriage: &impl ViewCarriage) -> BulletListNode<View> {
+    pub fn into_view(self, carriage: &impl ContentLabeler) -> BulletListNode<View> {
         let new_content = self
             .content
             .into_iter()

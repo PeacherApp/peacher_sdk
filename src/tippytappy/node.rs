@@ -209,7 +209,7 @@ impl Node<View> {
 }
 
 impl Node<Compiled> {
-    pub fn into_view(self, carriage: &impl ViewCarriage) -> Node<View> {
+    pub fn into_view(self, carriage: &impl ContentLabeler) -> Node<View> {
         match self {
             Node::Image { attrs } => Node::Image { attrs },
             Node::OrderedList(oln) => Node::OrderedList(oln.into_view(carriage)),

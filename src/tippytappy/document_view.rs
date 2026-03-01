@@ -11,11 +11,15 @@ impl State for View {
     type TextNode = TextNodeView;
 }
 
-pub trait ViewCarriage {
+/// Associated particular node labels
+/// related content within a [`CompiledDocument`] to
+/// turn into a [`DocumentView`]
+pub trait ContentLabeler {
     /// returns a nameid associated with legislation
     fn get_legislation_nameid(&self, id: i32) -> Option<String>;
     /// returns a label associated with a member.
     fn get_member_handle(&self, id: i32) -> Option<String>;
+    /// get the label for a piece of content
     fn get_content_label(&self, id: Uuid) -> Option<String>;
 }
 
