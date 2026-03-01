@@ -13,13 +13,13 @@ pub enum Node<S: State> {
     },
     Heading {
         attrs: HeadingAttributes,
-        content: Vec<TextNode<S>>,
+        content: Vec<S::TextNode>,
     },
     OrderedList(OrderedList<S>),
     BulletList(BulletListNode<S>),
     Paragraph {
         #[serde(default)]
-        content: Vec<TextNode<S>>,
+        content: Vec<S::TextNode>,
     },
     Blockquote {
         content: Vec<Node<S>>,
@@ -129,7 +129,7 @@ impl Node<View> {
             MdNode::ThematicBreak(_) => Ok(Node::HorizontalRule),
 
             MdNode::Code(code) => {
-                let content = vec![TextNode::text_node(Text {
+                let content = vec![TextNodeView::Text(Text {
                     text: code.value,
                     marks: vec![Mark::Code],
                 })];
@@ -151,7 +151,7 @@ impl Node<View> {
             }),
 
             MdNode::Html(html) => Ok(Node::Paragraph {
-                content: vec![TextNode::text_node(Text {
+                content: vec![TextNodeView::Text(Text {
                     text: html.value,
                     marks: vec![],
                 })],
@@ -254,7 +254,7 @@ impl<S: State> Node<S> {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum DetailNode<S: State> {
-    DetailsSummary { content: Vec<TextNode<S>> },
+    DetailsSummary { content: Vec<S::TextNode> },
     DetailsContent { content: Vec<Node<S>> },
 }
 
@@ -307,9 +307,9 @@ impl ImageAttributes {
 
 /// Recursively flattens mdast inline nodes into a list of [`TextNode`]s,
 /// accumulating marks (code, link) as we descend.
-fn collect_text_nodes(node: MdNode, marks: &[Mark]) -> Vec<TextNode<View>> {
+fn collect_text_nodes(node: MdNode, marks: &[Mark]) -> Vec<TextNodeView> {
     match node {
-        MdNode::Text(t) => vec![TextNode::text_node(Text {
+        MdNode::Text(t) => vec![TextNodeView::Text(Text {
             text: t.value,
             marks: marks.to_vec(),
         })],
@@ -317,7 +317,7 @@ fn collect_text_nodes(node: MdNode, marks: &[Mark]) -> Vec<TextNode<View>> {
         MdNode::InlineCode(ic) => {
             let mut new_marks = marks.to_vec();
             new_marks.push(Mark::Code);
-            vec![TextNode::text_node(Text {
+            vec![TextNodeView::Text(Text {
                 text: ic.value,
                 marks: new_marks,
             })]
@@ -358,17 +358,17 @@ fn collect_text_nodes(node: MdNode, marks: &[Mark]) -> Vec<TextNode<View>> {
             .flat_map(|child| collect_text_nodes(child, marks))
             .collect(),
 
-        MdNode::Break(_) => vec![TextNode::text_node(Text {
+        MdNode::Break(_) => vec![TextNodeView::Text(Text {
             text: "\n".to_string(),
             marks: marks.to_vec(),
         })],
 
-        MdNode::Image(img) => vec![TextNode::text_node(Text {
+        MdNode::Image(img) => vec![TextNodeView::Text(Text {
             text: img.alt,
             marks: marks.to_vec(),
         })],
 
-        MdNode::FootnoteReference(fr) => vec![TextNode::text_node(Text {
+        MdNode::FootnoteReference(fr) => vec![TextNodeView::Text(Text {
             text: format!("[{}]", fr.identifier),
             marks: marks.to_vec(),
         })],
@@ -393,24 +393,24 @@ fn parse_nodes(md: &str) -> Vec<Node<View>> {
 }
 
 #[cfg(test)]
-fn plain(s: &str) -> TextNode<View> {
-    TextNode::text_node(Text {
+fn plain(s: &str) -> TextNodeView {
+    TextNodeView::Text(Text {
         text: s.to_string(),
         marks: vec![],
     })
 }
 
 #[cfg(test)]
-fn coded(s: &str) -> TextNode<View> {
-    TextNode::text_node(Text {
+fn coded(s: &str) -> TextNodeView {
+    TextNodeView::Text(Text {
         text: s.to_string(),
         marks: vec![Mark::Code],
     })
 }
 
 #[cfg(test)]
-fn linked(s: &str, href: &str) -> TextNode<View> {
-    TextNode::text_node(Text {
+fn linked(s: &str, href: &str) -> TextNodeView {
+    TextNodeView::Text(Text {
         text: s.to_string(),
         marks: vec![Mark::Link {
             attrs: LinkAttributes {
@@ -425,8 +425,8 @@ fn linked(s: &str, href: &str) -> TextNode<View> {
 }
 
 #[cfg(test)]
-fn linked_with_title(s: &str, href: &str, title: &str) -> TextNode<View> {
-    TextNode::text_node(Text {
+fn linked_with_title(s: &str, href: &str, title: &str) -> TextNodeView {
+    TextNodeView::Text(Text {
         text: s.to_string(),
         marks: vec![Mark::Link {
             attrs: LinkAttributes {
@@ -441,8 +441,8 @@ fn linked_with_title(s: &str, href: &str, title: &str) -> TextNode<View> {
 }
 
 #[cfg(test)]
-fn coded_and_linked(s: &str, href: &str) -> TextNode<View> {
-    TextNode::text_node(Text {
+fn coded_and_linked(s: &str, href: &str) -> TextNodeView {
+    TextNodeView::Text(Text {
         text: s.to_string(),
         marks: vec![
             Mark::Link {
@@ -910,7 +910,7 @@ fn autolink_gfm() {
     let nodes = parse_nodes("Visit https://example.com today");
     match &nodes[0] {
         Node::Paragraph { content } => {
-            let has_link = content.iter().any(|t| match t.inner() {
+            let has_link = content.iter().any(|t| match t {
                 TextNodeView::Text(text) => {
                     text.marks.iter().any(|m| matches!(m, Mark::Link { .. }))
                 }
