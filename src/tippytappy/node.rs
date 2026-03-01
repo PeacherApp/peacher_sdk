@@ -209,27 +209,33 @@ impl Node<View> {
 }
 
 impl Node<Compiled> {
-    pub fn into_view(self, carriage: &impl ContentLabeler) -> Node<View> {
+    pub fn into_view(self, relationships: &ContentRelationships) -> Node<View> {
         match self {
             Node::Image { attrs } => Node::Image { attrs },
-            Node::OrderedList(oln) => Node::OrderedList(oln.into_view(carriage)),
-            Node::BulletList(bln) => Node::BulletList(bln.into_view(carriage)),
+            Node::OrderedList(oln) => Node::OrderedList(oln.into_view(relationships)),
+            Node::BulletList(bln) => Node::BulletList(bln.into_view(relationships)),
             Node::Heading { attrs, content } => {
-                let new_content = content.into_iter().map(|node| node.into_view(carriage));
+                let new_content = content
+                    .into_iter()
+                    .map(|node| node.into_view(relationships));
                 Node::Heading {
                     attrs,
                     content: new_content.collect(),
                 }
             }
             Node::Paragraph { content } => {
-                let new_content = content.into_iter().map(|node| node.into_view(carriage));
+                let new_content = content
+                    .into_iter()
+                    .map(|node| node.into_view(relationships));
 
                 Node::Paragraph {
                     content: new_content.collect(),
                 }
             }
             Node::Blockquote { content } => {
-                let new_content = content.into_iter().map(|node| node.into_view(carriage));
+                let new_content = content
+                    .into_iter()
+                    .map(|node| node.into_view(relationships));
 
                 Node::Blockquote {
                     content: new_content.collect(),

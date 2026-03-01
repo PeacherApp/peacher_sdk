@@ -16,6 +16,9 @@ pub use document_view::*;
 mod compiled_document;
 pub use compiled_document::*;
 
+mod relationships;
+pub use relationships::*;
+
 use serde::{Serialize, de::DeserializeOwned};
 
 pub trait State: Default {

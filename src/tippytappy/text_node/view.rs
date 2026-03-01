@@ -26,16 +26,16 @@ impl TextNodeView {
         match self {
             TextNodeView::LegislationMention { attrs } => {
                 // carriage.push_str(&attrs.label);
-                carriage.mentions_legislation(attrs.id);
+                carriage.mentions_legislation(attrs.id, attrs.label);
                 CompiledTextNode::LegislationMention(attrs.id)
             }
             TextNodeView::MemberMention { attrs } => {
                 // carriage.push_str(&attrs.label);
-                carriage.mentions_member(attrs.id);
+                carriage.mentions_member(attrs.id, attrs.label);
                 CompiledTextNode::MemberMention(attrs.id)
             }
             TextNodeView::PostMention { attrs } => {
-                carriage.mentions_content(attrs.id);
+                carriage.mentions_content(attrs.id, attrs.label);
                 CompiledTextNode::PostMention(attrs.id)
             }
             TextNodeView::Text(text) => {

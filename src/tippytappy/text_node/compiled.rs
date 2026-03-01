@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::tippytappy::{ContentLabeler, Mention, Text, TextNodeView};
+use crate::tippytappy::*;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -14,11 +14,11 @@ pub enum CompiledTextNode {
 }
 
 impl CompiledTextNode {
-    pub fn into_view(self, carriage: &impl ContentLabeler) -> TextNodeView {
+    pub fn into_view(self, relationships: &ContentRelationships) -> TextNodeView {
         match self {
             CompiledTextNode::Text(text) => TextNodeView::Text(text),
             CompiledTextNode::LegislationMention(id) => {
-                let label = carriage.get_legislation_nameid(id);
+                let label = relationships.get_legislation_nameid(id);
 
                 TextNodeView::LegislationMention {
                     attrs: Mention {
@@ -28,7 +28,7 @@ impl CompiledTextNode {
                 }
             }
             CompiledTextNode::MemberMention(member_id) => {
-                let label = carriage.get_member_handle(member_id);
+                let label = relationships.get_member_handle(member_id);
 
                 TextNodeView::MemberMention {
                     attrs: Mention {
@@ -38,7 +38,7 @@ impl CompiledTextNode {
                 }
             }
             CompiledTextNode::PostMention(id) => {
-                let label = carriage.get_content_label(id);
+                let label = relationships.get_content_label(id);
                 TextNodeView::PostMention {
                     attrs: Mention {
                         id,
