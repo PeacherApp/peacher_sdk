@@ -26,6 +26,7 @@ pub enum Node<S: State> {
     },
     Details {
         attrs: DetailAttributes,
+        content: Vec<DetailNode<S>>,
     },
     HorizontalRule,
 }
@@ -59,7 +60,13 @@ impl Node<View> {
                     content: new_content.collect(),
                 }
             }
-            Node::Details { attrs } => Node::Details { attrs },
+            Node::Details { attrs, content } => {
+                let new_content = content.into_iter().map(|node| node.compile(carriage));
+                Node::Details {
+                    attrs,
+                    content: new_content.collect(),
+                }
+            }
             Node::HorizontalRule => Node::HorizontalRule,
         }
     }
@@ -241,7 +248,16 @@ impl Node<Compiled> {
                     content: new_content.collect(),
                 }
             }
-            Node::Details { attrs } => Node::Details { attrs },
+            Node::Details { attrs, content } => {
+                let new_content = content
+                    .into_iter()
+                    .map(|node| node.into_view(relationships));
+
+                Node::Details {
+                    attrs,
+                    content: new_content.collect(),
+                }
+            }
             Node::HorizontalRule => Node::HorizontalRule,
         }
     }
@@ -256,6 +272,37 @@ impl<S: State> Node<S> {
 pub enum DetailNode<S: State> {
     DetailsSummary { content: Vec<S::TextNode> },
     DetailsContent { content: Vec<Node<S>> },
+}
+
+impl DetailNode<View> {
+    pub fn compile(self, carriage: &mut CompileCarriage) -> DetailNode<Compiled> {
+        match self {
+            DetailNode::DetailsSummary { content } => DetailNode::DetailsSummary {
+                content: content.into_iter().map(|c| c.compile(carriage)).collect(),
+            },
+            DetailNode::DetailsContent { content } => DetailNode::DetailsContent {
+                content: content.into_iter().map(|c| c.compile(carriage)).collect(),
+            },
+        }
+    }
+}
+impl DetailNode<Compiled> {
+    pub fn into_view(self, relationships: &ContentRelationships) -> DetailNode<View> {
+        match self {
+            DetailNode::DetailsSummary { content } => DetailNode::DetailsSummary {
+                content: content
+                    .into_iter()
+                    .map(|c| c.into_view(relationships))
+                    .collect(),
+            },
+            DetailNode::DetailsContent { content } => DetailNode::DetailsContent {
+                content: content
+                    .into_iter()
+                    .map(|c| c.into_view(relationships))
+                    .collect(),
+            },
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
