@@ -41,7 +41,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 serde_qs = { version = "1.0" }
 serde_urlencoded = "0.7.1"
-strum = { version = "0.27", features = ["derive"] }
+strum = { version = "0.28", features = ["derive"] }
 tabled = { version = "0.17", optional = true }
 thiserror = { version = "2" }
 toml = { version = "0.9", optional = true }
