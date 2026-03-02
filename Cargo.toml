@@ -66,6 +66,7 @@ all_routes = [
   "auth",
   "categories",
   "chambers",
+  "comments",
   "communities",
   "content",
   "districts",
@@ -103,6 +104,7 @@ cli = [
   "dep:tabled",
   "dep:toml"
 ]
+comments = []
 communities = []
 content = ["tippytappy"]
 districts = []
