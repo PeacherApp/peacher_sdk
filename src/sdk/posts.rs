@@ -188,7 +188,7 @@ impl PinPost {
 }
 
 impl Handler for PinPost {
-    type ResponseBody = PostView;
+    type ResponseBody = NoResponse;
 
     fn method(&self) -> Method {
         Method::Put
