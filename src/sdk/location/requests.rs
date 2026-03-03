@@ -73,7 +73,7 @@ impl Handler for UnsetLocation {
 pub struct GetLocationDetails;
 
 impl GetHandler for GetLocationDetails {
-    type ResponseBody = ViewerIntersectionReponse;
+    type ResponseBody = ViewerIntersectionResponse;
 
     fn path(&self) -> Cow<'_, str> {
         "/api/location/details".into()

@@ -10,12 +10,24 @@ pub struct DistrictRepresentative {
     pub chamber: GetChamberView,
 }
 
-pub struct NewViewerIntersectionResponse {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ViewerIntersectionResponse {
     pub representatives: Vec<DistrictRepresentative>,
     pub map: GeoJson<DistrictIntersectionInfo>,
 }
 
-impl NewViewerIntersectionResponse {
+// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+// pub struct ViewerIntersectionReponse {
+//     pub location: ViewerLocationResponse,
+//     pub maps: Vec<PoliticalIntersectionMap>,
+//     /// Note that this data are also embedded within the maps. However,
+//     /// we duplicate the data here, as it's much easier to work with/worth the cost.
+//     pub intersections: Vec<BoundaryView>,
+// }
+
+impl ViewerIntersectionResponse {
     /// count the number of representatives in this response (just `self.representatives.len`)
     pub fn num_representatives(&self) -> usize {
         self.representatives.len()
@@ -35,6 +47,8 @@ impl NewViewerIntersectionResponse {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DistrictIntersectionInfo {
     /// the original map this intersection corresponds with
     pub map_id: i32,
@@ -58,6 +72,9 @@ impl DistrictIntersectionInfo {
             .flat_map(|j| j.members())
     }
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct JurisdictionIntersection {
     pub jurisdiction: JurisdictionView,
     /// The chambers that intersect with this boundary
@@ -77,6 +94,8 @@ impl JurisdictionIntersection {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ChamberIntersection {
     /// The chamber intersected with
     pub chamber: ChamberView,
@@ -103,16 +122,6 @@ impl ViewerLocationResponse {
     pub fn name_ref(&self) -> &str {
         &self.name
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ViewerIntersectionReponse {
-    pub location: ViewerLocationResponse,
-    pub maps: Vec<PoliticalIntersectionMap>,
-    /// Note that this data are also embedded within the maps. However,
-    /// we duplicate the data here, as it's much easier to work with/worth the cost.
-    pub intersections: Vec<BoundaryView>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
