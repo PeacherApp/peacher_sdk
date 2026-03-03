@@ -45,12 +45,53 @@ impl<T> GeoJson<T> {
 
 /// This is a GeoJSON feature. Perfectly fine as a GeoJSON itself.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", rename = "feature")]
 pub struct GeoJsonFeature<T> {
     //can have id
     pub geometry: Geometry,
     pub properties: T,
+}
+
+#[cfg(feature = "utoipa")]
+impl<T: utoipa::ToSchema> utoipa::ToSchema for GeoJsonFeature<T> {
+    fn name() -> std::borrow::Cow<'static, str> {
+        "GeoJsonFeatures".into()
+    }
+
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        T::schemas(schemas);
+    }
+}
+
+/// Need to manually implement this since
+///
+/// utoipa does not generate the correct type for structs that are internally tagged.
+#[cfg(feature = "utoipa")]
+impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for GeoJsonFeature<T> {
+    fn compose(
+        _generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
+    ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        let description = "A GeoJSON".to_string();
+
+        use utoipa::openapi::schema::Type;
+        utoipa::openapi::ObjectBuilder::new()
+            .property(
+                "type",
+                utoipa::openapi::ObjectBuilder::new()
+                    .schema_type(Type::String)
+                    .enum_values::<_, &str>(Some(["feature"])),
+            )
+            .required("type")
+            .property("geometry", <Geometry as utoipa::PartialSchema>::schema())
+            .property("properties", T::schema())
+            .description(Some(description))
+            .into()
+    }
 }
 
 impl<T> GeoJsonFeature<T> {
