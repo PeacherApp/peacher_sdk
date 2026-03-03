@@ -16,11 +16,21 @@ pub struct NewViewerIntersectionResponse {
 }
 
 impl NewViewerIntersectionResponse {
-    pub fn num_map_members(&self) -> usize {
-        self.map.iter_props().map(|prop| prop.num_members()).sum()
-        //self.map.iter
+    /// count the number of representatives in this response (just `self.representatives.len`)
+    pub fn num_representatives(&self) -> usize {
+        self.representatives.len()
     }
-    pub fn map_members(&self) -> impl Iterator<Item = &RepresentativeMember> {
+    /// get the representatives in the representative field
+    pub fn representatives(&self) -> impl Iterator<Item = &RepresentativeMember> {
+        self.representatives.iter().map(|r| &r.member)
+    }
+
+    /// get the number of geojson members (which should always equal [`Self::num_representatives`])
+    pub fn num_geojson_members(&self) -> usize {
+        self.map.iter_props().map(|prop| prop.num_members()).sum()
+    }
+    /// iterate through the geojson members (which should always yield the same number of members as [`Self::representatives`])
+    pub fn geojson_members(&self) -> impl Iterator<Item = &RepresentativeMember> {
         self.map.iter_props().flat_map(|prop| prop.members())
     }
 }
