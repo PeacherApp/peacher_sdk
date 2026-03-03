@@ -398,7 +398,7 @@ fn test_query_params_behavior() {
     let params = Handler::params(&list_session_legislation)
         .into_params()
         .unwrap();
-    assert_eq!("order_by=id&order=desc&page=1&page_size=10", &params);
+    assert_eq!("order_by=id&order=desc&page=0&page_size=10", &params);
     let params = LegislationParams {
         page: Some(2),
         page_size: Some(13),
@@ -540,7 +540,7 @@ pub struct LegislationView {
     pub id: i32,
     pub name_id: String,
     pub title: String,
-    pub summary: Option<serde_json::Value>,
+    pub summary: Option<SummaryView>,
     /// Current outcome of the legislation
     pub status: Option<LegislationStatus>,
     /// Human-readable status text from external source
@@ -586,7 +586,7 @@ pub struct DetailedLegislationView {
     pub id: i32,
     pub name_id: String,
     pub title: String,
-    pub summary: Option<serde_json::Value>,
+    pub summary: Option<SummaryView>,
     pub external_update_at: Option<DateTime<FixedOffset>>,
     pub legislation_type: LegislationType,
     /// Current outcome of the legislation
@@ -653,7 +653,7 @@ pub struct LegislationDetailsResponse {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub sponsors: Vec<SponsorInfo>,
-    pub chamber: Option<ChamberView>,
+    pub chamber: Option<GetChamberView>,
     pub session: Option<SessionView>,
 }
 

@@ -3,14 +3,16 @@ use crate::{
     prelude::*,
 };
 use anyhow::Context;
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, path::Path};
+use url::Url;
 
 /// List all maps.
 pub struct ListMaps;
 
 impl GetHandler for ListMaps {
-    type ResponseBody = Vec<MapDetailsResponse>;
+    type ResponseBody = Vec<MapView>;
 
     fn path(&self) -> Cow<'_, str> {
         "/api/maps".into()
@@ -21,7 +23,7 @@ impl GetHandler for ListMaps {
 pub struct GetMap(pub i32);
 
 impl GetHandler for GetMap {
-    type ResponseBody = MapDetailsResponse;
+    type ResponseBody = GetMapView;
 
     fn path(&self) -> Cow<'_, str> {
         format!("/api/maps/{}", self.0).into()
@@ -140,12 +142,88 @@ impl Handler for UploadMap {
     }
 }
 
+/// Get districts for a map.
+pub struct GetMapDistricts(pub i32);
+
+impl GetHandler for GetMapDistricts {
+    type ResponseBody = MapWithDistrictsView;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/maps/{}/districts", self.0).into()
+    }
+}
+
 /// Contains a map id and name
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SmallMapView {
+    pub id: i32,
+    pub name: String,
+}
+
+/// A district within a map (without geometry/coordinates).
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct DistrictView {
+    pub map_id: i32,
+    pub id: i32,
+    pub name: String,
+    pub geo_id: i32,
+    pub lat: f64,
+    pub lon: f64,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MapView {
     pub id: i32,
     pub name: String,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+    pub url: Option<Url>,
+    pub owner_id: Option<i32>,
+}
+impl MapView {
+    pub fn with_district_count(self, count: u64) -> GetMapView {
+        GetMapView {
+            id: self.id,
+            name: self.name,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            url: self.url,
+            owner_id: self.owner_id,
+            district_count: count,
+        }
+    }
+    pub fn with_districts(
+        self,
+        districts: impl IntoIterator<Item = DistrictView>,
+    ) -> MapWithDistrictsView {
+        MapWithDistrictsView {
+            id: self.id,
+            name: self.name,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            url: self.url,
+            owner_id: self.owner_id,
+            districts: districts.into_iter().collect(),
+        }
+    }
+}
+
+/// A map with its list of districts.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct MapWithDistrictsView {
+    pub id: i32,
+    pub name: String,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+    pub url: Option<Url>,
+    pub owner_id: Option<i32>,
+    pub districts: Vec<DistrictView>,
 }
 
 /// Response after uploading a map.
@@ -172,13 +250,14 @@ pub struct DistrictProperties {
 /// Response with map details.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct MapDetailsResponse {
+pub struct GetMapView {
     pub id: i32,
     pub name: String,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+    pub url: Option<Url>,
     pub owner_id: Option<i32>,
-    pub url: Option<String>,
-    pub district_count: usize,
-    pub created_at: String,
+    pub district_count: u64,
 }
 
 /// Response after previewing a map.

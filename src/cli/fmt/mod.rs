@@ -58,7 +58,7 @@ pub struct SessionRow {
     pub external_id: String,
 }
 
-impl AsTable for Vec<GetSessionResponse> {
+impl AsTable for Vec<GetSessionView> {
     type TableRow<'a>
         = SessionRow
     where
@@ -90,7 +90,75 @@ impl AsTable for Vec<GetSessionResponse> {
     }
 }
 
-impl GetSessionResponse {
+impl AsTable for Vec<SessionView> {
+    type TableRow<'a>
+        = SessionRow
+    where
+        Self: 'a;
+    const NAME: &str = "sessions";
+    fn to_table_row<'a>(&'a self) -> impl ExactSizeIterator<Item = Self::TableRow<'a>> {
+        self.iter().map(|s| SessionRow {
+            id: s.id,
+            name: s.name.clone(),
+            current: if s.current {
+                "●".to_string()
+            } else {
+                String::new()
+            },
+            starts_at: s
+                .starts_at
+                .map(|d| d.to_string())
+                .unwrap_or_else(|| "-".to_string()),
+            ends_at: s
+                .ends_at
+                .map(|d| d.to_string())
+                .unwrap_or_else(|| "-".to_string()),
+            external_id: s
+                .external_id
+                .as_ref()
+                .map(|s| s.to_string())
+                .unwrap_or("-".to_string()),
+        })
+    }
+}
+
+impl SessionView {
+    pub fn print(&self) {
+        let current_marker = if self.current {
+            format!(" {}", green("● Current"))
+        } else {
+            String::new()
+        };
+
+        let ext_id = self
+            .external_id
+            .as_ref()
+            .map(|e| e.val_str())
+            .unwrap_or("-");
+
+        println!(
+            "{}{} {} {}",
+            bold(&self.name),
+            current_marker,
+            dim(&format!("(ID: {})", self.id)),
+            cyan(&format!("[{}]", ext_id))
+        );
+
+        println!("  {} {}", dim("Jurisdiction:"), &self.jurisdiction_id);
+
+        let starts = self
+            .starts_at
+            .map(|d| d.to_string())
+            .unwrap_or_else(|| "-".to_string());
+        let ends = self
+            .ends_at
+            .map(|d| d.to_string())
+            .unwrap_or_else(|| "-".to_string());
+        println!("  {} {} to {}", dim("Dates:"), starts, ends);
+    }
+}
+
+impl GetSessionView {
     pub fn print(&self) {
         let current_marker = if self.current {
             format!(" {}", green("● Current"))
@@ -137,18 +205,11 @@ impl GetSessionResponse {
 
                 println!(
                     "  {} {} {}",
-                    bold(&chamber.chamber_name),
-                    dim(&format!("(ID: {})", chamber.chamber_id)),
+                    bold(&chamber.name),
+                    dim(&format!("(ID: {})", chamber.id)),
                     cyan(&format!("[{}]", chamber_ext))
                 );
 
-                if chamber.members.is_empty() {
-                    println!("    {}", dim("No members"));
-                } else {
-                    let members: Vec<_> =
-                        chamber.members.iter().map(|m| m.member.clone()).collect();
-                    members.print();
-                }
                 println!();
             }
         }
@@ -165,7 +226,7 @@ pub struct ChamberRow {
     pub external_id: String,
 }
 
-impl AsTable for Vec<ListChamberResponse> {
+impl AsTable for Vec<GetChamberView> {
     type TableRow<'a>
         = ChamberRow
     where
@@ -303,7 +364,7 @@ impl AsTable for Vec<MemberWithPartyView> {
     }
 }
 
-impl AsTable for Vec<JurisdictionChamberView> {
+impl AsTable for Vec<ChamberView> {
     type TableRow<'a>
         = ChamberRow
     where
@@ -322,7 +383,7 @@ impl AsTable for Vec<JurisdictionChamberView> {
     }
 }
 
-impl AsTable for Vec<GetJurisdictionResponse> {
+impl AsTable for Vec<GetJurisdictionView> {
     type TableRow<'a>
         = JurisdictionRow
     where

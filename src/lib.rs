@@ -8,6 +8,9 @@ pub mod sdk;
 pub mod slug;
 pub mod sync;
 
+#[cfg(feature = "tippytappy")]
+pub mod tippytappy;
+
 #[cfg(feature = "cli")]
 pub mod cli;
 #[cfg(feature = "cli")]

@@ -23,6 +23,16 @@ mod categories;
 #[cfg(feature = "categories")]
 pub use categories::*;
 
+#[cfg(feature = "comments")]
+mod comments;
+#[cfg(feature = "comments")]
+pub use comments::*;
+
+#[cfg(feature = "communities")]
+mod communities;
+#[cfg(feature = "communities")]
+pub use communities::*;
+
 #[cfg(feature = "chambers")]
 mod chambers;
 #[cfg(feature = "chambers")]
@@ -125,6 +135,11 @@ pub use sponsorships::*;
 mod tags;
 #[cfg(feature = "tags")]
 pub use tags::*;
+
+#[cfg(feature = "uploads")]
+mod uploads;
+#[cfg(feature = "uploads")]
+pub use uploads::*;
 
 #[cfg(feature = "votes")]
 mod votes;

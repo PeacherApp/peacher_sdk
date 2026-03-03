@@ -1,5 +1,6 @@
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, FixedOffset, NaiveDate};
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString, VariantArray};
 use url::Url;
 
 use crate::prelude::*;
@@ -23,6 +24,9 @@ pub struct MemberView {
     pub photo: Option<String>,
     pub display_name: String,
     pub party_id: Option<i32>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: Option<i32>,
     pub auth_level: AuthLevel,
 }
 
@@ -37,6 +41,9 @@ impl MemberView {
             party,
             photo: self.photo,
             display_name: self.display_name,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            created_by_id: self.created_by_id,
             auth_level: self.auth_level,
         }
     }
@@ -52,6 +59,9 @@ pub struct MemberWithPartyView {
     pub party: Option<PartyView>,
     pub photo: Option<String>,
     pub display_name: String,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: Option<i32>,
     pub auth_level: AuthLevel,
 }
 
@@ -65,6 +75,9 @@ impl MemberWithPartyView {
             party_id: self.party.map(|p| p.id),
             photo: self.photo,
             display_name: self.display_name,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            created_by_id: self.created_by_id,
             auth_level: self.auth_level,
         }
     }
@@ -116,7 +129,7 @@ pub struct MemberActivity {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberActivityResponse {
     pub session: SessionView,
-    pub chamber: SmallChamberView,
+    pub chamber: ChamberView,
     pub activity: MemberActivity,
 }
 
@@ -135,8 +148,10 @@ pub struct MemberVotesResponse {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberDistrictInfo {
     pub district: SimpleBoundaryView,
-    pub chamber: ChamberView,
+    pub chamber: GetChamberView,
     pub session: SessionView,
+    pub appointed_at: Option<NaiveDate>,
+    pub vacated_at: Option<NaiveDate>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -159,7 +174,24 @@ pub struct BannedMemberView {
     pub admin_context: String,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    EnumString,
+    Display,
+    Hash,
+    VariantArray,
+)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum Trust {
     Untrusted,
     NewMember,
@@ -169,10 +201,17 @@ pub enum Trust {
     Admin,
 }
 impl Trust {
-    pub fn initial_summary_visibility(&self) -> Visibility {
+    pub fn initial_summary_review_state(&self) -> ReviewState {
         match self {
-            Trust::Untrusted | Trust::NewMember => Visibility::NotVisible,
-            _ => Visibility::Public,
+            Trust::Untrusted | Trust::NewMember => ReviewState::UnderReview,
+            _ => ReviewState::Public,
+        }
+    }
+    pub fn hide_on_report_threshold(&self) -> u32 {
+        match self {
+            Trust::Untrusted | Trust::NewMember => 1,
+            Trust::Standard => 2,
+            Trust::Privileged | Trust::Moderator | Trust::Admin => 10,
         }
     }
 }

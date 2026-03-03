@@ -132,6 +132,6 @@ pub struct LocationIntersectionResponse {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PoliticalIntersectionMap {
-    pub map: MapView,
+    pub map: SmallMapView,
     pub boundaries: GeoJson<BoundaryView>,
 }

@@ -28,7 +28,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> SessionSync<'caller, 'clien
         Ok(())
     }
 
-    pub async fn get(&mut self) -> SyncResult<Arc<GetSessionResponse>> {
+    pub async fn get(&mut self) -> SyncResult<Arc<GetSessionView>> {
         let session = self.mapper.session(&self.session).await?;
         Ok(session)
     }
