@@ -10,6 +10,40 @@ pub struct DistrictRepresentative {
     pub chamber: GetChamberView,
 }
 
+pub struct NewViewerIntersectionResponse {
+    pub representatives: Vec<DistrictRepresentative>,
+    pub map: GeoJson<DistrictIntersectionInfo>,
+}
+
+impl NewViewerIntersectionResponse {
+    pub fn num_map_members(&self) -> usize {
+        todo!()
+        //self.map.iter
+    }
+}
+
+pub struct DistrictIntersectionInfo {
+    /// the original map this intersection corresponds with
+    pub map_id: i32,
+    /// the district of the original map this intersection corresponds with
+    pub district_id: i32,
+    /// the name of the district
+    pub name: String,
+    /// The jurisdictions that are represented by this boundary
+    pub intersecting_jurisdictions: Vec<JurisdictionIntersection>,
+}
+pub struct JurisdictionIntersection {
+    pub jurisdiction: JurisdictionView,
+    /// The chambers that intersect with this boundary
+    pub intersecting_chambers: Vec<ChamberIntersection>,
+}
+pub struct ChamberIntersection {
+    /// The chamber intersected with
+    pub chamber: ChamberView,
+    /// The representatives that have represented this district
+    pub intersecting_representatives: Vec<RepresentativeMember>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ViewerLocationResponse {

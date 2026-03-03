@@ -1,17 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(tag = "type")]
-pub enum GeoJsonFeatureVariant<T> {
-    Feature(GeoJsonFeature<T>),
-}
+// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+// #[serde(tag = "type")]
+// pub enum GeoJsonFeatureVariant<T> {
+//     Feature(GeoJsonFeature<T>),
+// }
 
-impl<T> From<GeoJsonFeature<T>> for GeoJsonFeatureVariant<T> {
-    fn from(value: GeoJsonFeature<T>) -> Self {
-        GeoJsonFeatureVariant::Feature(value)
-    }
-}
+// impl<T> From<GeoJsonFeature<T>> for GeoJsonFeatureVariant<T> {
+//     fn from(value: GeoJsonFeature<T>) -> Self {
+//         GeoJsonFeatureVariant::Feature(value)
+//     }
+// }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -20,23 +20,42 @@ pub enum GeoJson<T> {
     Feature(GeoJsonFeature<T>),
     FeatureCollection(GeoJsonFeatureCollection<T>),
 }
+
 impl<T> GeoJson<T> {
     pub fn one(feature: GeoJsonFeature<T>) -> Self {
         Self::Feature(feature)
     }
     pub fn many(features: impl IntoIterator<Item = GeoJsonFeature<T>>) -> Self {
         Self::FeatureCollection(GeoJsonFeatureCollection {
-            features: features
-                .into_iter()
-                .map(GeoJsonFeatureVariant::Feature)
-                .collect(),
+            features: features.into_iter().collect(),
         })
     }
+
+    pub fn iter_props(&self) -> PropsIter<'_, T> {
+        match self {
+            Self::Feature(feature) => PropsIter {
+                inner: InnerPropsIter::One(&feature.properties),
+            },
+            Self::FeatureCollection(collection) => PropsIter {
+                inner: InnerPropsIter::Many(&collection.features),
+            },
+        }
+    }
+}
+
+pub struct PropsIter<'a, T> {
+    inner: InnerPropsIter<'a, T>,
+}
+
+enum InnerPropsIter<'a, T> {
+    One(&'a T),
+    Many(&'a [GeoJsonFeature<T>]),
 }
 
 /// This is a GeoJSON feature. Perfectly fine as a GeoJSON itself.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", rename = "feature")]
 pub struct GeoJsonFeature<T> {
     //can have id
     pub geometry: Geometry,
@@ -61,7 +80,7 @@ impl<T> From<GeoJsonFeature<T>> for GeoJson<T> {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct GeoJsonFeatureCollection<T> {
-    pub features: Vec<GeoJsonFeatureVariant<T>>,
+    pub features: Vec<GeoJsonFeature<T>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
