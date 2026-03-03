@@ -44,11 +44,11 @@ pub struct GetChamberView {
     pub created_by_id: Option<i32>,
 }
 
-/// A district within a chamber
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ChamberDistrictView {
-    pub id: i32,
-    pub name: String,
-    pub representatives: Vec<MemberWithPartyView>,
-}
+// /// A district within a chamber
+// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+// pub struct ChamberDistrictView {
+//     pub id: i32,
+//     pub name: String,
+//     pub representatives: Vec<MemberWithPartyView>,
+// }
