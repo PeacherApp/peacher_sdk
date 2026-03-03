@@ -1,4 +1,8 @@
+pub mod props_iter;
+
 use serde::{Deserialize, Serialize};
+
+use crate::geojson::props_iter::PropsIter;
 
 // #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 // #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -33,23 +37,10 @@ impl<T> GeoJson<T> {
 
     pub fn iter_props(&self) -> PropsIter<'_, T> {
         match self {
-            Self::Feature(feature) => PropsIter {
-                inner: InnerPropsIter::One(&feature.properties),
-            },
-            Self::FeatureCollection(collection) => PropsIter {
-                inner: InnerPropsIter::Many(&collection.features),
-            },
+            Self::Feature(feature) => PropsIter::one(&feature.properties),
+            Self::FeatureCollection(collection) => PropsIter::many(collection),
         }
     }
-}
-
-pub struct PropsIter<'a, T> {
-    inner: InnerPropsIter<'a, T>,
-}
-
-enum InnerPropsIter<'a, T> {
-    One(&'a T),
-    Many(&'a [GeoJsonFeature<T>]),
 }
 
 /// This is a GeoJSON feature. Perfectly fine as a GeoJSON itself.
