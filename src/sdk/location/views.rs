@@ -17,8 +17,11 @@ pub struct NewViewerIntersectionResponse {
 
 impl NewViewerIntersectionResponse {
     pub fn num_map_members(&self) -> usize {
-        todo!()
+        self.map.iter_props().map(|prop| prop.num_members()).sum()
         //self.map.iter
+    }
+    pub fn map_members(&self) -> impl Iterator<Item = &RepresentativeMember> {
+        self.map.iter_props().flat_map(|prop| prop.members())
     }
 }
 
@@ -32,16 +35,51 @@ pub struct DistrictIntersectionInfo {
     /// The jurisdictions that are represented by this boundary
     pub intersecting_jurisdictions: Vec<JurisdictionIntersection>,
 }
+impl DistrictIntersectionInfo {
+    pub fn num_members(&self) -> usize {
+        self.intersecting_jurisdictions
+            .iter()
+            .map(|j| j.num_members())
+            .sum()
+    }
+    pub fn members(&self) -> impl Iterator<Item = &RepresentativeMember> {
+        self.intersecting_jurisdictions
+            .iter()
+            .flat_map(|j| j.members())
+    }
+}
 pub struct JurisdictionIntersection {
     pub jurisdiction: JurisdictionView,
     /// The chambers that intersect with this boundary
     pub intersecting_chambers: Vec<ChamberIntersection>,
 }
+impl JurisdictionIntersection {
+    pub fn num_members(&self) -> usize {
+        self.intersecting_chambers
+            .iter()
+            .map(|c| c.num_members())
+            .sum()
+    }
+    pub fn members(&self) -> impl Iterator<Item = &RepresentativeMember> {
+        self.intersecting_chambers
+            .iter()
+            .flat_map(|mem| mem.members())
+    }
+}
+
 pub struct ChamberIntersection {
     /// The chamber intersected with
     pub chamber: ChamberView,
     /// The representatives that have represented this district
     pub intersecting_representatives: Vec<RepresentativeMember>,
+}
+impl ChamberIntersection {
+    pub fn num_members(&self) -> usize {
+        self.intersecting_representatives.len()
+    }
+    pub fn members(&self) -> impl Iterator<Item = &RepresentativeMember> {
+        self.intersecting_representatives.iter()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
