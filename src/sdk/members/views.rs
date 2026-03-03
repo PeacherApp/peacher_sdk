@@ -144,12 +144,12 @@ pub struct MemberVotesResponse {
     pub absent: usize,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct RepresentativeMember {
-    member: MemberWithPartyView,
-    appointed_at: Option<NaiveDate>,
-    vacataed_at: Option<NaiveDate>,
+    pub member: MemberWithPartyView,
+    pub appointed_at: Option<NaiveDate>,
+    pub vacated_at: Option<NaiveDate>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
