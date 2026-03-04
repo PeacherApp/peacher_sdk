@@ -42,6 +42,13 @@ impl<T> GeoJson<T> {
         }
     }
 
+    pub fn num_features(&self) -> usize {
+        match self {
+            Self::Feature(_) => 1,
+            Self::FeatureCollection(collection) => collection.features.len(),
+        }
+    }
+
     pub fn map_props<F, U>(self, mut func: F) -> GeoJson<U>
     where
         F: FnMut(T) -> U,
