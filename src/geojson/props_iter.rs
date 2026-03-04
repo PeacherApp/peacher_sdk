@@ -2,11 +2,11 @@ use std::iter::FusedIterator;
 
 use crate::geojson::{GeoJsonFeature, GeoJsonFeatureCollection};
 
-pub struct PropsIter<'a, T> {
+pub struct RefPropsIter<'a, T> {
     inner: InnerPropsIter<'a, T>,
 }
 
-impl<'a, T> PropsIter<'a, T> {
+impl<'a, T> RefPropsIter<'a, T> {
     pub(super) fn one(prop: &'a T) -> Self {
         Self {
             inner: InnerPropsIter::One(std::iter::once(prop)),
@@ -19,7 +19,7 @@ impl<'a, T> PropsIter<'a, T> {
     }
 }
 // implemented as many methods as possible for this type
-impl<'a, T> Iterator for PropsIter<'a, T> {
+impl<'a, T> Iterator for RefPropsIter<'a, T> {
     type Item = &'a T;
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -76,7 +76,7 @@ impl<'a, T> Iterator for PropsIter<'a, T> {
     }
 }
 
-impl<'a, T> ExactSizeIterator for PropsIter<'a, T> {
+impl<'a, T> ExactSizeIterator for RefPropsIter<'a, T> {
     fn len(&self) -> usize {
         match &self.inner {
             InnerPropsIter::Many(m) => m.len(),
@@ -86,7 +86,7 @@ impl<'a, T> ExactSizeIterator for PropsIter<'a, T> {
     //todo: impl is_empty when stabilized
 }
 
-impl<'a, T> DoubleEndedIterator for PropsIter<'a, T> {
+impl<'a, T> DoubleEndedIterator for RefPropsIter<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         match &mut self.inner {
             InnerPropsIter::Many(m) => {
@@ -97,7 +97,7 @@ impl<'a, T> DoubleEndedIterator for PropsIter<'a, T> {
         }
     }
 }
-impl<'a, T> FusedIterator for PropsIter<'a, T> {}
+impl<'a, T> FusedIterator for RefPropsIter<'a, T> {}
 
 enum InnerPropsIter<'a, T> {
     One(std::iter::Once<&'a T>),

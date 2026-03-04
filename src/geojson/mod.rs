@@ -2,7 +2,7 @@ pub mod props_iter;
 
 use serde::{Deserialize, Serialize};
 
-use crate::geojson::props_iter::PropsIter;
+use crate::geojson::props_iter::RefPropsIter;
 
 // #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 // #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -35,10 +35,10 @@ impl<T> GeoJson<T> {
         })
     }
 
-    pub fn iter_props(&self) -> PropsIter<'_, T> {
+    pub fn iter_props(&self) -> RefPropsIter<'_, T> {
         match self {
-            Self::Feature(feature) => PropsIter::one(&feature.properties),
-            Self::FeatureCollection(collection) => PropsIter::many(collection),
+            Self::Feature(feature) => RefPropsIter::one(&feature.properties),
+            Self::FeatureCollection(collection) => RefPropsIter::many(collection),
         }
     }
 }
