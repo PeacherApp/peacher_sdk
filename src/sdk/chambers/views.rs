@@ -43,6 +43,20 @@ pub struct GetChamberView {
     pub external_url: Option<Url>,
     pub created_by_id: Option<i32>,
 }
+impl GetChamberView {
+    pub fn into_chamber_view(self) -> ChamberView {
+        ChamberView {
+            id: self.id,
+            name: self.name,
+            jurisdiction_id: self.jurisdiction.id,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            created_by_id: self.created_by_id,
+        }
+    }
+}
 
 // /// A district within a chamber
 // #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

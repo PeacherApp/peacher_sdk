@@ -41,6 +41,34 @@ impl<T> GeoJson<T> {
             Self::FeatureCollection(collection) => RefPropsIter::many(collection),
         }
     }
+
+    pub fn map_props<F, U>(self, mut func: F) -> GeoJson<U>
+    where
+        F: FnMut(T) -> U,
+    {
+        match self {
+            GeoJson::Feature(features) => {
+                let props = func(features.properties);
+
+                GeoJson::Feature(GeoJsonFeature {
+                    geometry: features.geometry,
+                    properties: props,
+                })
+            }
+            GeoJson::FeatureCollection(collection) => {
+                let collection = collection.features.into_iter().map(|feature| {
+                    let props = func(feature.properties);
+                    GeoJsonFeature {
+                        geometry: feature.geometry,
+                        properties: props,
+                    }
+                });
+                GeoJson::FeatureCollection(GeoJsonFeatureCollection {
+                    features: collection.collect(),
+                })
+            }
+        }
+    }
 }
 
 /// This is a GeoJSON feature. Perfectly fine as a GeoJSON itself.

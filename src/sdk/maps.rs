@@ -49,7 +49,7 @@ impl Handler for DeleteMap {
 pub struct GetMapGeojson(pub i32);
 
 impl GetHandler for GetMapGeojson {
-    type ResponseBody = GeoJson<DistrictProperties>;
+    type ResponseBody = GeoJson<DistrictView>;
 
     fn path(&self) -> Cow<'_, str> {
         format!("/api/maps/{}/geojson", self.0).into()
@@ -234,17 +234,6 @@ pub struct MapUploadResponse {
     pub name: String,
     pub district_count: usize,
     pub message: String,
-}
-
-/// Properties for a district in GeoJSON.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct DistrictProperties {
-    pub id: i32,
-    pub name: String,
-    pub geo_id: i32,
-    pub lat: f64,
-    pub lon: f64,
 }
 
 /// Response with map details.

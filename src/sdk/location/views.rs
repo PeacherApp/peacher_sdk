@@ -13,6 +13,7 @@ pub struct DistrictRepresentative {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ViewerIntersectionResponse {
+    pub location: ViewerLocationResponse,
     pub representatives: Vec<DistrictRepresentative>,
     pub map: GeoJson<DistrictIntersectionInfo>,
 }
