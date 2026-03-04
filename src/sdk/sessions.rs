@@ -83,8 +83,8 @@ pub struct GetSessionChamber {
 impl GetSessionChamber {
     pub fn new(chamber_id: i32, session_id: i32) -> Self {
         Self {
-            session_id,
             chamber_id,
+            session_id,
         }
     }
 }
@@ -305,12 +305,12 @@ impl UpdateSessionRequest {
 /// Request to link a chamber to a session with an optional map id
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct LinkSessionToChamberRequest {
+pub struct LinkChamberToSessionRequest {
     pub chamber_id: i32,
     pub map_id: Option<i32>,
 }
 
-impl LinkSessionToChamberRequest {
+impl LinkChamberToSessionRequest {
     pub fn new(chamber_id: i32) -> Self {
         Self {
             chamber_id,
@@ -386,11 +386,11 @@ impl Handler for UpdateSession {
 /// Handler for linking a chamber to a session
 pub struct LinkChamberToSession {
     session_id: i32,
-    body: LinkSessionToChamberRequest,
+    body: LinkChamberToSessionRequest,
 }
 
 impl LinkChamberToSession {
-    pub fn new(session_id: i32, body: LinkSessionToChamberRequest) -> Self {
+    pub fn new(session_id: i32, body: LinkChamberToSessionRequest) -> Self {
         Self { session_id, body }
     }
 }

@@ -19,7 +19,7 @@ pub struct LegislationParams {
     pub freetext: Option<String>,
     pub legislation_type: CommaSeparated<LegislationType>,
 
-    pub external_id: Vec<ExternalId>,
+    pub external_id: CommaSeparated<ExternalId>,
     pub session_id: Option<i32>,
     pub chamber_id: Option<i32>,
 
