@@ -73,4 +73,13 @@ impl<T> Paginated<T> {
             num_pages: number_of_pages,
         }
     }
+    pub fn empty() -> Self {
+        Self {
+            data: vec![],
+            page: 0,
+            page_size: 0,
+            num_items: 0,
+            num_pages: 0,
+        }
+    }
 }

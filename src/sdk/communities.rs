@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 use crate::{paginated, prelude::*};
 
@@ -127,7 +128,29 @@ pub enum CommunityMemberRole {
     Moderator,
 }
 
-// --- Params ---
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+pub struct BasicCommunityParams {
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+    pub order_by: CommunityOrder,
+    pub order: Ordering,
+}
+paginated!(BasicCommunityParams);
+
+/// How to order the communities
+#[derive(
+    Serialize, Deserialize, Default, Clone, EnumString, Display, Debug, PartialEq, Eq, Copy,
+)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum CommunityOrder {
+    #[default]
+    Members,
+    CreatedAt,
+}
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
@@ -139,11 +162,11 @@ pub struct CommunityParams {
     pub member_id: Option<i32>,
     pub page: Option<u64>,
     pub page_size: Option<u64>,
+    pub order_by: CommunityOrder,
+    pub order: Ordering,
 }
 
 paginated!(CommunityParams);
-
-// --- Request types ---
 
 /// List communities with optional filters
 #[derive(Default)]
