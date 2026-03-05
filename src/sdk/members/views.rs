@@ -144,6 +144,14 @@ pub struct MemberVotesResponse {
     pub absent: usize,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct RepresentativeMember {
+    pub member: MemberWithPartyView,
+    pub appointed_at: Option<NaiveDate>,
+    pub vacated_at: Option<NaiveDate>,
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberDistrictInfo {
@@ -154,6 +162,7 @@ pub struct MemberDistrictInfo {
     pub vacated_at: Option<NaiveDate>,
 }
 
+/// returns the past data about a member's election/appointment to jurisdictions
 #[derive(Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberDistrictsResponse {

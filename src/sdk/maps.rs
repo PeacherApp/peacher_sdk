@@ -49,7 +49,7 @@ impl Handler for DeleteMap {
 pub struct GetMapGeojson(pub i32);
 
 impl GetHandler for GetMapGeojson {
-    type ResponseBody = GeoJson<DistrictProperties>;
+    type ResponseBody = GeoJson<DistrictView>;
 
     fn path(&self) -> Cow<'_, str> {
         format!("/api/maps/{}/geojson", self.0).into()
@@ -162,10 +162,35 @@ pub struct SmallMapView {
 }
 
 /// A district within a map (without geometry/coordinates).
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DistrictView {
     pub map_id: i32,
+    pub id: i32,
+    pub name: String,
+    pub geo_id: i32,
+    pub lat: f64,
+    pub lon: f64,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+}
+impl DistrictView {
+    pub fn into_small_view(self) -> SmallDistrictView {
+        SmallDistrictView {
+            id: self.id,
+            name: self.name,
+            geo_id: self.geo_id,
+            lat: self.lat,
+            lon: self.lon,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SmallDistrictView {
     pub id: i32,
     pub name: String,
     pub geo_id: i32,
@@ -199,7 +224,7 @@ impl MapView {
     }
     pub fn with_districts(
         self,
-        districts: impl IntoIterator<Item = DistrictView>,
+        districts: impl IntoIterator<Item = SmallDistrictView>,
     ) -> MapWithDistrictsView {
         MapWithDistrictsView {
             id: self.id,
@@ -214,7 +239,7 @@ impl MapView {
 }
 
 /// A map with its list of districts.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MapWithDistrictsView {
     pub id: i32,
@@ -223,7 +248,7 @@ pub struct MapWithDistrictsView {
     pub updated_at: DateTime<FixedOffset>,
     pub url: Option<Url>,
     pub owner_id: Option<i32>,
-    pub districts: Vec<DistrictView>,
+    pub districts: Vec<SmallDistrictView>,
 }
 
 /// Response after uploading a map.
@@ -234,17 +259,6 @@ pub struct MapUploadResponse {
     pub name: String,
     pub district_count: usize,
     pub message: String,
-}
-
-/// Properties for a district in GeoJSON.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct DistrictProperties {
-    pub id: i32,
-    pub name: String,
-    pub geo_id: i32,
-    pub lat: f64,
-    pub lon: f64,
 }
 
 /// Response with map details.

@@ -45,12 +45,11 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
         // Get existing members - we need to check by external_id
         // Note: The current API doesn't have a session/chamber filter on ListMembers
         // We'll get all members and filter, or use the chamber session endpoint
-        let chamber_session = GetSessionChamber::new(chamber.id, session.id)
+        let members = GetSessionChamberMembers::new(chamber.id, session.id)
             .request(self.mapper.client())
             .await?;
 
-        let known_members = chamber_session
-            .members
+        let known_members = members
             .into_iter()
             .filter_map(|m| {
                 let external_id = ExternalId::new(m.member.external_id.clone()?);

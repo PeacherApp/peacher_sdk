@@ -74,7 +74,7 @@ impl GetHandler for ListSessions {
     }
 }
 
-/// Get members of a chamber for a specific session
+/// Get a chamber for a specific session
 pub struct GetSessionChamber {
     session_id: i32,
     chamber_id: i32,
@@ -83,8 +83,8 @@ pub struct GetSessionChamber {
 impl GetSessionChamber {
     pub fn new(chamber_id: i32, session_id: i32) -> Self {
         Self {
-            session_id,
             chamber_id,
+            session_id,
         }
     }
 }
@@ -94,6 +94,32 @@ impl GetHandler for GetSessionChamber {
     fn path(&self) -> Cow<'_, str> {
         format!(
             "/api/sessions/{}/chambers/{}",
+            self.session_id, self.chamber_id
+        )
+        .into()
+    }
+}
+
+/// Get members of a chamber for a specific session
+pub struct GetSessionChamberMembers {
+    session_id: i32,
+    chamber_id: i32,
+}
+
+impl GetSessionChamberMembers {
+    pub fn new(chamber_id: i32, session_id: i32) -> Self {
+        Self {
+            session_id,
+            chamber_id,
+        }
+    }
+}
+
+impl GetHandler for GetSessionChamberMembers {
+    type ResponseBody = Vec<ChamberSessionMember>;
+    fn path(&self) -> Cow<'_, str> {
+        format!(
+            "/api/sessions/{}/chambers/{}/members",
             self.session_id, self.chamber_id
         )
         .into()
@@ -139,12 +165,12 @@ impl GetHandler for GetChamberSessionActivity {
 }
 
 /// Get the map for a chamber in a specific session
-pub struct GetSessionChamberMap {
+pub struct GetSessionChamberDistricts {
     session_id: i32,
     chamber_id: i32,
 }
 
-impl GetSessionChamberMap {
+impl GetSessionChamberDistricts {
     pub fn new(session_id: i32, chamber_id: i32) -> Self {
         Self {
             session_id,
@@ -153,7 +179,7 @@ impl GetSessionChamberMap {
     }
 }
 
-impl GetHandler for GetSessionChamberMap {
+impl GetHandler for GetSessionChamberDistricts {
     // Use serde_json::Value for flexibility with GeoJson types
     type ResponseBody = serde_json::Value;
     fn path(&self) -> Cow<'_, str> {
@@ -279,12 +305,12 @@ impl UpdateSessionRequest {
 /// Request to link a chamber to a session with an optional map id
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct LinkSessionToChamberRequest {
+pub struct LinkChamberToSessionRequest {
     pub chamber_id: i32,
     pub map_id: Option<i32>,
 }
 
-impl LinkSessionToChamberRequest {
+impl LinkChamberToSessionRequest {
     pub fn new(chamber_id: i32) -> Self {
         Self {
             chamber_id,
@@ -360,11 +386,11 @@ impl Handler for UpdateSession {
 /// Handler for linking a chamber to a session
 pub struct LinkChamberToSession {
     session_id: i32,
-    body: LinkSessionToChamberRequest,
+    body: LinkChamberToSessionRequest,
 }
 
 impl LinkChamberToSession {
-    pub fn new(session_id: i32, body: LinkSessionToChamberRequest) -> Self {
+    pub fn new(session_id: i32, body: LinkChamberToSessionRequest) -> Self {
         Self { session_id, body }
     }
 }
@@ -402,13 +428,13 @@ pub struct GetSessionView {
 }
 
 /// A chamber within a session
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct GetSessionChamberResponse {
     // the session has a top level jurisdiction view
     pub chamber: GetChamberView,
     pub session: SessionView,
-    pub members: Vec<ChamberSessionMember>,
+    pub map: Option<MapWithDistrictsView>,
 }
 
 /// A member within a chamber session

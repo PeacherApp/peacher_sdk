@@ -66,7 +66,7 @@ pub struct SyncSessionView {
 
 pub struct SyncChamberSessionView {
     pub session_id: i32,
-    pub chamber: GetSessionChamber,
+    pub chamber: GetSessionChamberMembers,
 }
 
 /// Coordinates synchronization between an external data source and the Peacher API.

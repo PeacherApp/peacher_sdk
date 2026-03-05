@@ -148,7 +148,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
                     for chamber in &chambers.data {
                         match LinkChamberToSession::new(
                             response.id,
-                            LinkSessionToChamberRequest::new(chamber.id),
+                            LinkChamberToSessionRequest::new(chamber.id),
                         )
                         .request(self.mapper.client())
                         .await
