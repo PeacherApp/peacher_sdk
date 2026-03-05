@@ -4,19 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::geojson::props_iter::RefPropsIter;
 
-// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// #[serde(tag = "type")]
-// pub enum GeoJsonFeatureVariant<T> {
-//     Feature(GeoJsonFeature<T>),
-// }
-
-// impl<T> From<GeoJsonFeature<T>> for GeoJsonFeatureVariant<T> {
-//     fn from(value: GeoJsonFeature<T>) -> Self {
-//         GeoJsonFeatureVariant::Feature(value)
-//     }
-// }
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type")]
@@ -88,6 +75,24 @@ pub struct GeoJsonFeature<T> {
 }
 
 #[cfg(feature = "utoipa")]
+fn build_geojson_feature_schema<T: utoipa::PartialSchema>()
+-> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+    use utoipa::openapi::schema::Type;
+    utoipa::openapi::ObjectBuilder::new()
+        .property(
+            "type",
+            utoipa::openapi::ObjectBuilder::new()
+                .schema_type(Type::String)
+                .enum_values::<_, &str>(Some(["Feature"])),
+        )
+        .required("type")
+        .property("geometry", <Geometry as utoipa::PartialSchema>::schema())
+        .property("properties", T::schema())
+        .description(Some("A GeoJSON Feature"))
+        .into()
+}
+
+#[cfg(feature = "utoipa")]
 impl<T: utoipa::ToSchema> utoipa::ToSchema for GeoJsonFeature<T> {
     fn name() -> std::borrow::Cow<'static, str> {
         "GeoJsonFeature".into()
@@ -100,32 +105,24 @@ impl<T: utoipa::ToSchema> utoipa::ToSchema for GeoJsonFeature<T> {
         )>,
     ) {
         T::schemas(schemas);
+        // Register the concrete feature schema so $ref works
+        let schema_name = format!("{}{}", Self::name(), T::name());
+        schemas.push((schema_name, build_geojson_feature_schema::<T>()));
     }
 }
 
-/// Need to manually implement this since
+/// Returns a `$ref` to the named schema (registered via `schemas()`), so that
+/// containers like `Vec<GeoJsonFeature<T>>` produce `Array<$ref>` instead of inlining.
 ///
-/// utoipa does not generate the correct type for structs that are internally tagged.
+/// We must manually perform this implementation since `utoipa` does not support
+/// internally tagged structs (serde(tag))
 #[cfg(feature = "utoipa")]
-impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for GeoJsonFeature<T> {
+impl<T: utoipa::ToSchema> utoipa::__dev::ComposeSchema for GeoJsonFeature<T> {
     fn compose(
         _generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        let description = "A GeoJSON Feature".to_string();
-
-        use utoipa::openapi::schema::Type;
-        utoipa::openapi::ObjectBuilder::new()
-            .property(
-                "type",
-                utoipa::openapi::ObjectBuilder::new()
-                    .schema_type(Type::String)
-                    .enum_values::<_, &str>(Some(["Feature"])),
-            )
-            .required("type")
-            .property("geometry", <Geometry as utoipa::PartialSchema>::schema())
-            .property("properties", T::schema())
-            .description(Some(description))
-            .into()
+        let schema_name = format!("{}{}", <Self as utoipa::ToSchema>::name(), T::name());
+        utoipa::openapi::Ref::from_schema_name(schema_name).into()
     }
 }
 
@@ -166,16 +163,13 @@ impl<T: utoipa::ToSchema> utoipa::ToSchema for GeoJsonFeatureCollection<T> {
     }
 }
 
-/// Need to manually implement this since
-///
-/// utoipa does not generate the correct type for structs that are internally tagged.
+/// We must manually perform this implementation since `utoipa` does not support
+/// internally tagged structs (serde(tag))
 #[cfg(feature = "utoipa")]
-impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for GeoJsonFeatureCollection<T> {
+impl<T: utoipa::ToSchema> utoipa::__dev::ComposeSchema for GeoJsonFeatureCollection<T> {
     fn compose(
         _generics: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
-        let description = "A GeoJSON Feature Collection".to_string();
-
         use utoipa::openapi::schema::Type;
         utoipa::openapi::ObjectBuilder::new()
             .property(
@@ -189,7 +183,7 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for GeoJsonFeatureCo
                 "features",
                 <Vec<GeoJsonFeature<T>> as utoipa::PartialSchema>::schema(),
             )
-            .description(Some(description))
+            .description(Some("A GeoJSON Feature Collection"))
             .into()
     }
 }
