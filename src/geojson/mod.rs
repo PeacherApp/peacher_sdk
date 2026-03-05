@@ -80,7 +80,7 @@ impl<T> GeoJson<T> {
 
 /// This is a GeoJSON feature. Perfectly fine as a GeoJSON itself.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(tag = "type", rename = "feature")]
+#[serde(tag = "type", rename = "Feature")]
 pub struct GeoJsonFeature<T> {
     //can have id
     pub geometry: Geometry,
