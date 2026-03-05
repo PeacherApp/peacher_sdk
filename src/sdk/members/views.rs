@@ -216,6 +216,20 @@ impl Trust {
             _ => ReviewState::Public,
         }
     }
+    pub fn initial_post_review_state(&self) -> ReviewState {
+        match self {
+            Trust::Untrusted => ReviewState::UnderReview,
+            _ => ReviewState::Public,
+        }
+    }
+
+    pub fn initial_comment_review_state(&self) -> ReviewState {
+        match self {
+            Trust::Untrusted => ReviewState::UnderReview,
+            _ => ReviewState::Public,
+        }
+    }
+
     pub fn hide_on_report_threshold(&self) -> u32 {
         match self {
             Trust::Untrusted | Trust::NewMember => 1,
