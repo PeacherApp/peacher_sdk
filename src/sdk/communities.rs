@@ -189,8 +189,7 @@ pub struct CreateCommunityRequest {
     pub rules: Option<String>,
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
-    /// Vec of (map_id, district_id) tuples
-    pub district_ids: Vec<(i32, i32)>,
+    pub district_ids: Vec<DistrictId>,
 }
 
 /// Create a new community
