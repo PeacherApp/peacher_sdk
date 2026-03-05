@@ -6,7 +6,7 @@ use crate::geojson::props_iter::RefPropsIter;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(tag = "type")]
+#[serde(untagged)]
 pub enum GeoJson<T> {
     Feature(GeoJsonFeature<T>),
     FeatureCollection(GeoJsonFeatureCollection<T>),
