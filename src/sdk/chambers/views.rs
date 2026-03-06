@@ -29,6 +29,22 @@ impl ChamberView {
             created_by_id: self.created_by_id,
         }
     }
+    pub fn into_party_breakdown(
+        self,
+        party_breakdown: impl IntoIterator<Item = PartyBreakdown>,
+    ) -> ChamberViewWithPartyBreakdown {
+        ChamberViewWithPartyBreakdown {
+            id: self.id,
+            name: self.name,
+            jurisdiction_id: self.jurisdiction_id,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            created_by_id: self.created_by_id,
+            party_breakdown: party_breakdown.into_iter().collect(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -56,6 +72,27 @@ impl GetChamberView {
             created_by_id: self.created_by_id,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ChamberViewWithPartyBreakdown {
+    pub id: i32,
+    pub created_at: DateTime<FixedOffset>,
+    pub updated_at: DateTime<FixedOffset>,
+    pub name: String,
+    pub jurisdiction_id: i32,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: Option<i32>,
+    pub party_breakdown: Vec<PartyBreakdown>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PartyBreakdown {
+    pub party: PartyView,
+    pub count: u64,
 }
 
 // /// A district within a chamber

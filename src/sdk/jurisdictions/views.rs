@@ -16,9 +16,9 @@ pub struct JurisdictionView {
     pub created_by_id: Option<i32>,
 }
 impl JurisdictionView {
-    pub fn into_get_jurisdiction_view(
+    pub fn into_get_view(
         self,
-        current_session: Option<SessionView>,
+        sessions: impl IntoIterator<Item = SessionView>,
         chambers: impl IntoIterator<Item = ChamberView>,
     ) -> GetJurisdictionView {
         GetJurisdictionView {
@@ -29,7 +29,7 @@ impl JurisdictionView {
             external_url: self.external_url,
             external_id: self.external_id,
             created_by_id: self.created_by_id,
-            current_session,
+            sessions: sessions.into_iter().collect(),
             chambers: chambers.into_iter().collect(),
         }
     }
@@ -60,9 +60,10 @@ pub struct GetJurisdictionView {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub created_by_id: Option<i32>,
-    pub current_session: Option<SessionView>,
+    pub sessions: Vec<SessionView>,
     pub chambers: Vec<ChamberView>,
 }
+
 impl GetJurisdictionView {
     pub fn into_jurisdiction_view(self) -> JurisdictionView {
         JurisdictionView {
@@ -76,6 +77,20 @@ impl GetJurisdictionView {
         }
     }
 }
+
+// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+// pub struct SessionJurisdictionView {
+//     pub id: i32,
+//     pub name: String,
+//     pub created_at: DateTime<FixedOffset>,
+//     pub updated_at: DateTime<FixedOffset>,
+//     pub external_id: Option<ExternalId>,
+//     pub external_url: Option<Url>,
+//     pub created_by_id: Option<i32>,
+//     pub current_session: Option<SessionView>,
+//     pub chambers: Vec<ChamberViewWithPartyBreakdown>,
+// }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
