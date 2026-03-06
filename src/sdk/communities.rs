@@ -131,6 +131,7 @@ pub enum CommunityMemberRole {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
 pub struct BasicCommunityParams {
     pub page: Option<u64>,
     pub page_size: Option<u64>,
