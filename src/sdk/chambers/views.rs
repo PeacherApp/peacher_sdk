@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+
 use crate::prelude::*;
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
@@ -33,6 +35,8 @@ impl ChamberView {
         self,
         party_breakdown: impl IntoIterator<Item = PartyBreakdown>,
     ) -> ChamberViewWithPartyBreakdown {
+        let mut party_breakdown = party_breakdown.into_iter().collect::<Vec<_>>();
+        party_breakdown.sort_by_key(|p| Reverse(p.count));
         ChamberViewWithPartyBreakdown {
             id: self.id,
             name: self.name,
@@ -42,7 +46,7 @@ impl ChamberView {
             external_id: self.external_id,
             external_url: self.external_url,
             created_by_id: self.created_by_id,
-            party_breakdown: party_breakdown.into_iter().collect(),
+            party_breakdown,
         }
     }
 }
