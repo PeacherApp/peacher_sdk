@@ -424,7 +424,7 @@ pub struct GetSessionView {
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
     pub jurisdiction: JurisdictionView,
-    pub chambers: Vec<ChamberView>,
+    pub chambers: Vec<ChamberViewWithPartyBreakdown>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub created_by_id: Option<i32>,
@@ -467,7 +467,7 @@ impl SessionView {
     pub fn into_get_session_view(
         self,
         jurisdiction: JurisdictionView,
-        chambers: impl IntoIterator<Item = ChamberView>,
+        chambers: impl IntoIterator<Item = ChamberViewWithPartyBreakdown>,
     ) -> GetSessionView {
         debug_assert_eq!(self.jurisdiction_id, jurisdiction.id);
         GetSessionView {
