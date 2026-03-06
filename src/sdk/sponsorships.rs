@@ -39,5 +39,5 @@ pub struct DetailedSponsorshipView {
     pub id: i32,
     pub member_id: i32,
     pub sponsor_type: SponsorshipType,
-    pub legislation: DetailedLegislationView,
+    pub legislation: LegislationView,
 }

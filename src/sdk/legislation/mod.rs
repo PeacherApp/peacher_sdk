@@ -554,7 +554,7 @@ impl LegislationView {
     pub fn into_detailed(
         self,
         votes: impl IntoIterator<Item = LegislationViewVote>,
-        sponsors: impl IntoIterator<Item = LegislationViewSponsor>,
+        sponsors: impl IntoIterator<Item = LegislationSponsorView>,
     ) -> DetailedLegislationView {
         DetailedLegislationView {
             created_at: self.created_at,
@@ -597,7 +597,7 @@ pub struct DetailedLegislationView {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub votes: Vec<LegislationViewVote>,
-    pub sponsors: Vec<LegislationViewSponsor>,
+    pub sponsors: Vec<LegislationSponsorView>,
 }
 
 impl DetailedLegislationView {
@@ -632,10 +632,10 @@ pub struct LegislationViewVote {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct LegislationViewSponsor {
+pub struct LegislationSponsorView {
     pub id: i32,
-    pub member_id: i32,
-    pub sponsor_type: i32,
+    pub member: CompactRepresentativeView,
+    pub sponsor_type: SponsorshipType,
     pub sponsored_at: Option<DateTime<FixedOffset>>,
 }
 

@@ -30,6 +30,16 @@ pub struct MemberView {
     pub auth_level: AuthLevel,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct CompactRepresentativeView {
+    pub id: i32,
+    pub display_name: String,
+    pub handle: Slug,
+    pub photo: Option<String>,
+    pub party: Option<PartyView>,
+}
+
 impl MemberView {
     pub fn with_party(self, party: Option<PartyView>) -> MemberWithPartyView {
         debug_assert_eq!(self.party_id, party.as_ref().map(|p| p.id));
