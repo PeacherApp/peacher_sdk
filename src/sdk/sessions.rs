@@ -430,6 +430,22 @@ pub struct GetSessionView {
     pub created_by_id: Option<i32>,
 }
 
+/// A session view with jurisdiction and chamber details
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ListSessionView {
+    pub id: i32,
+    pub name: String,
+    pub current: bool,
+    pub starts_at: Option<NaiveDate>,
+    pub ends_at: Option<NaiveDate>,
+    pub jurisdiction: JurisdictionView,
+    pub chambers: Vec<ChamberView>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: Option<i32>,
+}
+
 /// A chamber within a session
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -464,6 +480,26 @@ pub struct SessionView {
     pub created_by_id: Option<i32>,
 }
 impl SessionView {
+    pub fn into_list_session_view(
+        self,
+        jurisdiction: JurisdictionView,
+        chambers: impl IntoIterator<Item = ChamberView>,
+    ) -> ListSessionView {
+        debug_assert_eq!(self.jurisdiction_id, jurisdiction.id);
+        ListSessionView {
+            id: self.id,
+            name: self.name,
+            current: self.current,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            starts_at: self.starts_at,
+            ends_at: self.ends_at,
+            created_by_id: self.created_by_id,
+            jurisdiction,
+            chambers: chambers.into_iter().collect(),
+        }
+    }
+
     pub fn into_get_session_view(
         self,
         jurisdiction: JurisdictionView,

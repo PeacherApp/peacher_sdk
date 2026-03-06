@@ -92,14 +92,5 @@ pub struct ChamberViewWithPartyBreakdown {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PartyBreakdown {
     pub party: PartyView,
-    pub count: u64,
+    pub count: u32,
 }
-
-// /// A district within a chamber
-// #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-// #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-// pub struct ChamberDistrictView {
-//     pub id: i32,
-//     pub name: String,
-//     pub representatives: Vec<MemberWithPartyView>,
-// }
