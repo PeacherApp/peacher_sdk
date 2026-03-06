@@ -10,7 +10,10 @@ use crate::{paginated, prelude::*};
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
 pub struct SessionParams {
+    /// List of IDs to filter on.
+    pub ids: CommaSeparated<i32>,
     /// Filter to only current sessions
     pub current: Option<bool>,
     /// Filter by jurisdiction ID

@@ -62,9 +62,9 @@ mod health;
 pub use health::*;
 
 #[cfg(feature = "jurisdiction")]
-mod jurisdiction;
+mod jurisdictions;
 #[cfg(feature = "jurisdiction")]
-pub use jurisdiction::*;
+pub use jurisdictions::*;
 
 #[cfg(feature = "legislation")]
 mod legislation;
