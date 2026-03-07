@@ -68,7 +68,7 @@ impl GetHandler for GetSession {
 pub struct ListSessions(pub SessionParams);
 
 impl GetHandler for ListSessions {
-    type ResponseBody = Paginated<GetSessionView>;
+    type ResponseBody = Paginated<ListSessionView>;
     fn path(&self) -> Cow<'_, str> {
         "/api/sessions".into()
     }

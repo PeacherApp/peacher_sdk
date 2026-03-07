@@ -8,7 +8,7 @@ pub struct ClientMapper<'p, P> {
 
     jurisdiction: Option<Arc<JurisdictionView>>,
     chambers: HashMap<ExternalId, Arc<GetChamberView>>,
-    sessions: HashMap<ExternalId, Arc<GetSessionView>>,
+    sessions: HashMap<ExternalId, Arc<ListSessionView>>,
     members: HashMap<ExternalId, Arc<MemberWithPartyView>>,
 }
 
@@ -50,7 +50,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
             Ok(value)
         }
     }
-    pub async fn session(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<GetSessionView>> {
+    pub async fn session(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<ListSessionView>> {
         if let Some(session) = self.sessions.get(ext_id) {
             return Ok(session.clone());
         }

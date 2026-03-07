@@ -50,7 +50,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
         ))
     }
 
-    pub async fn list(&mut self) -> SyncResult<Paginated<GetSessionView>> {
+    pub async fn list(&mut self) -> SyncResult<Paginated<ListSessionView>> {
         let ext = self.external.get_jurisdiction();
         let jurisdiction = self.mapper.jurisdiction(&ext.external_id).await?;
 
