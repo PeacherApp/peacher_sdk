@@ -4,7 +4,6 @@ use crate::{paginated, prelude::*};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
-use uuid::Uuid;
 
 /// Get the current user's feed
 #[derive(Default, Clone, Debug)]
@@ -25,18 +24,17 @@ impl GetHandler for GetFeed {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
 pub struct FeedParams {
-    // A set value here is not respected by Peacher
+    // A set value here is not respected by Peacher's API.
     #[serde(skip)]
-    pub feed: Option<Uuid>,
-    // A set value here is not respected by Peacher
+    pub location_id: Option<u64>,
+    // A set value here is not respected by Peacher's API.
     #[serde(skip)]
     pub member_id: Option<i32>,
     /// time
-    #[serde(default)]
     pub order_by: FeedOrder,
     /// asc | desc
-    #[serde(default)]
     pub order: Ordering,
 
     pub page: Option<u64>,
@@ -94,17 +92,15 @@ impl FeedItem {
     }
     pub fn date_occurred(&self) -> Option<DateTime<FixedOffset>> {
         match self {
-            Self::LegislationUpdate(item) => item.latest_vote_at,
+            Self::LegislationUpdate(item) => item.vote.occurred_at,
             Self::Legislation(leg) => leg.sponsored_at.or(leg.legislation.introduced_at),
         }
     }
     pub fn actor_id(&self) -> Option<i32> {
         match self {
-            Self::LegislationUpdate(item) => item
-                .vote_events
-                .first()
-                .and_then(|e| e.representative_votes.first())
-                .map(|rv| rv.member.id),
+            Self::LegislationUpdate(item) => {
+                item.member_votes.first().map(|mv| mv.member.id)
+            }
             Self::Legislation(legislation) => Some(legislation.sponsor.id),
         }
     }

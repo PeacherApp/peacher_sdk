@@ -292,24 +292,15 @@ pub struct MemberVoteView {
     pub vote: VoteView,
 }
 
-/// A vote event on legislation with only the user's representatives' votes
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct RepresentativeVoteEvent {
-    /// The legislation vote event (chamber, name, date)
-    pub legislation_vote: LegislationVote,
-    /// How each of the user's representatives voted
-    pub representative_votes: Vec<MemberVoteValue>,
-}
-
-/// A legislation-centric feed item showing all vote events with representative votes
+/// A member-centric feed item: a vote event on legislation showing which
+/// followed members voted and how.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct LegislationUpdateItem {
-    /// The legislation being tracked
+    /// The specific vote event (chamber, name, date)
+    pub vote: LegislationVote,
+    /// The legislation being voted on
     pub legislation: LegislationView,
-    /// All vote events on this legislation, ordered by most recent first
-    pub vote_events: Vec<RepresentativeVoteEvent>,
-    /// The most recent vote date (used for feed sorting)
-    pub latest_vote_at: Option<DateTime<FixedOffset>>,
+    /// How each followed member voted
+    pub member_votes: Vec<MemberVoteValue>,
 }
