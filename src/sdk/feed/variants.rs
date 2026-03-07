@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::prelude::*;
 
@@ -31,7 +32,7 @@ pub struct FollowedMembersVoted {
 pub struct FeedPost {
     pub member: MemberView,
     pub community: CommunityView,
-    pub post_id: i32,
+    pub post_id: Uuid,
     pub at: DateTime<FixedOffset>,
 }
 
