@@ -296,7 +296,7 @@ pub struct MemberVoteView {
 /// followed members voted and how.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct LegislationUpdateItem {
+pub struct FollowedMembersVoted {
     /// The specific vote event (chamber, name, date)
     pub vote: LegislationVote,
     /// The legislation being voted on

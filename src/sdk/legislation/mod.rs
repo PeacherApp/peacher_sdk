@@ -721,7 +721,7 @@ pub struct FeedSponsor {
 /// Groups co-sponsors of the same bill into a single item.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct SponsoredLegislationView {
+pub struct FollowedMembersSponsored {
     pub sponsors: Vec<FeedSponsor>,
     pub legislation: LegislationView,
 }

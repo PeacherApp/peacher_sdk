@@ -79,21 +79,21 @@ pub enum ItemType {
     reason = "In memory, this type is almost always stored behind a pointer to the heap. This may not be true for custom usage of this type. Please submit an issue if you need these types boxed."
 )]
 pub enum FeedItem {
-    LegislationUpdate(LegislationUpdateItem),
-    Legislation(SponsoredLegislationView),
+    FollowedMembersVoted(FollowedMembersVoted),
+    FollowedMembersSponsored(FollowedMembersSponsored),
 }
 
 impl FeedItem {
     pub fn item_type(&self) -> ItemType {
         match self {
-            Self::LegislationUpdate(_) => ItemType::LegislationUpdate,
-            Self::Legislation(_) => ItemType::Legislation,
+            Self::FollowedMembersVoted(_) => ItemType::LegislationUpdate,
+            Self::FollowedMembersSponsored(_) => ItemType::Legislation,
         }
     }
     pub fn date_occurred(&self) -> Option<DateTime<FixedOffset>> {
         match self {
-            Self::LegislationUpdate(item) => item.vote.occurred_at,
-            Self::Legislation(leg) => leg
+            Self::FollowedMembersVoted(item) => item.vote.occurred_at,
+            Self::FollowedMembersSponsored(leg) => leg
                 .sponsors
                 .iter()
                 .filter_map(|s| s.sponsored_at)
@@ -103,21 +103,19 @@ impl FeedItem {
     }
     pub fn actor_id(&self) -> Option<i32> {
         match self {
-            Self::LegislationUpdate(item) => {
-                item.member_votes.first().map(|mv| mv.member.id)
-            }
-            Self::Legislation(leg) => leg.sponsors.first().map(|s| s.member.id),
+            Self::FollowedMembersVoted(item) => item.member_votes.first().map(|mv| mv.member.id),
+            Self::FollowedMembersSponsored(leg) => leg.sponsors.first().map(|s| s.member.id),
         }
     }
 }
 
-impl From<LegislationUpdateItem> for FeedItem {
-    fn from(value: LegislationUpdateItem) -> Self {
-        Self::LegislationUpdate(value)
+impl From<FollowedMembersVoted> for FeedItem {
+    fn from(value: FollowedMembersVoted) -> Self {
+        Self::FollowedMembersVoted(value)
     }
 }
-impl From<SponsoredLegislationView> for FeedItem {
-    fn from(value: SponsoredLegislationView) -> Self {
-        Self::Legislation(value)
+impl From<FollowedMembersSponsored> for FeedItem {
+    fn from(value: FollowedMembersSponsored) -> Self {
+        Self::FollowedMembersSponsored(value)
     }
 }
