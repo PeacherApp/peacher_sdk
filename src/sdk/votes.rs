@@ -291,16 +291,3 @@ pub struct MemberVoteView {
     pub member: MemberView,
     pub vote: VoteView,
 }
-
-/// A member-centric feed item: a vote event on legislation showing which
-/// followed members voted and how.
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct FollowedMembersVoted {
-    /// The specific vote event (chamber, name, date)
-    pub vote: LegislationVote,
-    /// The legislation being voted on
-    pub legislation: LegislationView,
-    /// How each followed member voted
-    pub member_votes: Vec<MemberVoteValue>,
-}

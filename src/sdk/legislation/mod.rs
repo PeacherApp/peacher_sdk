@@ -716,12 +716,3 @@ pub struct FeedSponsor {
     pub sponsor_type: SponsorshipType,
     pub sponsored_at: Option<DateTime<FixedOffset>>,
 }
-
-/// Legislation sponsored by one or more followed members in the feed.
-/// Groups co-sponsors of the same bill into a single item.
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct FollowedMembersSponsored {
-    pub sponsors: Vec<FeedSponsor>,
-    pub legislation: LegislationView,
-}
