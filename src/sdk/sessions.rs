@@ -10,7 +10,10 @@ use crate::{paginated, prelude::*};
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
 pub struct SessionParams {
+    /// List of IDs to filter on.
+    pub ids: CommaSeparated<i32>,
     /// Filter to only current sessions
     pub current: Option<bool>,
     /// Filter by jurisdiction ID
@@ -65,7 +68,7 @@ impl GetHandler for GetSession {
 pub struct ListSessions(pub SessionParams);
 
 impl GetHandler for ListSessions {
-    type ResponseBody = Paginated<GetSessionView>;
+    type ResponseBody = Paginated<ListSessionView>;
     fn path(&self) -> Cow<'_, str> {
         "/api/sessions".into()
     }
@@ -421,6 +424,22 @@ pub struct GetSessionView {
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
     pub jurisdiction: JurisdictionView,
+    pub chambers: Vec<ChamberViewWithPartyBreakdown>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: Option<i32>,
+}
+
+/// A session view with jurisdiction and chamber details
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ListSessionView {
+    pub id: i32,
+    pub name: String,
+    pub current: bool,
+    pub starts_at: Option<NaiveDate>,
+    pub ends_at: Option<NaiveDate>,
+    pub jurisdiction: JurisdictionView,
     pub chambers: Vec<ChamberView>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
@@ -461,10 +480,30 @@ pub struct SessionView {
     pub created_by_id: Option<i32>,
 }
 impl SessionView {
-    pub fn into_get_session_view(
+    pub fn into_list_session_view(
         self,
         jurisdiction: JurisdictionView,
         chambers: impl IntoIterator<Item = ChamberView>,
+    ) -> ListSessionView {
+        debug_assert_eq!(self.jurisdiction_id, jurisdiction.id);
+        ListSessionView {
+            id: self.id,
+            name: self.name,
+            current: self.current,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            starts_at: self.starts_at,
+            ends_at: self.ends_at,
+            created_by_id: self.created_by_id,
+            jurisdiction,
+            chambers: chambers.into_iter().collect(),
+        }
+    }
+
+    pub fn into_get_session_view(
+        self,
+        jurisdiction: JurisdictionView,
+        chambers: impl IntoIterator<Item = ChamberViewWithPartyBreakdown>,
     ) -> GetSessionView {
         debug_assert_eq!(self.jurisdiction_id, jurisdiction.id);
         GetSessionView {

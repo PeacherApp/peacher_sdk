@@ -29,3 +29,11 @@ pub struct BoundaryChambers {
     /// members intersected with
     pub members: Vec<ChamberSessionMember>,
 }
+/// A simple reference to an intersecting district (map_id, district_id).
+/// Used for serialization and passing between components.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct DistrictId {
+    pub map_id: i32,
+    pub district_id: i32,
+}

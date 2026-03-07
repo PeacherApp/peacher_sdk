@@ -46,14 +46,6 @@ pub struct SummaryView {
     pub kind: SummaryKind,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub enum Visibility {
-    NotVisible,
-    Public,
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]

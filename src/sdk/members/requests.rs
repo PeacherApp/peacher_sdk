@@ -19,6 +19,11 @@ pub struct MemberParams {
     /// Filter by external ID
     pub external_id: Option<ExternalId>,
 
+    /// Filter by a particular session
+    pub session_id: Option<i32>,
+    /// Filter by a particular chamber
+    pub chamber_id: Option<i32>,
+
     #[serde(default)]
     pub order_by: MemberOrder,
     #[serde(default)]

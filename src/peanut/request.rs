@@ -8,9 +8,9 @@ use crate::peanut::multipart::MultipartForm;
 #[derive(Error, Debug)]
 pub enum BodyError {
     #[error("Body Serialization: {0}")]
-    Serialize(Box<dyn Error>),
+    Serialize(Box<dyn Error + Send + Sync>),
     #[error("Body Deserialization: {0}")]
-    Deserialize(Box<dyn Error>),
+    Deserialize(Box<dyn Error + Send + Sync>),
 }
 
 pub struct BodyBuilder {

@@ -58,7 +58,7 @@ pub struct SessionRow {
     pub external_id: String,
 }
 
-impl AsTable for Vec<GetSessionView> {
+impl AsTable for Vec<ListSessionView> {
     type TableRow<'a>
         = SessionRow
     where
@@ -158,7 +158,7 @@ impl SessionView {
     }
 }
 
-impl GetSessionView {
+impl ListSessionView {
     pub fn print(&self) {
         let current_marker = if self.current {
             format!(" {}", green("● Current"))
