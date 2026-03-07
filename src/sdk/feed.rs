@@ -93,7 +93,12 @@ impl FeedItem {
     pub fn date_occurred(&self) -> Option<DateTime<FixedOffset>> {
         match self {
             Self::LegislationUpdate(item) => item.vote.occurred_at,
-            Self::Legislation(leg) => leg.sponsored_at.or(leg.legislation.introduced_at),
+            Self::Legislation(leg) => leg
+                .sponsors
+                .iter()
+                .filter_map(|s| s.sponsored_at)
+                .max()
+                .or(leg.legislation.introduced_at),
         }
     }
     pub fn actor_id(&self) -> Option<i32> {
@@ -101,7 +106,7 @@ impl FeedItem {
             Self::LegislationUpdate(item) => {
                 item.member_votes.first().map(|mv| mv.member.id)
             }
-            Self::Legislation(legislation) => Some(legislation.sponsor.id),
+            Self::Legislation(leg) => leg.sponsors.first().map(|s| s.member.id),
         }
     }
 }

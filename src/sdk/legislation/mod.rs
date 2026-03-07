@@ -708,11 +708,20 @@ pub struct LegislationVoteDetailsResponse {
     pub summary: VoteSummary,
 }
 
-/// Legislation sponsored by a member in the feed
+/// A followed member who sponsored legislation, used in feed items.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct FeedSponsor {
+    pub member: MemberWithPartyView,
+    pub sponsor_type: SponsorshipType,
+    pub sponsored_at: Option<DateTime<FixedOffset>>,
+}
+
+/// Legislation sponsored by one or more followed members in the feed.
+/// Groups co-sponsors of the same bill into a single item.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SponsoredLegislationView {
-    pub sponsor: MemberWithPartyView,
+    pub sponsors: Vec<FeedSponsor>,
     pub legislation: LegislationView,
-    pub sponsored_at: Option<DateTime<FixedOffset>>,
 }
