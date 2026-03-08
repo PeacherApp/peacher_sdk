@@ -20,13 +20,13 @@ pub trait NodeKind {
     }
 }
 
-pub fn iter_node_children_text<'n, N, F>(content: impl Iterator<Item = &'n N>, mut func: F) -> bool
+pub fn iter_node_children_text<'n, N, F>(content: impl Iterator<Item = &'n N>, func: &mut F) -> bool
 where
     N: NodeKind + 'n,
     F: FnMut(&'n str) -> bool,
 {
     for node in content {
-        if !node.iter_text(&mut func) {
+        if !node.iter_text(func) {
             return false;
         }
     }
