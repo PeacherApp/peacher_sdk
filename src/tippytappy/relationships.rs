@@ -9,6 +9,7 @@ use uuid::Uuid;
 /// it can be used to turn content within a [`CompiledDocument`](crate::tippytappy::CompiledView) to
 /// turn into a [`DocumentView`](crate::tippytappy::DocumentView).
 ///
+#[derive(Default)]
 pub struct ContentRelationships {
     pub(super) legislation_nameids: HashMap<i32, String>,
     pub(super) member_handles: HashMap<i32, String>,
@@ -26,6 +27,16 @@ impl ContentRelationships {
             member_handles: members.into_iter().collect(),
             sibling_labels: siblings.into_iter().collect(),
         }
+    }
+    pub fn extend(
+        &mut self,
+        legislation: impl IntoIterator<Item = (i32, String)>,
+        members: impl IntoIterator<Item = (i32, String)>,
+        siblings: impl IntoIterator<Item = (Uuid, String)>,
+    ) {
+        self.legislation_nameids.extend(legislation);
+        self.member_handles.extend(members);
+        self.sibling_labels.extend(siblings);
     }
 
     pub fn legislation_ids(&self) -> impl Iterator<Item = i32> {
