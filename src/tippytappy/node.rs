@@ -34,45 +34,35 @@ pub enum Node<S: State> {
     HorizontalRule,
 }
 
-impl Node<View> {
-    pub fn compile(self, carriage: &mut CompileCarriage) -> Node<Compiled> {
+impl ProcessNode<CompileCarriage> for Node<View> {
+    type Output = Node<Compiled>;
+    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
         match self {
             Node::Image { attrs } => Node::Image {
-                attrs: attrs.compile(carriage),
+                attrs: attrs.process(visitor),
             },
-            Node::OrderedList(oln) => Node::OrderedList(oln.compile(carriage)),
-            Node::BulletList(bln) => Node::BulletList(bln.compile(carriage)),
-            Node::Heading { attrs, content } => {
-                let new_content = content.into_iter().map(|node| node.compile(carriage));
-                Node::Heading {
-                    attrs,
-                    content: new_content.collect(),
-                }
-            }
-            Node::Paragraph { content } => {
-                let new_content = content.into_iter().map(|node| node.compile(carriage));
-
-                Node::Paragraph {
-                    content: new_content.collect(),
-                }
-            }
-            Node::Blockquote { content } => {
-                let new_content = content.into_iter().map(|node| node.compile(carriage));
-
-                Node::Blockquote {
-                    content: new_content.collect(),
-                }
-            }
-            Node::Details { attrs, content } => {
-                let new_content = content.into_iter().map(|node| node.compile(carriage));
-                Node::Details {
-                    attrs,
-                    content: new_content.collect(),
-                }
-            }
+            Node::OrderedList(oln) => Node::OrderedList(oln.process(visitor)),
+            Node::BulletList(bln) => Node::BulletList(bln.process(visitor)),
+            Node::Heading { attrs, content } => Node::Heading {
+                attrs,
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
+            },
+            Node::Paragraph { content } => Node::Paragraph {
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
+            },
+            Node::Blockquote { content } => Node::Blockquote {
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
+            },
+            Node::Details { attrs, content } => Node::Details {
+                attrs,
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
+            },
             Node::HorizontalRule => Node::HorizontalRule,
         }
     }
+}
+
+impl Node<View> {
     pub fn from_mdast(node: MdNode) -> Result<Self, ParseError> {
         match node {
             MdNode::Root(_) => Err(ParseError::other("Found root in invalid position")),
@@ -224,89 +214,22 @@ impl ProcessNode<ContentRelationships> for Node<Compiled> {
     fn process(self, relationships: &mut ContentRelationships) -> Self::Output {
         match self {
             Node::Image { attrs } => Node::Image { attrs },
-            Node::OrderedList(oln) => Node::OrderedList(oln.into_view(relationships)),
-            Node::BulletList(bln) => Node::BulletList(bln.into_view(relationships)),
-            Node::Heading { attrs, content } => {
-                let new_content = content.into_iter().map(|node| node.process(relationships));
-                Node::Heading {
-                    attrs,
-                    content: new_content.collect(),
-                }
-            }
-            Node::Paragraph { content } => {
-                let new_content = content.into_iter().map(|node| node.process(relationships));
-
-                Node::Paragraph {
-                    content: new_content.collect(),
-                }
-            }
-            Node::Blockquote { content } => {
-                let new_content = content
-                    .into_iter()
-                    .map(|node| node.into_view(relationships));
-
-                Node::Blockquote {
-                    content: new_content.collect(),
-                }
-            }
-            Node::Details { attrs, content } => {
-                let new_content = content
-                    .into_iter()
-                    .map(|node| node.into_view(relationships));
-
-                Node::Details {
-                    attrs,
-                    content: new_content.collect(),
-                }
-            }
-            Node::HorizontalRule => Node::HorizontalRule,
-        }
-    }
-}
-
-impl Node<Compiled> {
-    pub fn into_view(self, relationships: &ContentRelationships) -> Node<View> {
-        match self {
-            Node::Image { attrs } => Node::Image { attrs },
-            Node::OrderedList(oln) => Node::OrderedList(oln.into_view(relationships)),
-            Node::BulletList(bln) => Node::BulletList(bln.into_view(relationships)),
-            Node::Heading { attrs, content } => {
-                let new_content = content
-                    .into_iter()
-                    .map(|node| node.into_view(relationships));
-                Node::Heading {
-                    attrs,
-                    content: new_content.collect(),
-                }
-            }
-            Node::Paragraph { content } => {
-                let new_content = content
-                    .into_iter()
-                    .map(|node| node.into_view(relationships));
-
-                Node::Paragraph {
-                    content: new_content.collect(),
-                }
-            }
-            Node::Blockquote { content } => {
-                let new_content = content
-                    .into_iter()
-                    .map(|node| node.into_view(relationships));
-
-                Node::Blockquote {
-                    content: new_content.collect(),
-                }
-            }
-            Node::Details { attrs, content } => {
-                let new_content = content
-                    .into_iter()
-                    .map(|node| node.into_view(relationships));
-
-                Node::Details {
-                    attrs,
-                    content: new_content.collect(),
-                }
-            }
+            Node::OrderedList(oln) => Node::OrderedList(oln.process(relationships)),
+            Node::BulletList(bln) => Node::BulletList(bln.process(relationships)),
+            Node::Heading { attrs, content } => Node::Heading {
+                attrs,
+                content: content.into_iter().map(|c| c.process(relationships)).collect(),
+            },
+            Node::Paragraph { content } => Node::Paragraph {
+                content: content.into_iter().map(|c| c.process(relationships)).collect(),
+            },
+            Node::Blockquote { content } => Node::Blockquote {
+                content: content.into_iter().map(|c| c.process(relationships)).collect(),
+            },
+            Node::Details { attrs, content } => Node::Details {
+                attrs,
+                content: content.into_iter().map(|c| c.process(relationships)).collect(),
+            },
             Node::HorizontalRule => Node::HorizontalRule,
         }
     }
@@ -429,13 +352,14 @@ pub struct ImageAttributes {
     src: Option<Url>,
     title: Option<String>,
 }
-impl ImageAttributes {
-    pub fn compile(self, carriage: &mut CompileCarriage) -> Self {
+impl ProcessNode<CompileCarriage> for ImageAttributes {
+    type Output = Self;
+    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
         if let Some(alt) = &self.alt {
-            carriage.push_str(alt);
+            visitor.push_str(alt);
         }
         if let Some(title) = &self.title {
-            carriage.push_str(title);
+            visitor.push_str(title);
         }
         self
     }

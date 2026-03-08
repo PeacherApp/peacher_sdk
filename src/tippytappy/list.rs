@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::tippytappy::{node_kind::iter_node_children_text, *};
+use crate::tippytappy::{node_kind::{ProcessNode, iter_node_children_text}, *};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -18,29 +18,21 @@ impl<S: State> NodeKind for OrderedList<S> {
     }
 }
 
-impl OrderedList<View> {
-    pub fn compile(self, carriage: &mut CompileCarriage) -> OrderedList<Compiled> {
-        let new_children = self
-            .content
-            .into_iter()
-            .map(|child| child.compile(carriage))
-            .collect();
+impl ProcessNode<CompileCarriage> for OrderedList<View> {
+    type Output = OrderedList<Compiled>;
+    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
         OrderedList {
             attrs: self.attrs,
-            content: new_children,
+            content: self.content.into_iter().map(|c| c.process(visitor)).collect(),
         }
     }
 }
-impl OrderedList<Compiled> {
-    pub fn into_view(self, relationships: &ContentRelationships) -> OrderedList<View> {
-        let new_children = self
-            .content
-            .into_iter()
-            .map(|child| child.into_view(relationships))
-            .collect();
+impl ProcessNode<ContentRelationships> for OrderedList<Compiled> {
+    type Output = OrderedList<View>;
+    fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
         OrderedList {
             attrs: self.attrs,
-            content: new_children,
+            content: self.content.into_iter().map(|c| c.process(visitor)).collect(),
         }
     }
 }
@@ -75,29 +67,23 @@ impl<S: State> NodeKind for ListChild<S> {
     }
 }
 
-impl ListChild<View> {
-    pub fn compile(self, carriage: &mut CompileCarriage) -> ListChild<Compiled> {
+impl ProcessNode<CompileCarriage> for ListChild<View> {
+    type Output = ListChild<Compiled>;
+    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
         match self {
-            ListChild::ListItem { content } => {
-                let new_content = content.into_iter().map(|node| node.compile(carriage));
-                ListChild::ListItem {
-                    content: new_content.collect(),
-                }
-            }
+            ListChild::ListItem { content } => ListChild::ListItem {
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
+            },
         }
     }
 }
-impl ListChild<Compiled> {
-    pub fn into_view(self, relationships: &ContentRelationships) -> ListChild<View> {
+impl ProcessNode<ContentRelationships> for ListChild<Compiled> {
+    type Output = ListChild<View>;
+    fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
         match self {
-            ListChild::ListItem { content } => {
-                let new_content = content
-                    .into_iter()
-                    .map(|node| node.into_view(relationships));
-                ListChild::ListItem {
-                    content: new_content.collect(),
-                }
-            }
+            ListChild::ListItem { content } => ListChild::ListItem {
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
+            },
         }
     }
 }
@@ -133,25 +119,19 @@ impl<S: State> NodeKind for BulletListNode<S> {
     }
 }
 
-impl BulletListNode<View> {
-    pub fn compile(self, carriage: &mut CompileCarriage) -> BulletListNode<Compiled> {
-        let new_content = self.content.into_iter().map(|node| node.compile(carriage));
-
+impl ProcessNode<CompileCarriage> for BulletListNode<View> {
+    type Output = BulletListNode<Compiled>;
+    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
         BulletListNode {
-            content: new_content.collect(),
+            content: self.content.into_iter().map(|c| c.process(visitor)).collect(),
         }
     }
 }
-
-impl BulletListNode<Compiled> {
-    pub fn into_view(self, relationships: &ContentRelationships) -> BulletListNode<View> {
-        let new_content = self
-            .content
-            .into_iter()
-            .map(|node| node.into_view(relationships));
-
+impl ProcessNode<ContentRelationships> for BulletListNode<Compiled> {
+    type Output = BulletListNode<View>;
+    fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
         BulletListNode {
-            content: new_content.collect(),
+            content: self.content.into_iter().map(|c| c.process(visitor)).collect(),
         }
     }
 }

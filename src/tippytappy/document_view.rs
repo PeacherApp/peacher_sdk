@@ -1,4 +1,7 @@
-use crate::tippytappy::{node_kind::iter_node_children_text, *};
+use crate::tippytappy::{
+    node_kind::{ProcessNode, iter_node_children_text},
+    *,
+};
 use markdown::{ParseOptions, mdast::Node as MdNode};
 use serde::{Deserialize, Serialize};
 
@@ -69,7 +72,7 @@ impl DocumentView {
         let compiled_nodes = self
             .content
             .into_iter()
-            .map(|node| node.compile(&mut carriage));
+            .map(|node| node.process(&mut carriage));
         let document = CompiledDocument::from_nodes(compiled_nodes);
         carriage.finish(document)
     }
