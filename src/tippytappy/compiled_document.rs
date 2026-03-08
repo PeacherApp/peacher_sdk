@@ -1,4 +1,4 @@
-use crate::tippytappy::*;
+use crate::tippytappy::{node_kind::iter_node_children_text, *};
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -76,5 +76,13 @@ impl CompiledDocument {
                 .into_iter()
                 .map(|node| node.into_view(relationships)),
         )
+    }
+}
+impl NodeKind for CompiledDocument {
+    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    where
+        F: FnMut(&'slf str) -> bool,
+    {
+        iter_node_children_text(self.content.iter(), func)
     }
 }

@@ -50,7 +50,6 @@ pub struct ContentDetails {
     pub id: Uuid,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-    pub searchable_text: String,
     pub document: tippytappy::DocumentView,
     pub author: Option<MemberWithPartyView>,
     pub status: ContentStatus,

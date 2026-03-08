@@ -1,4 +1,4 @@
-use crate::tippytappy::*;
+use crate::tippytappy::{node_kind::iter_node_children_text, *};
 use markdown::{ParseOptions, mdast::Node as MdNode};
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +14,65 @@ impl State for View {
 #[serde(tag = "type", rename = "doc")]
 pub struct DocumentView {
     content: Vec<Node<View>>,
+}
+impl NodeKind for DocumentView {
+    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    where
+        F: FnMut(&'slf str) -> bool,
+    {
+        iter_node_children_text(self.content.iter(), func)
+    }
+}
+
+impl DocumentView {
+    pub fn from_nodes(nodes: impl IntoIterator<Item = Node<View>>) -> Self {
+        Self {
+            content: nodes.into_iter().collect(),
+        }
+    }
+    pub fn parse_json(value: serde_json::Value) -> Result<Self, ParseError> {
+        let value = serde_json::from_value(value).map_err(|e| {
+            tracing::error!("Invalid value passed for document view. Error: {e}");
+            ParseError::Json(e)
+        })?;
+
+        Ok(value)
+    }
+
+    /// Note that the [`Pattern`](std::str::pattern::Pattern) trait is not stabilized
+    pub fn contains(&self, pattern: &str) -> bool {
+        todo!()
+        // self.content.iter().any(|node| node.contains(pattern))
+    }
+
+    pub fn parse_markdown(markdown: &str) -> Result<Self, ParseError> {
+        let parse_options = ParseOptions::gfm();
+
+        let markdown = markdown::to_mdast(markdown, &parse_options)?;
+
+        let MdNode::Root(root) = markdown else {
+            return Err(ParseError::other("root element is not a root node!"));
+        };
+
+        let content = root
+            .children
+            .into_iter()
+            .map(Node::from_mdast)
+            .collect::<Result<Vec<_>, ParseError>>()?;
+
+        Ok(Self { content })
+    }
+
+    pub fn compile(self) -> CompilationResult {
+        let mut carriage = CompileCarriage::default();
+
+        let compiled_nodes = self
+            .content
+            .into_iter()
+            .map(|node| node.compile(&mut carriage));
+        let document = CompiledDocument::from_nodes(compiled_nodes);
+        carriage.finish(document)
+    }
 }
 
 /// Need to manually implement this since
@@ -54,50 +113,5 @@ impl utoipa::ToSchema for DocumentView {
         )>,
     ) {
         <Node<View> as utoipa::ToSchema>::schemas(schemas);
-    }
-}
-
-impl DocumentView {
-    pub fn from_nodes(nodes: impl IntoIterator<Item = Node<View>>) -> Self {
-        Self {
-            content: nodes.into_iter().collect(),
-        }
-    }
-    pub fn parse_json(value: serde_json::Value) -> Result<Self, ParseError> {
-        let value = serde_json::from_value(value).map_err(|e| {
-            tracing::error!("Invalid value passed for document view. Error: {e}");
-            ParseError::Json(e)
-        })?;
-
-        Ok(value)
-    }
-
-    pub fn parse_markdown(markdown: &str) -> Result<Self, ParseError> {
-        let parse_options = ParseOptions::gfm();
-
-        let markdown = markdown::to_mdast(markdown, &parse_options)?;
-
-        let MdNode::Root(root) = markdown else {
-            return Err(ParseError::other("root element is not a root node!"));
-        };
-
-        let content = root
-            .children
-            .into_iter()
-            .map(Node::from_mdast)
-            .collect::<Result<Vec<_>, ParseError>>()?;
-
-        Ok(Self { content })
-    }
-
-    pub fn compile(self) -> CompilationResult {
-        let mut carriage = CompileCarriage::default();
-
-        let compiled_nodes = self
-            .content
-            .into_iter()
-            .map(|node| node.compile(&mut carriage));
-        let document = CompiledDocument::from_nodes(compiled_nodes);
-        carriage.finish(document)
     }
 }

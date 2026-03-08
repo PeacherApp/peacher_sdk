@@ -1,4 +1,7 @@
-use crate::tippytappy::*;
+use crate::tippytappy::{
+    node_kind::{ProcessNode, iter_node_children_text},
+    *,
+};
 use markdown::mdast::Node as MdNode;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -215,6 +218,52 @@ impl Node<View> {
     }
 }
 
+impl ProcessNode<ContentRelationships> for Node<Compiled> {
+    type Output = Node<View>;
+
+    fn process(self, relationships: &mut ContentRelationships) -> Self::Output {
+        match self {
+            Node::Image { attrs } => Node::Image { attrs },
+            Node::OrderedList(oln) => Node::OrderedList(oln.into_view(relationships)),
+            Node::BulletList(bln) => Node::BulletList(bln.into_view(relationships)),
+            Node::Heading { attrs, content } => {
+                let new_content = content.into_iter().map(|node| node.process(relationships));
+                Node::Heading {
+                    attrs,
+                    content: new_content.collect(),
+                }
+            }
+            Node::Paragraph { content } => {
+                let new_content = content.into_iter().map(|node| node.process(relationships));
+
+                Node::Paragraph {
+                    content: new_content.collect(),
+                }
+            }
+            Node::Blockquote { content } => {
+                let new_content = content
+                    .into_iter()
+                    .map(|node| node.into_view(relationships));
+
+                Node::Blockquote {
+                    content: new_content.collect(),
+                }
+            }
+            Node::Details { attrs, content } => {
+                let new_content = content
+                    .into_iter()
+                    .map(|node| node.into_view(relationships));
+
+                Node::Details {
+                    attrs,
+                    content: new_content.collect(),
+                }
+            }
+            Node::HorizontalRule => Node::HorizontalRule,
+        }
+    }
+}
+
 impl Node<Compiled> {
     pub fn into_view(self, relationships: &ContentRelationships) -> Node<View> {
         match self {
@@ -262,8 +311,35 @@ impl Node<Compiled> {
         }
     }
 }
-impl<S: State> Node<S> {
-    //pub fn compile(self, carriage: &mut CompileCarriage)
+
+impl<S: State> NodeKind for Node<S> {
+    fn iter_text<'slf, F>(&'slf self, mut func: F) -> bool
+    where
+        F: FnMut(&'slf str) -> bool,
+    {
+        match self {
+            Node::Blockquote { content } => iter_node_children_text(content.iter(), func),
+            Node::BulletList(list) => list.iter_text(func),
+            Node::Details { attrs: _, content } => iter_node_children_text(content.iter(), func),
+            Node::Heading { attrs: _, content } => iter_node_children_text(content.iter(), func),
+            Node::HorizontalRule => true,
+            Node::Image { attrs } => {
+                if let Some(alt) = &attrs.alt
+                    && !func(alt)
+                {
+                    return false;
+                }
+                if let Some(title) = &attrs.title
+                    && !func(title)
+                {
+                    return false;
+                }
+                true
+            }
+            Node::OrderedList(list) => list.iter_text(func),
+            Node::Paragraph { content } => iter_node_children_text(content.iter(), func),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
@@ -274,32 +350,45 @@ pub enum DetailNode<S: State> {
     DetailsContent { content: Vec<Node<S>> },
 }
 
-impl DetailNode<View> {
-    pub fn compile(self, carriage: &mut CompileCarriage) -> DetailNode<Compiled> {
+impl<S: State> NodeKind for DetailNode<S> {
+    fn iter_text<'slf, F>(&'slf self, mut func: F) -> bool
+    where
+        F: FnMut(&'slf str) -> bool,
+    {
+        match self {
+            DetailNode::DetailsSummary { content } => {
+                iter_node_children_text(content.iter(), &mut func)
+            }
+            DetailNode::DetailsContent { content } => {
+                iter_node_children_text(content.iter(), &mut func)
+            }
+        }
+    }
+}
+
+impl ProcessNode<CompileCarriage> for DetailNode<View> {
+    type Output = DetailNode<Compiled>;
+    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
         match self {
             DetailNode::DetailsSummary { content } => DetailNode::DetailsSummary {
-                content: content.into_iter().map(|c| c.compile(carriage)).collect(),
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
             },
             DetailNode::DetailsContent { content } => DetailNode::DetailsContent {
-                content: content.into_iter().map(|c| c.compile(carriage)).collect(),
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
             },
         }
     }
 }
-impl DetailNode<Compiled> {
-    pub fn into_view(self, relationships: &ContentRelationships) -> DetailNode<View> {
+
+impl ProcessNode<ContentRelationships> for DetailNode<Compiled> {
+    type Output = DetailNode<View>;
+    fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
         match self {
             DetailNode::DetailsSummary { content } => DetailNode::DetailsSummary {
-                content: content
-                    .into_iter()
-                    .map(|c| c.into_view(relationships))
-                    .collect(),
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
             },
             DetailNode::DetailsContent { content } => DetailNode::DetailsContent {
-                content: content
-                    .into_iter()
-                    .map(|c| c.into_view(relationships))
-                    .collect(),
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
             },
         }
     }

@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::tippytappy::{CompileCarriage, CompiledTextNode, Text};
+use crate::tippytappy::{
+    CompileCarriage, CompiledTextNode, Text,
+    node_kind::{NodeKind, ProcessNode},
+};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -13,16 +16,25 @@ pub enum TextNodeView {
     PostMention { attrs: Mention<Uuid> },
 }
 
-impl TextNodeView {
-    pub fn text(&self) -> &str {
+impl NodeKind for TextNodeView {
+    /// Will iterate through names and labels
+    fn iter_text<'slf, F>(&'slf self, mut func: F) -> bool
+    where
+        F: FnMut(&'slf str) -> bool,
+    {
         match self {
-            TextNodeView::Text(Text { text, .. }) => text,
-            TextNodeView::MemberMention { attrs } => &attrs.label,
-            TextNodeView::LegislationMention { attrs } => &attrs.label,
-            TextNodeView::PostMention { attrs } => &attrs.label,
+            TextNodeView::Text(Text { text, .. }) => func(text),
+            TextNodeView::MemberMention { attrs } => func(&attrs.label),
+            TextNodeView::LegislationMention { attrs } => func(&attrs.label),
+            TextNodeView::PostMention { attrs } => func(&attrs.label),
         }
     }
-    pub fn compile(self, carriage: &mut CompileCarriage) -> CompiledTextNode {
+}
+
+impl ProcessNode<CompileCarriage> for TextNodeView {
+    type Output = CompiledTextNode;
+
+    fn process(self, carriage: &mut CompileCarriage) -> CompiledTextNode {
         match self {
             TextNodeView::LegislationMention { attrs } => {
                 // carriage.push_str(&attrs.label);
@@ -42,6 +54,17 @@ impl TextNodeView {
                 carriage.push_str(&text.text);
                 CompiledTextNode::Text(text)
             }
+        }
+    }
+}
+
+impl TextNodeView {
+    pub fn text(&self) -> &str {
+        match self {
+            TextNodeView::Text(Text { text, .. }) => text,
+            TextNodeView::MemberMention { attrs } => &attrs.label,
+            TextNodeView::LegislationMention { attrs } => &attrs.label,
+            TextNodeView::PostMention { attrs } => &attrs.label,
         }
     }
 }

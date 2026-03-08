@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::tippytappy::*;
+use crate::tippytappy::{node_kind::iter_node_children_text, *};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -8,6 +8,14 @@ use crate::tippytappy::*;
 pub struct OrderedList<S: State> {
     pub attrs: ListAttributes,
     pub content: Vec<ListChild<S>>,
+}
+impl<S: State> NodeKind for OrderedList<S> {
+    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    where
+        F: FnMut(&'slf str) -> bool,
+    {
+        iter_node_children_text(self.content.iter(), func)
+    }
 }
 
 impl OrderedList<View> {
@@ -55,6 +63,18 @@ impl<S: State> OrderedList<S> {
 pub enum ListChild<S: State> {
     ListItem { content: Vec<Node<S>> },
 }
+
+impl<S: State> NodeKind for ListChild<S> {
+    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    where
+        F: FnMut(&'slf str) -> bool,
+    {
+        match self {
+            ListChild::ListItem { content } => iter_node_children_text(content.iter(), func),
+        }
+    }
+}
+
 impl ListChild<View> {
     pub fn compile(self, carriage: &mut CompileCarriage) -> ListChild<Compiled> {
         match self {
@@ -102,6 +122,15 @@ pub struct ListAttributes {
 #[serde(rename_all = "camelCase")]
 pub struct BulletListNode<S: State> {
     pub content: Vec<ListChild<S>>,
+}
+
+impl<S: State> NodeKind for BulletListNode<S> {
+    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    where
+        F: FnMut(&'slf str) -> bool,
+    {
+        iter_node_children_text(self.content.iter(), func)
+    }
 }
 
 impl BulletListNode<View> {
