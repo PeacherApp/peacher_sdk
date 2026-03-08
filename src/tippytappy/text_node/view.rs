@@ -18,7 +18,7 @@ pub enum TextNodeView {
 
 impl NodeKind for TextNodeView {
     /// Will iterate through names and labels
-    fn iter_text<'slf, F>(&'slf self, mut func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {

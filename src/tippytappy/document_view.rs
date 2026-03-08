@@ -19,7 +19,7 @@ pub struct DocumentView {
     content: Vec<Node<View>>,
 }
 impl NodeKind for DocumentView {
-    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {
@@ -40,12 +40,6 @@ impl DocumentView {
         })?;
 
         Ok(value)
-    }
-
-    /// Note that the [`Pattern`](std::str::pattern::Pattern) trait is not stabilized
-    pub fn contains(&self, pattern: &str) -> bool {
-        todo!()
-        // self.content.iter().any(|node| node.contains(pattern))
     }
 
     pub fn parse_markdown(markdown: &str) -> Result<Self, ParseError> {

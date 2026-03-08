@@ -14,7 +14,7 @@ pub enum CompiledTextNode {
 }
 impl NodeKind for CompiledTextNode {
     /// Iterates only through the text variant.
-    fn iter_text<'slf, F>(&'slf self, mut func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {

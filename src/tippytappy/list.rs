@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::tippytappy::{node_kind::{ProcessNode, iter_node_children_text}, *};
+use crate::tippytappy::{
+    node_kind::{ProcessNode, iter_node_children_text},
+    *,
+};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -10,7 +13,7 @@ pub struct OrderedList<S: State> {
     pub content: Vec<ListChild<S>>,
 }
 impl<S: State> NodeKind for OrderedList<S> {
-    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {
@@ -23,7 +26,11 @@ impl ProcessNode<CompileCarriage> for OrderedList<View> {
     fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
         OrderedList {
             attrs: self.attrs,
-            content: self.content.into_iter().map(|c| c.process(visitor)).collect(),
+            content: self
+                .content
+                .into_iter()
+                .map(|c| c.process(visitor))
+                .collect(),
         }
     }
 }
@@ -32,7 +39,11 @@ impl ProcessNode<ContentRelationships> for OrderedList<Compiled> {
     fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
         OrderedList {
             attrs: self.attrs,
-            content: self.content.into_iter().map(|c| c.process(visitor)).collect(),
+            content: self
+                .content
+                .into_iter()
+                .map(|c| c.process(visitor))
+                .collect(),
         }
     }
 }
@@ -57,7 +68,7 @@ pub enum ListChild<S: State> {
 }
 
 impl<S: State> NodeKind for ListChild<S> {
-    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {
@@ -111,7 +122,7 @@ pub struct BulletListNode<S: State> {
 }
 
 impl<S: State> NodeKind for BulletListNode<S> {
-    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {
@@ -123,7 +134,11 @@ impl ProcessNode<CompileCarriage> for BulletListNode<View> {
     type Output = BulletListNode<Compiled>;
     fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
         BulletListNode {
-            content: self.content.into_iter().map(|c| c.process(visitor)).collect(),
+            content: self
+                .content
+                .into_iter()
+                .map(|c| c.process(visitor))
+                .collect(),
         }
     }
 }
@@ -131,7 +146,11 @@ impl ProcessNode<ContentRelationships> for BulletListNode<Compiled> {
     type Output = BulletListNode<View>;
     fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
         BulletListNode {
-            content: self.content.into_iter().map(|c| c.process(visitor)).collect(),
+            content: self
+                .content
+                .into_iter()
+                .map(|c| c.process(visitor))
+                .collect(),
         }
     }
 }

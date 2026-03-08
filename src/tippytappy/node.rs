@@ -218,17 +218,29 @@ impl ProcessNode<ContentRelationships> for Node<Compiled> {
             Node::BulletList(bln) => Node::BulletList(bln.process(relationships)),
             Node::Heading { attrs, content } => Node::Heading {
                 attrs,
-                content: content.into_iter().map(|c| c.process(relationships)).collect(),
+                content: content
+                    .into_iter()
+                    .map(|c| c.process(relationships))
+                    .collect(),
             },
             Node::Paragraph { content } => Node::Paragraph {
-                content: content.into_iter().map(|c| c.process(relationships)).collect(),
+                content: content
+                    .into_iter()
+                    .map(|c| c.process(relationships))
+                    .collect(),
             },
             Node::Blockquote { content } => Node::Blockquote {
-                content: content.into_iter().map(|c| c.process(relationships)).collect(),
+                content: content
+                    .into_iter()
+                    .map(|c| c.process(relationships))
+                    .collect(),
             },
             Node::Details { attrs, content } => Node::Details {
                 attrs,
-                content: content.into_iter().map(|c| c.process(relationships)).collect(),
+                content: content
+                    .into_iter()
+                    .map(|c| c.process(relationships))
+                    .collect(),
             },
             Node::HorizontalRule => Node::HorizontalRule,
         }
@@ -236,7 +248,7 @@ impl ProcessNode<ContentRelationships> for Node<Compiled> {
 }
 
 impl<S: State> NodeKind for Node<S> {
-    fn iter_text<'slf, F>(&'slf self, mut func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {
@@ -274,17 +286,13 @@ pub enum DetailNode<S: State> {
 }
 
 impl<S: State> NodeKind for DetailNode<S> {
-    fn iter_text<'slf, F>(&'slf self, mut func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {
         match self {
-            DetailNode::DetailsSummary { content } => {
-                iter_node_children_text(content.iter(), &mut func)
-            }
-            DetailNode::DetailsContent { content } => {
-                iter_node_children_text(content.iter(), &mut func)
-            }
+            DetailNode::DetailsSummary { content } => iter_node_children_text(content.iter(), func),
+            DetailNode::DetailsContent { content } => iter_node_children_text(content.iter(), func),
         }
     }
 }

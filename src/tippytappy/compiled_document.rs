@@ -1,4 +1,7 @@
-use crate::tippytappy::{node_kind::{ProcessNode, iter_node_children_text}, *};
+use crate::tippytappy::{
+    node_kind::{ProcessNode, iter_node_children_text},
+    *,
+};
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -79,7 +82,7 @@ impl CompiledDocument {
     }
 }
 impl NodeKind for CompiledDocument {
-    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool,
     {

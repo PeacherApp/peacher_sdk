@@ -8,14 +8,15 @@ pub trait NodeKind {
     ///
     /// The function will return a false when it is time to stop iterating.
     ///
-    /// As a text node, only return the fn value if you actually have text to search. otherwise, return true.
-    fn iter_text<'slf, F>(&'slf self, func: F) -> bool
+    /// Note that the [`Pattern`](std::str::pattern::Pattern) trait is not stabilized
+    fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
         F: FnMut(&'slf str) -> bool;
 
     /// Determined if this contains a string. Note that the `Pattern` trait is unsable, so we use a string here.
     fn contains(&self, pattern: &str) -> bool {
-        self.iter_text(|text| text.contains(pattern))
+        let mut closure = |text: &str| text.contains(pattern);
+        self.iter_text(&mut closure)
     }
 }
 
