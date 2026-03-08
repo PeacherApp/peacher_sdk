@@ -35,10 +35,6 @@ pub struct FeedParams {
     // A set value here is not respected by Peacher's API.
     #[serde(skip)]
     pub member_id: Option<i32>,
-    /// time
-    pub order_by: FeedOrder,
-    /// asc | desc
-    pub order: Ordering,
 
     pub page: Option<u64>,
     pub page_size: Option<u64>,
@@ -50,18 +46,6 @@ impl FeedParams {
         self.member_id = Some(member_id);
         self
     }
-}
-
-/// How the feed should be ordered
-#[derive(
-    Serialize, Deserialize, Default, Clone, EnumString, Display, Debug, PartialEq, Eq, Copy,
-)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
-pub enum FeedOrder {
-    #[default]
-    Time,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, EnumString, strum::Display)]
