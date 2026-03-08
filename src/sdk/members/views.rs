@@ -6,7 +6,7 @@ use url::Url;
 use crate::prelude::*;
 
 /// Response for follow/unfollow operations
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct FollowResponse {
     pub followed_at: Option<DateTime<FixedOffset>>,
@@ -18,8 +18,6 @@ pub struct FollowResponse {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberView {
     pub id: i32,
-    pub bio: String,
-    pub full_name: Option<String>,
     pub handle: Slug,
     pub photo: Option<String>,
     pub display_name: String,
@@ -45,8 +43,6 @@ impl MemberView {
         debug_assert_eq!(self.party_id, party.as_ref().map(|p| p.id));
         MemberWithPartyView {
             id: self.id,
-            bio: self.bio,
-            full_name: self.full_name,
             handle: self.handle,
             party,
             photo: self.photo,
@@ -63,8 +59,6 @@ impl MemberView {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberWithPartyView {
     pub id: i32,
-    pub bio: String,
-    pub full_name: Option<String>,
     pub handle: Slug,
     pub party: Option<PartyView>,
     pub photo: Option<String>,
@@ -79,8 +73,6 @@ impl MemberWithPartyView {
     pub fn into_member_view(self) -> MemberView {
         MemberView {
             id: self.id,
-            bio: self.bio,
-            full_name: self.full_name,
             handle: self.handle,
             party_id: self.party.map(|p| p.id),
             photo: self.photo,
@@ -93,7 +85,7 @@ impl MemberWithPartyView {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct GetMemberDetailsResponse {
     pub id: i32,
@@ -107,7 +99,9 @@ pub struct GetMemberDetailsResponse {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub ban: Option<BanInfo>,
+    pub created_by_id: Option<i32>,
     pub follower_data: FollowResponse,
+    pub trust: Trust,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
