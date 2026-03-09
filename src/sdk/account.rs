@@ -16,14 +16,12 @@ impl GetHandler for GetAccount {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AccountView {
-    pub member: MemberWithPartyView,
+    pub member: GetMemberDetailsResponse,
     pub member_location: Option<ViewerLocationResponse>,
-    pub ban: Option<BanInfo>,
     pub email: Option<String>,
     #[cfg_attr(feature = "utoipa", schema(value_type = Option<String>, format = DateTime))]
     pub email_verified_at: Option<DateTime<FixedOffset>>,
     pub pending_email: Option<String>,
-    pub trust: Trust,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

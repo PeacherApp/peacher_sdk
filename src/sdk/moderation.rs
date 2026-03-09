@@ -19,7 +19,6 @@ pub struct LoginHistory {
 pub struct ModerationContentItem {
     pub id: Uuid,
     pub kind: ContentTypeId,
-    pub searchable_text: String,
     pub created_at: DateTime<FixedOffset>,
     pub removed_at: Option<DateTime<FixedOffset>>,
     pub reason_removed: Option<String>,

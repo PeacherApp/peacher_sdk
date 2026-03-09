@@ -8,6 +8,7 @@ pub struct DistrictRepresentative {
     pub member: RepresentativeMember,
     pub session: SessionView,
     pub chamber: GetChamberView,
+    pub is_following: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

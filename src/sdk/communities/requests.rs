@@ -38,7 +38,6 @@ pub struct CommunityParams {
     pub search: Option<String>,
     pub district_map_id: Option<i32>,
     pub district_id: Option<i32>,
-    pub member_id: Option<i32>,
     pub page: Option<u64>,
     pub page_size: Option<u64>,
     pub order_by: CommunityOrder,
@@ -92,6 +91,8 @@ pub struct CreateCommunityRequest {
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
     pub district_ids: Vec<DistrictId>,
+    pub primary_color: String,
+    pub secondary_color: String,
 }
 
 /// Create a new community
@@ -131,6 +132,8 @@ pub struct UpdateCommunityRequest {
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
     pub district_ids: Option<Vec<(i32, i32)>>,
+    pub primary_color: Option<String>,
+    pub secondary_color: Option<String>,
 }
 
 /// Update an existing community

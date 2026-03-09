@@ -18,6 +18,10 @@ pub struct CommunityView {
     pub description: Option<String>,
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
+    pub primary_color: String,
+    pub secondary_color: String,
+    pub ban_date: Option<DateTime<FixedOffset>>,
+    pub ban_reason: Option<String>,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
 }
@@ -29,6 +33,10 @@ impl CommunityView {
             description: self.description,
             icon_url: self.icon_url,
             banner_url: self.banner_url,
+            primary_color: self.primary_color,
+            secondary_color: self.secondary_color,
+            ban_date: self.ban_date,
+            ban_reason: self.ban_reason,
             member_count,
             created_at: self.created_at,
         }
@@ -41,6 +49,10 @@ impl CommunityView {
             icon_url: self.icon_url,
             banner_url: self.banner_url,
             join_date,
+            primary_color: self.primary_color,
+            secondary_color: self.secondary_color,
+            ban_date: self.ban_date,
+            ban_reason: self.ban_reason,
             created_at: self.created_at,
         }
     }
@@ -63,6 +75,10 @@ impl CommunityView {
             created_by,
             districts: districts.into_iter().collect(),
             created_at: self.created_at,
+            primary_color: self.primary_color,
+            secondary_color: self.secondary_color,
+            ban_date: self.ban_date,
+            ban_reason: self.ban_reason,
         }
     }
 }
@@ -77,6 +93,10 @@ pub struct CommunityViewWithJoinDate {
     pub banner_url: Option<String>,
     pub join_date: DateTime<FixedOffset>,
     pub created_at: DateTime<FixedOffset>,
+    pub primary_color: String,
+    pub secondary_color: String,
+    pub ban_date: Option<DateTime<FixedOffset>>,
+    pub ban_reason: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -87,6 +107,10 @@ pub struct CommunityViewWithCount {
     pub description: Option<String>,
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
+    pub primary_color: String,
+    pub secondary_color: String,
+    pub ban_date: Option<DateTime<FixedOffset>>,
+    pub ban_reason: Option<String>,
     pub member_count: u64,
     pub created_at: DateTime<FixedOffset>,
 }
@@ -105,6 +129,10 @@ pub struct CommunityDetailView {
     pub districts: Vec<DistrictView>,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
+    pub primary_color: String,
+    pub secondary_color: String,
+    pub ban_date: Option<DateTime<FixedOffset>>,
+    pub ban_reason: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
