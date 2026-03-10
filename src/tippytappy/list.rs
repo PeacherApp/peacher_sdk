@@ -49,7 +49,7 @@ impl ProcessNode<ContentRelationships> for OrderedList<Compiled> {
 }
 
 impl<S: State> OrderedList<S> {
-    pub(crate) fn new(start: u32, content: Vec<ListChild<S>>) -> Self {
+    pub fn new(start: u32, content: Vec<ListChild<S>>) -> Self {
         Self {
             attrs: ListAttributes {
                 start,
@@ -100,7 +100,7 @@ impl ProcessNode<ContentRelationships> for ListChild<Compiled> {
 }
 
 impl<S: State> ListChild<S> {
-    pub(crate) fn new(content: Vec<Node<S>>) -> Self {
+    pub fn new(content: Vec<Node<S>>) -> Self {
         Self::ListItem { content }
     }
 }
@@ -156,7 +156,7 @@ impl ProcessNode<ContentRelationships> for BulletListNode<Compiled> {
 }
 
 impl<S: State> BulletListNode<S> {
-    pub(crate) fn new(content: Vec<ListChild<S>>) -> Self {
+    pub fn new(content: Vec<ListChild<S>>) -> Self {
         Self { content }
     }
 }
