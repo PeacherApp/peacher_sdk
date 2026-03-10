@@ -50,10 +50,10 @@ pub struct ChamberDetailsParams {
 
 /// List chambers with optional filters
 pub struct ListChambers {
-    page: u64,
-    page_size: u64,
-    external_id: Option<ExternalId>,
-    jurisdiction_id: Option<i32>,
+    pub page: u64,
+    pub page_size: u64,
+    pub external_id: Option<ExternalId>,
+    pub jurisdiction_id: Option<i32>,
 }
 
 impl ListChambers {

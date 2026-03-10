@@ -170,6 +170,40 @@ impl GetHandler for GetLegislationVoteDetails {
     }
 }
 
+/// Handler to list posts that reference a piece of legislation
+pub struct ListLegislationPosts {
+    legislation_id: i32,
+    params: PostParams,
+}
+
+impl ListLegislationPosts {
+    pub fn new(legislation_id: i32) -> Self {
+        Self {
+            legislation_id,
+            params: PostParams::default(),
+        }
+    }
+
+    pub fn with_params(legislation_id: i32, params: PostParams) -> Self {
+        Self {
+            legislation_id,
+            params,
+        }
+    }
+}
+
+impl GetHandler for ListLegislationPosts {
+    type ResponseBody = Paginated<PostView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/posts", self.legislation_id).into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
+    }
+}
+
 /// Request to create a new piece of legislation
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]

@@ -148,7 +148,7 @@ impl GetHandler for GetRepresentativeDistricts {
     type ResponseBody = RepresentativeDistrictsResponse;
 
     fn path(&self) -> Cow<'_, str> {
-        format!("/api/members/{}/districts", self.0).into()
+        format!("/api/members/{}/representative/districts", self.0).into()
     }
 }
 
