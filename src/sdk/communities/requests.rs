@@ -1,9 +1,27 @@
 use std::borrow::Cow;
 
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 use crate::{paginated, prelude::*};
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
+pub struct CommunityReportsParams {
+    /// ignored. Use the list reports route under communities.
+    #[serde(skip)]
+    pub community_id: Option<i32>,
+    pub review_status: CommaSeparated<ReviewStatus>,
+    pub created_after: Option<DateTime<FixedOffset>>,
+    pub created_before: Option<DateTime<FixedOffset>>,
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+
+paginated!(CommunityReportsParams);
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]

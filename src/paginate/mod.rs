@@ -1,5 +1,6 @@
 mod paginated;
 pub use paginated::*;
+use serde::{Deserialize, Serialize};
 
 pub trait PaginatedParams {
     /// the page field of the actual param. pages start at 0.
@@ -72,3 +73,14 @@ macro_rules! paginated {
         }
     };
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
+pub struct DefaultPagination {
+    page: Option<u64>,
+    page_size: Option<u64>,
+}
+
+paginated!(DefaultPagination);

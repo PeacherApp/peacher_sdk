@@ -60,8 +60,8 @@ impl CommunityView {
         self,
         rules: Option<String>,
         member_count: u64,
-        created_by: MemberView,
         districts: impl IntoIterator<Item = DistrictView>,
+        membership: Option<SelfCommunityMembership>,
     ) -> CommunityDetailView {
         CommunityDetailView {
             id: self.id,
@@ -72,13 +72,13 @@ impl CommunityView {
             icon_url: self.icon_url,
             banner_url: self.banner_url,
             member_count,
-            created_by,
             districts: districts.into_iter().collect(),
             created_at: self.created_at,
             primary_color: self.primary_color,
             secondary_color: self.secondary_color,
-            ban_date: self.ban_date,
-            ban_reason: self.ban_reason,
+            community_ban_date: self.ban_date,
+            community_ban_reason: self.ban_reason,
+            membership,
         }
     }
 }
@@ -125,14 +125,21 @@ pub struct CommunityDetailView {
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
     pub member_count: u64,
-    pub created_by: MemberView,
     pub districts: Vec<DistrictView>,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub primary_color: String,
     pub secondary_color: String,
-    pub ban_date: Option<DateTime<FixedOffset>>,
-    pub ban_reason: Option<String>,
+    pub community_ban_date: Option<DateTime<FixedOffset>>,
+    pub community_ban_reason: Option<String>,
+    pub membership: Option<SelfCommunityMembership>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SelfCommunityMembership {
+    pub role: CommunityMemberRole,
+    pub joined_at: DateTime<FixedOffset>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -145,10 +152,11 @@ pub struct CommunityMembershipView {
     pub member_count: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum CommunityMemberRole {
     Member,
     Moderator,
+    Owner,
 }
