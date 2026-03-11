@@ -9,24 +9,28 @@ use crate::{paginated, prelude::*};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ArticleView {
-    pub id: i32,
-    pub title: Option<String>,
-    pub description: Option<String>,
-    pub image: Option<String>,
-    pub url: String,
+pub struct PostView {
+    pub link: Option<PostLink>,
+    pub title: String,
+    pub community: SmallCommunityView,
+    pub pinned: bool,
+    pub content: ContentView,
+    pub editable_until: Option<DateTime<FixedOffset>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct PostView {
-    pub title: String,
-    pub community: SmallCommunityView,
-    pub article: Option<ArticleView>,
-    pub cover_image_url: Option<String>,
-    pub pinned: bool,
-    pub content: ContentView,
-    pub editable_until: Option<DateTime<FixedOffset>>,
+pub struct PostLink {
+    pub href: Url,
+    pub kind: LinkType,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case", tag = "type")]
+pub enum LinkType {
+    Article,
+    Image,
+    Video,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -49,8 +53,6 @@ pub struct CreatePostRequest {
     pub title: String,
     pub community_id: i32,
     pub body: SetContentRequest,
-    pub article_url: Option<Url>,
-    pub cover_image_url: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -58,7 +60,6 @@ pub struct CreatePostRequest {
 pub struct UpdatePostRequest {
     pub title: Option<String>,
     pub body: Option<SetContentRequest>,
-    pub cover_image_url: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
