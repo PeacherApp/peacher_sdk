@@ -59,7 +59,7 @@ impl ListCommunities {
 }
 
 impl GetHandler for ListCommunities {
-    type ResponseBody = Paginated<CommunityView>;
+    type ResponseBody = Paginated<CommunityViewWithCount>;
 
     fn path(&self) -> Cow<'_, str> {
         "/api/communities".into()

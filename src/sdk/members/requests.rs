@@ -141,14 +141,14 @@ impl GetHandler for GetMemberByHandle {
 }
 
 /// Get districts for a specific member
-pub struct GetMemberDistricts(pub i32);
+pub struct GetRepresentativeDistricts(pub i32);
 
-impl GetHandler for GetMemberDistricts {
+impl GetHandler for GetRepresentativeDistricts {
     // Use Value for flexibility - actual type is MemberDistrictsResponse (defined in api crate)
-    type ResponseBody = serde_json::Value;
+    type ResponseBody = RepresentativeDistrictsResponse;
 
     fn path(&self) -> Cow<'_, str> {
-        format!("/api/members/{}/districts", self.0).into()
+        format!("/api/members/{}/representative/districts", self.0).into()
     }
 }
 
@@ -410,5 +410,46 @@ impl Handler for BanMember {
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
         builder.json(&self.body)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+pub struct MemberActivityParams {
+    pub content_type: Option<ContentType>,
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+paginated!(MemberActivityParams);
+
+/// Get a member's recent activity (posts, comments, summaries)
+pub struct GetMemberActivity {
+    member_id: i32,
+    params: MemberActivityParams,
+}
+
+impl GetMemberActivity {
+    pub fn new(member_id: i32) -> Self {
+        Self {
+            member_id,
+            params: MemberActivityParams::default(),
+        }
+    }
+
+    pub fn with_params(member_id: i32, params: MemberActivityParams) -> Self {
+        Self { member_id, params }
+    }
+}
+
+impl GetHandler for GetMemberActivity {
+    type ResponseBody = Paginated<MemberActivityItemView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/members/{}/activity", self.member_id).into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
     }
 }

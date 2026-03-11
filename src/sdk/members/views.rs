@@ -2,6 +2,7 @@ use chrono::{DateTime, FixedOffset, NaiveDate};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
 use url::Url;
+use uuid::Uuid;
 
 use crate::prelude::*;
 
@@ -131,7 +132,7 @@ pub struct MemberActivity {
 
 #[derive(Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct MemberActivityResponse {
+pub struct RepresentativeActivityResponse {
     pub session: SessionView,
     pub chamber: ChamberView,
     pub activity: MemberActivity,
@@ -169,7 +170,7 @@ pub struct MemberDistrictInfo {
 /// returns the past data about a member's election/appointment to jurisdictions
 #[derive(Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct MemberDistrictsResponse {
+pub struct RepresentativeDistrictsResponse {
     pub districts: Vec<MemberDistrictInfo>,
 }
 
@@ -241,4 +242,39 @@ impl Trust {
             Trust::Privileged | Trust::Moderator | Trust::Admin => 10,
         }
     }
+}
+
+/// A single item in a member's activity feed.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
+pub enum MemberActivityItemView {
+    Post(PostActivityView),
+    Comment(CommentActivityView),
+    Summary(SummaryActivityView),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PostActivityView {
+    pub title: String,
+    pub community: SmallCommunityView,
+    pub content: ContentView,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct CommentActivityView {
+    pub post_id: Uuid,
+    pub post_title: String,
+    pub content: ContentView,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SummaryActivityView {
+    pub legislation_id: i32,
+    pub legislation_title: String,
+    pub kind: SummaryKind,
+    pub content: ContentView,
 }
