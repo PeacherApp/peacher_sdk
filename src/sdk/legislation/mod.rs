@@ -303,14 +303,27 @@ pub struct UpdateLegislationRequest {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AddSponsorRequest {
     pub member_id: i32,
-    pub sponsor_type: i32,
+    pub sponsor_type: SponsorshipType,
 }
 
 impl AddSponsorRequest {
-    pub fn new(member_id: i32, sponsor_type: i32) -> Self {
+    pub const fn primary(member_id: i32) -> Self {
         Self {
             member_id,
-            sponsor_type,
+            sponsor_type: SponsorshipType::Primary,
+        }
+    }
+    pub const fn cosponsor(member_id: i32) -> Self {
+        Self {
+            member_id,
+            sponsor_type: SponsorshipType::Cosponsor,
+        }
+    }
+
+    pub const fn other(member_id: i32) -> Self {
+        Self {
+            member_id,
+            sponsor_type: SponsorshipType::Other,
         }
     }
 }
