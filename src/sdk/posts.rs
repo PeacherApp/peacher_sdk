@@ -55,10 +55,10 @@ pub struct CreatePostRequest {
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum NewPostMedia {
-    Attachment(Uuid),
-    Article(Url),
+    Attachment { attachment_id: Uuid },
+    Article { href: Url },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
