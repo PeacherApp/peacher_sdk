@@ -17,20 +17,19 @@ pub struct PostView {
     pub content: ContentView,
     pub editable_until: Option<DateTime<FixedOffset>>,
 }
+impl PostView {
+    pub fn id(&self) -> Uuid {
+        self.content.id()
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct PostLink {
-    pub href: Url,
-    pub kind: LinkType,
-}
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "snake_case", tag = "type")]
-pub enum LinkType {
-    Article,
-    Image,
-    Video,
+pub enum PostLink {
+    Article { url: Url },
+    Image { url: String },
+    Video { url: String },
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -50,9 +49,17 @@ paginated!(PostParams);
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreatePostRequest {
+    pub media: Option<NewPostMedia>,
     pub title: String,
     pub community_id: i32,
     pub body: SetContentRequest,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case")]
+pub enum NewPostMedia {
+    Attachment(Uuid),
+    Article(Url),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
