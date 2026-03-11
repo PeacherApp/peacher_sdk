@@ -25,11 +25,10 @@ impl PostView {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(rename_all = "snake_case", tag = "type")]
+#[serde(rename_all = "snake_case", tag = "type", content = "value")]
 pub enum PostLink {
-    Article { url: Url },
-    Image { url: String },
-    Video { url: String },
+    Article(Url),
+    Media(AttachmentResponse),
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]

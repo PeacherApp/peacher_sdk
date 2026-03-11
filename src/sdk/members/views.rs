@@ -20,7 +20,7 @@ pub struct FollowResponse {
 pub struct MemberView {
     pub id: i32,
     pub handle: Slug,
-    pub photo: Option<String>,
+    pub photo: Option<Url>,
     pub display_name: String,
     pub party_id: Option<i32>,
     pub external_id: Option<ExternalId>,
@@ -35,7 +35,7 @@ pub struct CompactRepresentativeView {
     pub id: i32,
     pub display_name: String,
     pub handle: Slug,
-    pub photo: Option<String>,
+    pub photo: Option<Url>,
     pub party: Option<PartyView>,
 }
 
@@ -62,7 +62,7 @@ pub struct MemberWithPartyView {
     pub id: i32,
     pub handle: Slug,
     pub party: Option<PartyView>,
-    pub photo: Option<String>,
+    pub photo: Option<Url>,
     pub display_name: String,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
@@ -93,7 +93,7 @@ pub struct GetMemberDetailsResponse {
     pub bio: String,
     pub full_name: Option<String>,
     pub handle: Slug,
-    pub photo: Option<String>,
+    pub photo: Option<Url>,
     pub display_name: String,
     pub party: Option<PartyView>,
     pub auth_level: AuthLevel,
