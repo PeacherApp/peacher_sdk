@@ -152,6 +152,16 @@ pub struct CommunityMembershipView {
     pub member_count: u64,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct CommunityMemberView {
+    pub member: MemberView,
+    pub role: CommunityMemberRole,
+    pub joined_at: DateTime<FixedOffset>,
+    pub banned_at: Option<DateTime<FixedOffset>>,
+    pub ban_reason: Option<String>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]

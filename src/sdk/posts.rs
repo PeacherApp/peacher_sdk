@@ -9,17 +9,66 @@ use crate::{paginated, prelude::*};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct PostView {
+pub struct RemovedPost {
+    pub community: SmallCommunityView,
+    pub pinned: bool,
+    pub content: RemovedContent,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PostUnderReview {
+    pub community: SmallCommunityView,
+    pub pinned: bool,
+    pub content: ContentUnderReview,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PostDetails {
     pub link: Option<PostLink>,
     pub title: String,
     pub community: SmallCommunityView,
     pub pinned: bool,
-    pub content: ContentView,
+    pub content: ContentDetails,
     pub editable_until: Option<DateTime<FixedOffset>>,
+}
+impl PostDetails {
+    pub fn id(&self) -> Uuid {
+        self.content.id
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+#[expect(clippy::large_enum_variant)]
+pub enum PostView {
+    Content(PostDetails),
+    UnderReview(PostUnderReview),
+    Removed(RemovedPost),
 }
 impl PostView {
     pub fn id(&self) -> Uuid {
-        self.content.id()
+        match self {
+            Self::Content(c) => c.content.id,
+            Self::UnderReview(c) => c.content.id,
+            Self::Removed(c) => c.content.id,
+        }
+    }
+    pub fn community(&self) -> &SmallCommunityView {
+        match self {
+            Self::Content(c) => &c.community,
+            Self::Removed(c) => &c.community,
+            Self::UnderReview(u) => &u.community,
+        }
+    }
+    pub fn pinned(&self) -> bool {
+        match self {
+            Self::Content(c) => c.pinned,
+            Self::Removed(r) => r.pinned,
+            Self::UnderReview(u) => u.pinned,
+        }
     }
 }
 

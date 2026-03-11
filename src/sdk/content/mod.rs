@@ -67,9 +67,17 @@ pub struct RemoveContentRequest {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ContentUnderReview {
+    pub id: Uuid,
+    pub created_at: DateTime<FixedOffset>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct RemovedContent {
     pub id: Uuid,
     pub reason_removed: String,
+    pub created_at: DateTime<FixedOffset>,
     pub removed_at: DateTime<FixedOffset>,
 }
 
@@ -87,9 +95,9 @@ pub enum ContentType {
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ContentTypeId {
     /// Post ID
-    Post(i32),
+    Post,
     /// Comment ID
-    Comment(Uuid),
+    Comment,
     /// Legislation ID
     Summary(Option<i32>),
 }
@@ -121,14 +129,14 @@ pub enum ContentView {
     /// Some content that is currently under review.
     ///
     /// Viewers that see this variant are not part of the moderation team.
-    UnderReview(Uuid),
+    UnderReview(ContentUnderReview),
 }
 impl ContentView {
     pub fn id(&self) -> Uuid {
         match self {
             ContentView::Removed(removed) => removed.id,
             ContentView::Content(content) => content.id,
-            ContentView::UnderReview(id) => *id,
+            ContentView::UnderReview(content) => content.id,
         }
     }
 }

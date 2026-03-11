@@ -263,6 +263,18 @@ impl GetHandler for ListAccountCommunities {
     }
 }
 
+/// Params for listing community members (mod/owner only)
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
+pub struct CommunityMembersParams {
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+
+paginated!(CommunityMembersParams);
+
 /// Get community membership status for the current viewer
 pub struct GetCommunityMembership(pub i32);
 

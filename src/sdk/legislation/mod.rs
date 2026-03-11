@@ -193,7 +193,7 @@ impl ListLegislationPosts {
 }
 
 impl GetHandler for ListLegislationPosts {
-    type ResponseBody = Paginated<PostView>;
+    type ResponseBody = Paginated<PostDetails>;
 
     fn path(&self) -> Cow<'_, str> {
         format!("/api/legislation/{}/posts", self.legislation_id).into()
