@@ -28,6 +28,7 @@ pub struct PostUnderReview {
 pub struct PostDetails {
     pub link: Option<PostLink>,
     pub title: String,
+    pub num_comments: u32,
     pub community: SmallCommunityView,
     pub pinned: bool,
     pub content: ContentDetails,
