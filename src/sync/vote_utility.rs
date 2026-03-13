@@ -1,0 +1,40 @@
+use crate::sdk::Vote;
+
+/// A helper trait to determine if a vote succeeds
+pub trait VoteSuccess {
+    fn succeeds(&self, votes: impl Iterator<Item = Vote>) -> bool;
+}
+
+/// Votes succeed by simple majority
+pub struct SimpleMajority;
+impl VoteSuccess for SimpleMajority {
+    fn succeeds(&self, votes: impl Iterator<Item = Vote>) -> bool {
+        let mut num_yes = 0;
+        let mut num_no = 0;
+        votes.for_each(|vote| match vote {
+            Vote::Yes => num_yes += 1,
+            Vote::No => num_no += 1,
+            _ => {}
+        });
+        num_yes > num_no
+    }
+}
+
+pub trait VoteSuccessExt {
+    fn succeeds(&self, strategy: impl VoteSuccess) -> bool;
+}
+impl VoteSuccessExt for [Vote] {
+    fn succeeds(&self, strategy: impl VoteSuccess) -> bool {
+        strategy.succeeds(self.iter().copied())
+    }
+}
+impl VoteSuccessExt for Vec<Vote> {
+    fn succeeds(&self, strategy: impl VoteSuccess) -> bool {
+        strategy.succeeds(self.iter().copied())
+    }
+}
+#[test]
+fn test_simple_majority() {
+    let votes = [Vote::Yes, Vote::Yes, Vote::No];
+    assert!(votes.succeeds(SimpleMajority))
+}
