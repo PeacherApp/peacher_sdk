@@ -23,6 +23,13 @@ pub struct ExternalLegislationVote {
     pub vote_type: VoteType,
     pub votes: Vec<ExternalMemberVote>,
     /// Did the vote succeed? It depends on the rules of the chamber.
+    ///
+    /// You can use the [`VoteSuccess`] and [`VoteSuccessExt`] traits here for ease
+    /// of use.
+    /// ```rust
+    /// let votes = [Vote::Yes, Vote::Yes, Vote::No];
+    /// assert!(votes.succeeds(SimpleMajoriy));
+    /// ```
     pub succeeded: bool,
 }
 

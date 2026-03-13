@@ -1,4 +1,4 @@
-use crate::sdk::Vote;
+use crate::{prelude::ExternalMemberVote, sdk::Vote};
 
 /// A helper trait to determine if a vote succeeds
 pub trait VoteSuccess {
@@ -33,6 +33,19 @@ impl VoteSuccessExt for Vec<Vote> {
         strategy.succeeds(self.iter().copied())
     }
 }
+
+impl VoteSuccessExt for [ExternalMemberVote] {
+    fn succeeds(&self, strategy: impl VoteSuccess) -> bool {
+        strategy.succeeds(self.iter().map(|v| v.vote))
+    }
+}
+
+impl VoteSuccessExt for Vec<ExternalMemberVote> {
+    fn succeeds(&self, strategy: impl VoteSuccess) -> bool {
+        strategy.succeeds(self.iter().map(|v| v.vote))
+    }
+}
+
 #[test]
 fn test_simple_majority() {
     let votes = [Vote::Yes, Vote::Yes, Vote::No];
