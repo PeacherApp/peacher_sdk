@@ -724,6 +724,7 @@ pub struct LegislationVoteView {
     pub id: i32,
     pub name: String,
     pub occurred_at: Option<DateTime<FixedOffset>>,
+    pub succeeded: bool,
     pub chamber: ChamberRef,
     pub yes_count: i32,
     pub no_count: i32,
@@ -740,7 +741,6 @@ pub struct VoteSummary {
     pub absent_count: i32,
     pub not_voting_count: i32,
     pub total: i32,
-    pub passed: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -748,6 +748,7 @@ pub struct VoteSummary {
 pub struct LegislationVoteDetailsResponse {
     pub vote_id: i32,
     pub vote_name: String,
+    pub succeeded: bool,
     pub occurred_at: Option<DateTime<FixedOffset>>,
     pub chamber: ChamberRef,
     pub legislation: LegislationView,

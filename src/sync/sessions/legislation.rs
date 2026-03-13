@@ -237,17 +237,17 @@ async fn sync_legislation_votes<P: Client>(
 
         let vote_name = ext_vote.vote_name.clone();
         let ext_vote_id = ext_vote.external_id.val_str().to_owned();
-        let mut vote_req = CreateVoteRequest::new(
-            ext_vote.vote_name.clone(),
-            ext_vote.date_occurred,
-            member_votes.clone(),
-            chamber.id,
-            ext_vote.vote_type,
-        )
-        .external_id(ext_vote.external_id.val_str());
-        if let Some(url) = &ext_vote.url {
-            vote_req = vote_req.external_url(url.clone());
-        }
+
+        let vote_req = CreateVoteRequest {
+            name: ext_vote.vote_name,
+            occurred_at: ext_vote.date_occurred,
+            member_votes: member_votes.clone(),
+            chamber: chamber.id,
+            vote_type: ext_vote.vote_type,
+            succeeded: ext_vote.succeeded,
+            external_id: Some(ext_vote.external_id),
+            external_url: ext_vote.url,
+        };
 
         match CreateVote::new(legislation.id, vote_req)
             .request(mapper.client())
@@ -276,14 +276,14 @@ async fn sync_legislation_votes<P: Client>(
                         .request(mapper.client())
                         .await?;
 
-                    if known_vote.vote_name == ext_vote.vote_name
+                    if known_vote.vote_name == vote_name
                         && known_vote.member_votes.len() == member_votes.len()
                         && known_vote.occurred_at == ext_vote.date_occurred
                     {
                         unchanged.push(id);
                     } else {
                         let req = UpdateVoteRequest {
-                            name: Some(ext_vote.vote_name),
+                            name: Some(vote_name),
                             occurred_at: ext_vote.date_occurred,
                             member_votes: Some(member_votes),
                         };

@@ -28,36 +28,7 @@ pub struct CreateVoteRequest {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub vote_type: VoteType,
-}
-
-impl CreateVoteRequest {
-    pub fn new(
-        name: impl Into<String>,
-        occurred_at: Option<DateTime<FixedOffset>>,
-        member_votes: Vec<MemberVoteInput>,
-        chamber: i32,
-        vote_type: VoteType,
-    ) -> Self {
-        Self {
-            name: name.into(),
-            occurred_at,
-            member_votes,
-            chamber,
-            vote_type,
-            external_id: None,
-            external_url: None,
-        }
-    }
-
-    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
-        self.external_id = Some(id.into());
-        self
-    }
-
-    pub fn external_url(mut self, url: Url) -> Self {
-        self.external_url = Some(url);
-        self
-    }
+    pub succeeded: bool,
 }
 
 /// Request to update an existing vote

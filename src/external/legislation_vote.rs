@@ -22,6 +22,21 @@ pub struct ExternalLegislationVote {
     /// Type of vote: Passage, Procedural, or VetoOverride
     pub vote_type: VoteType,
     pub votes: Vec<ExternalMemberVote>,
+    /// Did the vote succeed? It depends on the rules of the chamber.
+    pub succeeded: bool,
+}
+impl ExternalLegislationVote {
+    /// Use this
+    pub fn succeed_on_majority(votes: impl Iterator<Item = Vote>) -> bool {
+        let mut num_yes = 0;
+        let mut num_no = 0;
+        votes.for_each(|vote| match vote {
+            Vote::Yes => num_yes += 1,
+            Vote::No => num_no += 1,
+            _ => {}
+        });
+        num_yes > num_no
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
