@@ -9,14 +9,13 @@ pub trait VoteSuccess {
 pub struct SimpleMajority;
 impl VoteSuccess for SimpleMajority {
     fn succeeds(&self, votes: impl Iterator<Item = Vote>) -> bool {
-        let mut num_yes = 0;
-        let mut num_no = 0;
-        votes.for_each(|vote| match vote {
-            Vote::Yes => num_yes += 1,
-            Vote::No => num_no += 1,
-            _ => {}
-        });
-        num_yes > num_no
+        votes
+            .fold(0i32, |prev_total, vote| match vote {
+                Vote::Yes => prev_total + 1,
+                Vote::No => prev_total - 1,
+                _ => prev_total,
+            })
+            .is_positive()
     }
 }
 
