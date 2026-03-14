@@ -170,6 +170,8 @@ pub struct DistrictView {
     pub geo_id: i32,
     pub lat: f64,
     pub lon: f64,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
 }
@@ -181,6 +183,8 @@ impl DistrictView {
             geo_id: self.geo_id,
             lat: self.lat,
             lon: self.lon,
+            external_id: self.external_id,
+            external_url: self.external_url,
             created_at: self.created_at,
             updated_at: self.updated_at,
         }
@@ -195,6 +199,8 @@ pub struct SmallDistrictView {
     pub geo_id: i32,
     pub lat: f64,
     pub lon: f64,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
 }
