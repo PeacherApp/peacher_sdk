@@ -54,7 +54,6 @@ pub enum CommunityOrder {
 #[serde(default)]
 pub struct CommunityParams {
     pub search: Option<String>,
-    pub district_map_id: Option<i32>,
     pub district_id: Option<i32>,
     pub page: Option<u64>,
     pub page_size: Option<u64>,

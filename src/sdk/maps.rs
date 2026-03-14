@@ -165,7 +165,6 @@ pub struct SmallMapView {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DistrictView {
-    pub map_id: i32,
     pub id: i32,
     pub name: String,
     pub geo_id: i32,

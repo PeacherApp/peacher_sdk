@@ -52,10 +52,8 @@ impl ViewerIntersectionResponse {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DistrictIntersectionInfo {
-    /// the original map this intersection corresponds with
-    pub map_id: i32,
     /// the district of the original map this intersection corresponds with
-    pub district_id: i32,
+    pub id: i32,
     /// the name of the district
     pub name: String,
     /// The jurisdictions that are represented by this boundary
