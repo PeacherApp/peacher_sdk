@@ -258,7 +258,7 @@ pub enum MemberActivityItemView {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PostActivityView {
     pub title: String,
-    pub community: SmallCommunityView,
+    pub district_id: i32,
     pub content: ContentView,
 }
 

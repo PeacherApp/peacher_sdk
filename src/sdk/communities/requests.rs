@@ -144,7 +144,7 @@ pub struct UpdateCommunityRequest {
     pub name: Option<String>,
     pub description: Option<String>,
     pub rules: Option<String>,
-    pub district_ids: Option<Vec<(i32, i32)>>,
+    pub district_ids: Option<Vec<DistrictId>>,
     pub primary_color: Option<String>,
     pub secondary_color: Option<String>,
 }
