@@ -110,7 +110,15 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
                     link_req = link_req
                         .appointed_at(ext_member.appointed_at)
                         .expunged_at(ext_member.vacated_at);
-                    link_req.set_district(ext_member.district_number);
+
+                    if let Some(district_ext_id) = &ext_member.district_id {
+                        let district = self
+                            .mapper
+                            .district(chamber.id, session.id, district_ext_id)
+                            .await?;
+                        link_req.set_district(Some(district.id));
+                    }
+
                     link_req.request(self.mapper.client()).await?;
 
                     if is_new {

@@ -10,6 +10,8 @@ pub struct ClientMapper<'p, P> {
     chambers: HashMap<ExternalId, Arc<GetChamberView>>,
     sessions: HashMap<ExternalId, Arc<ListSessionView>>,
     members: HashMap<ExternalId, Arc<MemberWithPartyView>>,
+    /// Maps (chamber_id, session_id) → (district_external_id → internal district_id)
+    district_lookups: HashMap<(i32, i32), HashMap<ExternalId, SmallDistrictView>>,
 }
 
 impl<'p, P: Client> ClientMapper<'p, P> {
@@ -21,6 +23,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
             chambers: Default::default(),
             sessions: Default::default(),
             members: Default::default(),
+            district_lookups: Default::default(),
         }
     }
     pub fn client(&self) -> &'p P {
@@ -110,6 +113,40 @@ impl<'p, P: Client> ClientMapper<'p, P> {
         let j = Arc::new(jurisdiction);
         self.jurisdiction = Some(j.clone());
         j
+    }
+
+    /// Look up a district by external_id within a specific chamber-session's map.
+    /// Fetches and caches the session-chamber response (which includes the map's districts).
+    pub async fn district(
+        &mut self,
+        chamber_id: i32,
+        session_id: i32,
+        district_ext_id: &ExternalId,
+    ) -> SyncResult<SmallDistrictView> {
+        let key = (chamber_id, session_id);
+
+        if !self.district_lookups.contains_key(&key) {
+            let response = GetSessionChamber::new(chamber_id, session_id)
+                .request(self.peacher)
+                .await?;
+
+            let lookup: HashMap<ExternalId, SmallDistrictView> = response
+                .map
+                .into_iter()
+                .flat_map(|m| m.districts)
+                .filter_map(|d| {
+                    let ext_id = d.external_id.clone()?;
+                    Some((ext_id, d))
+                })
+                .collect();
+
+            self.district_lookups.insert(key, lookup);
+        }
+
+        self.district_lookups
+            .get(&key)
+            .and_then(|lookup| lookup.get(district_ext_id).cloned())
+            .ok_or_else(|| SyncError::NotFound(district_ext_id.clone()))
     }
 
     pub async fn jurisdiction(&mut self, ext_id: &ExternalId) -> SyncResult<Arc<JurisdictionView>> {
