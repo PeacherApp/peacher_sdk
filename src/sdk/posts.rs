@@ -9,24 +9,76 @@ use crate::{paginated, prelude::*};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ArticleView {
-    pub id: i32,
-    pub title: Option<String>,
-    pub description: Option<String>,
-    pub image: Option<String>,
-    pub url: String,
+pub struct RemovedPost {
+    pub community: SmallCommunityView,
+    pub pinned: bool,
+    pub content: RemovedContent,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct PostView {
-    pub title: String,
+pub struct PostUnderReview {
     pub community: SmallCommunityView,
-    pub article: Option<ArticleView>,
-    pub cover_image_url: Option<String>,
     pub pinned: bool,
-    pub content: ContentView,
+    pub content: ContentUnderReview,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PostDetails {
+    pub link: Option<PostLink>,
+    pub title: String,
+    pub num_comments: u32,
+    pub community: SmallCommunityView,
+    pub pinned: bool,
+    pub content: ContentDetails,
     pub editable_until: Option<DateTime<FixedOffset>>,
+}
+impl PostDetails {
+    pub fn id(&self) -> Uuid {
+        self.content.id
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+#[expect(clippy::large_enum_variant)]
+pub enum PostView {
+    Content(PostDetails),
+    UnderReview(PostUnderReview),
+    Removed(RemovedPost),
+}
+impl PostView {
+    pub fn id(&self) -> Uuid {
+        match self {
+            Self::Content(c) => c.content.id,
+            Self::UnderReview(c) => c.content.id,
+            Self::Removed(c) => c.content.id,
+        }
+    }
+    pub fn community(&self) -> &SmallCommunityView {
+        match self {
+            Self::Content(c) => &c.community,
+            Self::Removed(c) => &c.community,
+            Self::UnderReview(u) => &u.community,
+        }
+    }
+    pub fn pinned(&self) -> bool {
+        match self {
+            Self::Content(c) => c.pinned,
+            Self::Removed(r) => r.pinned,
+            Self::UnderReview(u) => u.pinned,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case", tag = "type", content = "value")]
+pub enum PostLink {
+    Article(Url),
+    Media(AttachmentResponse),
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -46,11 +98,17 @@ paginated!(PostParams);
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreatePostRequest {
+    pub media: Option<NewPostMedia>,
     pub title: String,
     pub community_id: i32,
     pub body: SetContentRequest,
-    pub article_url: Option<Url>,
-    pub cover_image_url: Option<String>,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case", tag = "type")]
+pub enum NewPostMedia {
+    Attachment { attachment_id: Uuid },
+    Article { href: Url },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -58,7 +116,6 @@ pub struct CreatePostRequest {
 pub struct UpdatePostRequest {
     pub title: Option<String>,
     pub body: Option<SetContentRequest>,
-    pub cover_image_url: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

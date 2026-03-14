@@ -1,9 +1,27 @@
 use std::borrow::Cow;
 
+use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 use crate::{paginated, prelude::*};
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
+pub struct CommunityReportsParams {
+    /// ignored. Use the list reports route under communities.
+    #[serde(skip)]
+    pub community_id: Option<i32>,
+    pub review_status: CommaSeparated<ReviewStatus>,
+    pub created_after: Option<DateTime<FixedOffset>>,
+    pub created_before: Option<DateTime<FixedOffset>>,
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+
+paginated!(CommunityReportsParams);
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
@@ -88,8 +106,6 @@ pub struct CreateCommunityRequest {
     pub name: String,
     pub description: Option<String>,
     pub rules: Option<String>,
-    pub icon_url: Option<String>,
-    pub banner_url: Option<String>,
     pub district_ids: Vec<DistrictId>,
     pub primary_color: String,
     pub secondary_color: String,
@@ -129,8 +145,6 @@ pub struct UpdateCommunityRequest {
     pub name: Option<String>,
     pub description: Option<String>,
     pub rules: Option<String>,
-    pub icon_url: Option<String>,
-    pub banner_url: Option<String>,
     pub district_ids: Option<Vec<(i32, i32)>>,
     pub primary_color: Option<String>,
     pub secondary_color: Option<String>,
@@ -244,6 +258,18 @@ impl GetHandler for ListAccountCommunities {
         self.params.clone()
     }
 }
+
+/// Params for listing community members (mod/owner only)
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
+pub struct CommunityMembersParams {
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+
+paginated!(CommunityMembersParams);
 
 /// Get community membership status for the current viewer
 pub struct GetCommunityMembership(pub i32);

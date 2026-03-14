@@ -9,6 +9,7 @@ pub struct UpdateAccountRequest {
     pub bio: Option<String>,
     pub full_name: Option<String>,
     pub handle: Option<String>,
+    pub follow_representatives: bool,
     pub address: Option<SetLocation>,
     pub public: Option<bool>,
 }

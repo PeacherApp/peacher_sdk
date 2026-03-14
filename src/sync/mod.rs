@@ -15,6 +15,9 @@ pub use sessions::*;
 mod external_map;
 pub use external_map::*;
 
+mod vote_utility;
+pub use vote_utility::*;
+
 use crate::prelude::*;
 use chrono::NaiveDate;
 use url::Url;

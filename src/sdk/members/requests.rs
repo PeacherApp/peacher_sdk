@@ -368,7 +368,7 @@ impl Handler for UpdateMember {
 /// Ban a member with a reason
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct BanMemberRequest {
+pub struct BanRequest {
     /// This is the reason for the ban
     pub reason: String,
 
@@ -382,14 +382,14 @@ pub struct BanMemberRequest {
 /// Handler to ban a member
 pub struct BanMember {
     member_id: i32,
-    body: BanMemberRequest,
+    body: BanRequest,
 }
 
 impl BanMember {
     pub fn new(member_id: i32, reason: impl Into<String>, context: impl Into<String>) -> Self {
         Self {
             member_id,
-            body: BanMemberRequest {
+            body: BanRequest {
                 reason: reason.into(),
                 context: context.into(),
             },

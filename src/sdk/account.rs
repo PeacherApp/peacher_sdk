@@ -13,6 +13,32 @@ impl GetHandler for GetAccount {
     }
 }
 
+pub struct UpdateAccount {
+    pub body: UpdateAccountRequest,
+}
+
+impl UpdateAccount {
+    pub fn new(body: UpdateAccountRequest) -> Self {
+        Self { body }
+    }
+}
+
+impl Handler for UpdateAccount {
+    type ResponseBody = AccountView;
+
+    fn method(&self) -> Method {
+        Method::Patch
+    }
+
+    fn path(&self) -> std::borrow::Cow<'_, str> {
+        "/api/account".into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AccountView {

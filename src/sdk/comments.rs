@@ -14,6 +14,11 @@ pub struct CommentView {
     pub depth: i32,
     pub reply_count: i64,
 }
+impl CommentView {
+    pub fn id(&self) -> Uuid {
+        self.content.id()
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
