@@ -1,9 +1,18 @@
 use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct DistrictRepresentativeView {
+    pub member: RepresentativeMember,
+    pub session: SessionView,
+    pub chamber: GetChamberView,
+    pub is_following: bool,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct DistrictRepresentative {
+pub struct RepresentativeMemberDetails {
     pub district: DistrictView,
     pub member: RepresentativeMember,
     pub session: SessionView,
@@ -15,7 +24,7 @@ pub struct DistrictRepresentative {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ViewerIntersectionResponse {
     pub location: ViewerLocationResponse,
-    pub representatives: Vec<DistrictRepresentative>,
+    pub representatives: Vec<RepresentativeMemberDetails>,
     pub map: GeoJson<DistrictIntersectionInfo>,
 }
 

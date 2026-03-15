@@ -149,7 +149,7 @@ pub struct MemberVotesResponse {
     pub absent: usize,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct RepresentativeMember {
     pub member: MemberWithPartyView,
