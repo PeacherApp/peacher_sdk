@@ -27,6 +27,9 @@ pub struct ViewerIntersectionResponse {
     pub location: ViewerLocationResponse,
     pub representatives: Vec<RepresentativeMemberDetails>,
     pub map: GeoJson<DistrictIntersectionInfo>,
+    /// Bounding box that contains all district geometries in `map`.
+    /// `min`/`max` use GeoJSON convention: `x` = longitude, `y` = latitude.
+    pub bbox: Option<BoundingBox>,
 }
 
 // #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

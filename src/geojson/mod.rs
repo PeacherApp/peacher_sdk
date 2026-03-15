@@ -262,67 +262,6 @@ impl Geometry {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn square_polygon(min_x: f64, min_y: f64, max_x: f64, max_y: f64) -> Geometry {
-        Geometry::Polygon(vec![vec![
-            vec![min_x, min_y],
-            vec![max_x, min_y],
-            vec![max_x, max_y],
-            vec![min_x, max_y],
-            vec![min_x, min_y],
-        ]])
-    }
-
-    #[test]
-    fn polygon_bbox() {
-        let geom = square_polygon(-84.0, 33.0, -83.0, 34.0);
-        let bbox = geom.bbox().unwrap();
-        assert_eq!(bbox.min.x, -84.0);
-        assert_eq!(bbox.min.y, 33.0);
-        assert_eq!(bbox.max.x, -83.0);
-        assert_eq!(bbox.max.y, 34.0);
-    }
-
-    #[test]
-    fn multipolygon_bbox() {
-        let geom = Geometry::MultiPolygon(vec![
-            vec![vec![
-                vec![0.0, 0.0],
-                vec![1.0, 0.0],
-                vec![1.0, 1.0],
-                vec![0.0, 0.0],
-            ]],
-            vec![vec![
-                vec![5.0, 5.0],
-                vec![10.0, 5.0],
-                vec![10.0, 10.0],
-                vec![5.0, 5.0],
-            ]],
-        ]);
-        let bbox = geom.bbox().unwrap();
-        assert_eq!(bbox.min.x, 0.0);
-        assert_eq!(bbox.min.y, 0.0);
-        assert_eq!(bbox.max.x, 10.0);
-        assert_eq!(bbox.max.y, 10.0);
-    }
-
-    #[test]
-    fn feature_collection_bbox_unions_all_features() {
-        let geojson: GeoJson<()> = GeoJson::many([
-            GeoJsonFeature::new(square_polygon(-84.0, 33.0, -83.0, 34.0), ()),
-            GeoJsonFeature::new(square_polygon(-82.0, 32.0, -81.0, 35.0), ()),
-        ]);
-        let bbox = geojson.bbox().unwrap();
-        assert_eq!(bbox.min.x, -84.0);
-        assert_eq!(bbox.min.y, 32.0);
-        assert_eq!(bbox.max.x, -81.0);
-        assert_eq!(bbox.max.y, 35.0);
-    }
-}
-
 #[cfg(feature = "geo")]
 impl From<geo::Geometry> for Geometry {
     fn from(value: geo::Geometry) -> Self {
@@ -333,4 +272,61 @@ impl From<geo::Geometry> for Geometry {
             _ => panic!("hit unimplmeneted conversion"),
         }
     }
+}
+
+#[cfg(test)]
+fn square_polygon(min_x: f64, min_y: f64, max_x: f64, max_y: f64) -> Geometry {
+    Geometry::Polygon(vec![vec![
+        vec![min_x, min_y],
+        vec![max_x, min_y],
+        vec![max_x, max_y],
+        vec![min_x, max_y],
+        vec![min_x, min_y],
+    ]])
+}
+
+#[test]
+fn polygon_bbox() {
+    let geom = square_polygon(-84.0, 33.0, -83.0, 34.0);
+    let bbox = geom.bbox().unwrap();
+    assert_eq!(bbox.min.x, -84.0);
+    assert_eq!(bbox.min.y, 33.0);
+    assert_eq!(bbox.max.x, -83.0);
+    assert_eq!(bbox.max.y, 34.0);
+}
+
+#[test]
+fn multipolygon_bbox() {
+    let geom = Geometry::MultiPolygon(vec![
+        vec![vec![
+            vec![0.0, 0.0],
+            vec![1.0, 0.0],
+            vec![1.0, 1.0],
+            vec![0.0, 0.0],
+        ]],
+        vec![vec![
+            vec![5.0, 5.0],
+            vec![10.0, 5.0],
+            vec![10.0, 10.0],
+            vec![5.0, 5.0],
+        ]],
+    ]);
+    let bbox = geom.bbox().unwrap();
+    assert_eq!(bbox.min.x, 0.0);
+    assert_eq!(bbox.min.y, 0.0);
+    assert_eq!(bbox.max.x, 10.0);
+    assert_eq!(bbox.max.y, 10.0);
+}
+
+#[test]
+fn feature_collection_bbox_unions_all_features() {
+    let geojson: GeoJson<()> = GeoJson::many([
+        GeoJsonFeature::new(square_polygon(-84.0, 33.0, -83.0, 34.0), ()),
+        GeoJsonFeature::new(square_polygon(-82.0, 32.0, -81.0, 35.0), ()),
+    ]);
+    let bbox = geojson.bbox().unwrap();
+    assert_eq!(bbox.min.x, -84.0);
+    assert_eq!(bbox.min.y, 32.0);
+    assert_eq!(bbox.max.x, -81.0);
+    assert_eq!(bbox.max.y, 35.0);
 }
