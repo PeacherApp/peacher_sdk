@@ -63,8 +63,6 @@ impl GetHandler for GetMapGeojson {
 pub struct FieldMapping {
     /// Field name for district name (e.g., "NAME", "NAMELSAD")
     pub name_field: Option<String>,
-    /// Field name for geo_id (e.g., "GEOID")
-    pub geo_id_field: Option<String>,
     /// Field name for external_id (e.g., "AFFGEOID")
     pub external_id_field: Option<String>,
 }
@@ -162,7 +160,6 @@ pub struct SmallMapView {
 pub struct DistrictView {
     pub id: i32,
     pub name: String,
-    pub geo_id: i32,
     pub lat: f64,
     pub lon: f64,
     pub external_id: Option<ExternalId>,
@@ -175,7 +172,6 @@ impl DistrictView {
         SmallDistrictView {
             id: self.id,
             name: self.name,
-            geo_id: self.geo_id,
             lat: self.lat,
             lon: self.lon,
             external_id: self.external_id,
@@ -191,7 +187,6 @@ impl DistrictView {
 pub struct SmallDistrictView {
     pub id: i32,
     pub name: String,
-    pub geo_id: i32,
     pub lat: f64,
     pub lon: f64,
     pub external_id: Option<ExternalId>,
@@ -209,6 +204,8 @@ pub struct MapView {
     pub updated_at: DateTime<FixedOffset>,
     pub url: Option<Url>,
     pub owner_id: Option<i32>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 impl MapView {
     pub fn with_district_count(self, count: u64) -> GetMapView {
@@ -219,6 +216,8 @@ impl MapView {
             updated_at: self.updated_at,
             url: self.url,
             owner_id: self.owner_id,
+            external_id: self.external_id,
+            external_url: self.external_url,
             district_count: count,
         }
     }
@@ -233,6 +232,8 @@ impl MapView {
             updated_at: self.updated_at,
             url: self.url,
             owner_id: self.owner_id,
+            external_id: self.external_id,
+            external_url: self.external_url,
             districts: districts.into_iter().collect(),
         }
     }
@@ -248,6 +249,8 @@ pub struct MapWithDistrictsView {
     pub updated_at: DateTime<FixedOffset>,
     pub url: Option<Url>,
     pub owner_id: Option<i32>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub districts: Vec<SmallDistrictView>,
 }
 
@@ -271,6 +274,8 @@ pub struct GetMapView {
     pub updated_at: DateTime<FixedOffset>,
     pub url: Option<Url>,
     pub owner_id: Option<i32>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub district_count: u64,
 }
 
@@ -289,7 +294,6 @@ pub struct MapPreviewResponse {
 pub struct DistrictPreview {
     pub id: i32,
     pub name: String,
-    pub geo_id: i32,
     pub centroid_lat: f64,
     pub centroid_lon: f64,
 }

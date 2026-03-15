@@ -6,7 +6,6 @@ use crate::prelude::*;
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SimpleBoundaryView {
     pub id: i32,
-    pub geo_id: i32,
     pub name: String,
 }
 
@@ -14,7 +13,6 @@ pub struct SimpleBoundaryView {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BoundaryView {
     pub id: i32,
-    pub geo_id: i32,
     pub name: String,
     pub chambers: Vec<BoundaryChambers>,
 }
