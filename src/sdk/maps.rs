@@ -56,33 +56,28 @@ impl GetHandler for GetMapGeojson {
     }
 }
 
-/// Configuration for how to extract district metadata from shapefile records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShapefileFieldMapping {
-    /// Field name for district ID (e.g., "DISTRICT", "CD119FP", "SLDUST")
-    pub id_field: String,
-    /// Optional field name for district name
+/// Configuration for how to extract district metadata from map file records.
+///
+/// Applies to both shapefiles and GeoJSON files.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct FieldMapping {
+    /// Field name for district name (e.g., "NAME", "NAMELSAD")
     pub name_field: Option<String>,
-    /// Optional field name for geo_id
+    /// Field name for geo_id (e.g., "GEOID")
     pub geo_id_field: Option<String>,
+    /// Field name for external_id (e.g., "AFFGEOID")
+    pub external_id_field: Option<String>,
 }
 
-impl Default for ShapefileFieldMapping {
-    fn default() -> Self {
-        Self {
-            id_field: "DISTRICT".to_string(),
-            name_field: None,
-            geo_id_field: None,
-        }
-    }
-}
+/// Deprecated alias — use [`FieldMapping`] instead.
+pub type ShapefileFieldMapping = FieldMapping;
 
 /// Upload a new map via multipart form data.
 pub struct UploadMap {
     name: String,
     file_data: Vec<u8>,
     file_name: String,
-    field_mapping: Option<ShapefileFieldMapping>,
+    field_mapping: Option<FieldMapping>,
 }
 
 impl UploadMap {
@@ -109,7 +104,7 @@ impl UploadMap {
         Ok(Self::new(name, file_name, bytes))
     }
 
-    pub fn with_mapping(mut self, field_mapping: ShapefileFieldMapping) -> Self {
+    pub fn with_mapping(mut self, field_mapping: FieldMapping) -> Self {
         self.field_mapping = Some(field_mapping);
         self
     }
