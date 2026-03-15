@@ -11,7 +11,7 @@ pub struct ClientMapper<'p, P> {
     sessions: HashMap<ExternalId, Arc<ListSessionView>>,
     members: HashMap<ExternalId, Arc<MemberWithPartyView>>,
     /// Maps (chamber_id, session_id) → (district_external_id → internal district_id)
-    district_lookups: HashMap<(i32, i32), HashMap<ExternalId, SmallDistrictView>>,
+    district_lookups: HashMap<(i32, i32), HashMap<ExternalId, DistrictView>>,
 }
 
 impl<'p, P: Client> ClientMapper<'p, P> {
@@ -122,7 +122,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
         chamber_id: i32,
         session_id: i32,
         district_ext_id: &ExternalId,
-    ) -> SyncResult<SmallDistrictView> {
+    ) -> SyncResult<DistrictView> {
         let key = (chamber_id, session_id);
 
         if !self.district_lookups.contains_key(&key) {
@@ -130,7 +130,7 @@ impl<'p, P: Client> ClientMapper<'p, P> {
                 .request(self.peacher)
                 .await?;
 
-            let lookup: HashMap<ExternalId, SmallDistrictView> = response
+            let lookup: HashMap<ExternalId, DistrictView> = response
                 .map
                 .into_iter()
                 .flat_map(|m| m.districts)

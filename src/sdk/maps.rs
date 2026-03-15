@@ -167,33 +167,6 @@ pub struct DistrictView {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
 }
-impl DistrictView {
-    pub fn into_small_view(self) -> SmallDistrictView {
-        SmallDistrictView {
-            id: self.id,
-            name: self.name,
-            lat: self.lat,
-            lon: self.lon,
-            external_id: self.external_id,
-            external_url: self.external_url,
-            created_at: self.created_at,
-            updated_at: self.updated_at,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct SmallDistrictView {
-    pub id: i32,
-    pub name: String,
-    pub lat: f64,
-    pub lon: f64,
-    pub external_id: Option<ExternalId>,
-    pub external_url: Option<Url>,
-    pub created_at: DateTime<FixedOffset>,
-    pub updated_at: DateTime<FixedOffset>,
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -223,7 +196,7 @@ impl MapView {
     }
     pub fn with_districts(
         self,
-        districts: impl IntoIterator<Item = SmallDistrictView>,
+        districts: impl IntoIterator<Item = DistrictView>,
     ) -> MapWithDistrictsView {
         MapWithDistrictsView {
             id: self.id,
@@ -251,7 +224,7 @@ pub struct MapWithDistrictsView {
     pub owner_id: Option<i32>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub districts: Vec<SmallDistrictView>,
+    pub districts: Vec<DistrictView>,
 }
 
 /// Response after uploading a map.
