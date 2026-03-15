@@ -7,6 +7,7 @@ pub struct DistrictRepresentativeView {
     pub member: RepresentativeMember,
     pub session: SessionView,
     pub chamber: GetChamberView,
+    pub activity: MemberActivity,
     pub is_following: bool,
 }
 
