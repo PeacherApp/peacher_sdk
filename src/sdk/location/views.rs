@@ -3,10 +3,16 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct DistrictRepresentativeView {
-    pub member: RepresentativeMember,
+pub struct DistrictSessionView {
     pub session: SessionView,
     pub chamber: GetChamberView,
+    pub members: Vec<DistrictMemberView>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct DistrictMemberView {
+    pub member: RepresentativeMember,
     pub activity: MemberActivity,
     pub is_following: bool,
 }

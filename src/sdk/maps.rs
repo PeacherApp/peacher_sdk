@@ -168,12 +168,12 @@ pub struct DistrictView {
     pub updated_at: DateTime<FixedOffset>,
 }
 
-/// A district within a map (without geometry/coordinates).
+/// A district with its session history and representatives.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DistrictDetailsView {
     pub district: DistrictView,
-    pub members: Vec<DistrictRepresentativeView>,
+    pub sessions: Vec<DistrictSessionView>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
