@@ -3,11 +3,12 @@ pub mod props_iter;
 use serde::{Deserialize, Serialize};
 
 use crate::geojson::props_iter::RefPropsIter;
+use crate::prelude::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(untagged)]
-pub enum GeoJson<T> {
+pub enum GeoJson<T = ()> {
     Feature(GeoJsonFeature<T>),
     FeatureCollection(GeoJsonFeatureCollection<T>),
 }
@@ -33,6 +34,18 @@ impl<T> GeoJson<T> {
         match self {
             Self::Feature(_) => 1,
             Self::FeatureCollection(collection) => collection.features.len(),
+        }
+    }
+
+    /// Compute the bounding box that contains all features in this GeoJSON.
+    pub fn bbox(&self) -> Option<BoundingBox> {
+        match self {
+            Self::Feature(feature) => feature.geometry.bbox(),
+            Self::FeatureCollection(collection) => collection
+                .features
+                .iter()
+                .filter_map(|f| f.geometry.bbox())
+                .reduce(|acc, b| acc.union(&b)),
         }
     }
 
@@ -202,6 +215,53 @@ pub enum Geometry {
     // GeometryCollection(Vec<Geometry>),
 }
 
+impl Geometry {
+    /// Compute the bounding box of this geometry by iterating all coordinates.
+    ///
+    /// Coordinates follow GeoJSON convention: `[longitude, latitude]`,
+    /// so `x = longitude`, `y = latitude` in the returned [`BoundingBox`].
+    pub fn bbox(&self) -> Option<BoundingBox> {
+        let mut min_x = f64::INFINITY;
+        let mut min_y = f64::INFINITY;
+        let mut max_x = f64::NEG_INFINITY;
+        let mut max_y = f64::NEG_INFINITY;
+        let mut found = false;
+
+        match self {
+            Geometry::Polygon(rings) => {
+                for ring in rings {
+                    for coord in ring {
+                        if coord.len() >= 2 {
+                            found = true;
+                            min_x = min_x.min(coord[0]);
+                            min_y = min_y.min(coord[1]);
+                            max_x = max_x.max(coord[0]);
+                            max_y = max_y.max(coord[1]);
+                        }
+                    }
+                }
+            }
+            Geometry::MultiPolygon(polygons) => {
+                for rings in polygons {
+                    for ring in rings {
+                        for coord in ring {
+                            if coord.len() >= 2 {
+                                found = true;
+                                min_x = min_x.min(coord[0]);
+                                min_y = min_y.min(coord[1]);
+                                max_x = max_x.max(coord[0]);
+                                max_y = max_y.max(coord[1]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        found.then(|| BoundingBox::new(Vec2 { x: min_x, y: min_y }, Vec2 { x: max_x, y: max_y }))
+    }
+}
+
 #[cfg(feature = "geo")]
 impl From<geo::Geometry> for Geometry {
     fn from(value: geo::Geometry) -> Self {
@@ -212,4 +272,61 @@ impl From<geo::Geometry> for Geometry {
             _ => panic!("hit unimplmeneted conversion"),
         }
     }
+}
+
+#[cfg(test)]
+fn square_polygon(min_x: f64, min_y: f64, max_x: f64, max_y: f64) -> Geometry {
+    Geometry::Polygon(vec![vec![
+        vec![min_x, min_y],
+        vec![max_x, min_y],
+        vec![max_x, max_y],
+        vec![min_x, max_y],
+        vec![min_x, min_y],
+    ]])
+}
+
+#[test]
+fn polygon_bbox() {
+    let geom = square_polygon(-84.0, 33.0, -83.0, 34.0);
+    let bbox = geom.bbox().unwrap();
+    assert_eq!(bbox.min.x, -84.0);
+    assert_eq!(bbox.min.y, 33.0);
+    assert_eq!(bbox.max.x, -83.0);
+    assert_eq!(bbox.max.y, 34.0);
+}
+
+#[test]
+fn multipolygon_bbox() {
+    let geom = Geometry::MultiPolygon(vec![
+        vec![vec![
+            vec![0.0, 0.0],
+            vec![1.0, 0.0],
+            vec![1.0, 1.0],
+            vec![0.0, 0.0],
+        ]],
+        vec![vec![
+            vec![5.0, 5.0],
+            vec![10.0, 5.0],
+            vec![10.0, 10.0],
+            vec![5.0, 5.0],
+        ]],
+    ]);
+    let bbox = geom.bbox().unwrap();
+    assert_eq!(bbox.min.x, 0.0);
+    assert_eq!(bbox.min.y, 0.0);
+    assert_eq!(bbox.max.x, 10.0);
+    assert_eq!(bbox.max.y, 10.0);
+}
+
+#[test]
+fn feature_collection_bbox_unions_all_features() {
+    let geojson: GeoJson<()> = GeoJson::many([
+        GeoJsonFeature::new(square_polygon(-84.0, 33.0, -83.0, 34.0), ()),
+        GeoJsonFeature::new(square_polygon(-82.0, 32.0, -81.0, 35.0), ()),
+    ]);
+    let bbox = geojson.bbox().unwrap();
+    assert_eq!(bbox.min.x, -84.0);
+    assert_eq!(bbox.min.y, 32.0);
+    assert_eq!(bbox.max.x, -81.0);
+    assert_eq!(bbox.max.y, 35.0);
 }

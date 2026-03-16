@@ -1,9 +1,25 @@
 use crate::prelude::*;
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct DistrictSessionView {
+    pub session: SessionView,
+    pub chamber: GetChamberView,
+    pub members: Vec<DistrictMemberView>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct DistrictMemberView {
+    pub member: RepresentativeMember,
+    pub activity: MemberActivity,
+    pub is_following: bool,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct DistrictRepresentative {
+pub struct RepresentativeMemberDetails {
     pub district: DistrictView,
     pub member: RepresentativeMember,
     pub session: SessionView,
@@ -15,8 +31,11 @@ pub struct DistrictRepresentative {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ViewerIntersectionResponse {
     pub location: ViewerLocationResponse,
-    pub representatives: Vec<DistrictRepresentative>,
+    pub representatives: Vec<RepresentativeMemberDetails>,
     pub map: GeoJson<DistrictIntersectionInfo>,
+    /// Bounding box that contains all district geometries in `map`.
+    /// `min`/`max` use GeoJSON convention: `x` = longitude, `y` = latitude.
+    pub bbox: Option<BoundingBox>,
 }
 
 // #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -52,10 +71,8 @@ impl ViewerIntersectionResponse {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DistrictIntersectionInfo {
-    /// the original map this intersection corresponds with
-    pub map_id: i32,
     /// the district of the original map this intersection corresponds with
-    pub district_id: i32,
+    pub id: i32,
     /// the name of the district
     pub name: String,
     /// The jurisdictions that are represented by this boundary

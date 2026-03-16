@@ -56,33 +56,26 @@ impl GetHandler for GetMapGeojson {
     }
 }
 
-/// Configuration for how to extract district metadata from shapefile records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShapefileFieldMapping {
-    /// Field name for district ID (e.g., "DISTRICT", "CD119FP", "SLDUST")
-    pub id_field: String,
-    /// Optional field name for district name
+/// Configuration for how to extract district metadata from map file records.
+///
+/// Applies to both shapefiles and GeoJSON files.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct FieldMapping {
+    /// Field name for district name (e.g., "NAME", "NAMELSAD")
     pub name_field: Option<String>,
-    /// Optional field name for geo_id
-    pub geo_id_field: Option<String>,
+    /// Field name for external_id (e.g., "AFFGEOID")
+    pub external_id_field: Option<String>,
 }
 
-impl Default for ShapefileFieldMapping {
-    fn default() -> Self {
-        Self {
-            id_field: "DISTRICT".to_string(),
-            name_field: None,
-            geo_id_field: None,
-        }
-    }
-}
+/// Deprecated alias — use [`FieldMapping`] instead.
+pub type ShapefileFieldMapping = FieldMapping;
 
 /// Upload a new map via multipart form data.
 pub struct UploadMap {
     name: String,
     file_data: Vec<u8>,
     file_name: String,
-    field_mapping: Option<ShapefileFieldMapping>,
+    field_mapping: Option<FieldMapping>,
 }
 
 impl UploadMap {
@@ -109,7 +102,7 @@ impl UploadMap {
         Ok(Self::new(name, file_name, bytes))
     }
 
-    pub fn with_mapping(mut self, field_mapping: ShapefileFieldMapping) -> Self {
+    pub fn with_mapping(mut self, field_mapping: FieldMapping) -> Self {
         self.field_mapping = Some(field_mapping);
         self
     }
@@ -165,39 +158,22 @@ pub struct SmallMapView {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct DistrictView {
-    pub map_id: i32,
     pub id: i32,
     pub name: String,
-    pub geo_id: i32,
     pub lat: f64,
     pub lon: f64,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-}
-impl DistrictView {
-    pub fn into_small_view(self) -> SmallDistrictView {
-        SmallDistrictView {
-            id: self.id,
-            name: self.name,
-            geo_id: self.geo_id,
-            lat: self.lat,
-            lon: self.lon,
-            created_at: self.created_at,
-            updated_at: self.updated_at,
-        }
-    }
 }
 
+/// A district with its session history and representatives.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct SmallDistrictView {
-    pub id: i32,
-    pub name: String,
-    pub geo_id: i32,
-    pub lat: f64,
-    pub lon: f64,
-    pub created_at: DateTime<FixedOffset>,
-    pub updated_at: DateTime<FixedOffset>,
+pub struct DistrictDetailsView {
+    pub district: DistrictView,
+    pub sessions: Vec<DistrictSessionView>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -209,6 +185,8 @@ pub struct MapView {
     pub updated_at: DateTime<FixedOffset>,
     pub url: Option<Url>,
     pub owner_id: Option<i32>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
 }
 impl MapView {
     pub fn with_district_count(self, count: u64) -> GetMapView {
@@ -219,12 +197,14 @@ impl MapView {
             updated_at: self.updated_at,
             url: self.url,
             owner_id: self.owner_id,
+            external_id: self.external_id,
+            external_url: self.external_url,
             district_count: count,
         }
     }
     pub fn with_districts(
         self,
-        districts: impl IntoIterator<Item = SmallDistrictView>,
+        districts: impl IntoIterator<Item = DistrictView>,
     ) -> MapWithDistrictsView {
         MapWithDistrictsView {
             id: self.id,
@@ -233,6 +213,8 @@ impl MapView {
             updated_at: self.updated_at,
             url: self.url,
             owner_id: self.owner_id,
+            external_id: self.external_id,
+            external_url: self.external_url,
             districts: districts.into_iter().collect(),
         }
     }
@@ -248,7 +230,9 @@ pub struct MapWithDistrictsView {
     pub updated_at: DateTime<FixedOffset>,
     pub url: Option<Url>,
     pub owner_id: Option<i32>,
-    pub districts: Vec<SmallDistrictView>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub districts: Vec<DistrictView>,
 }
 
 /// Response after uploading a map.
@@ -271,6 +255,8 @@ pub struct GetMapView {
     pub updated_at: DateTime<FixedOffset>,
     pub url: Option<Url>,
     pub owner_id: Option<i32>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
     pub district_count: u64,
 }
 
@@ -289,7 +275,6 @@ pub struct MapPreviewResponse {
 pub struct DistrictPreview {
     pub id: i32,
     pub name: String,
-    pub geo_id: i32,
     pub centroid_lat: f64,
     pub centroid_lon: f64,
 }

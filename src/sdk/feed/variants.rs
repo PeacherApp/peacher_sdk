@@ -31,7 +31,7 @@ pub struct FollowedMembersVoted {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct FeedPost {
     pub member: MemberView,
-    pub community: CommunityView,
+    pub district: SimpleBoundaryView,
     pub post_id: Uuid,
     pub at: DateTime<FixedOffset>,
 }

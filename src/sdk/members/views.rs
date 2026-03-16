@@ -149,7 +149,7 @@ pub struct MemberVotesResponse {
     pub absent: usize,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct RepresentativeMember {
     pub member: MemberWithPartyView,
@@ -258,7 +258,7 @@ pub enum MemberActivityItemView {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PostActivityView {
     pub title: String,
-    pub community: SmallCommunityView,
+    pub district_id: i32,
     pub content: ContentView,
 }
 
