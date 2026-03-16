@@ -88,14 +88,27 @@ pub enum PostLink {
     Media(AttachmentResponse),
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case")]
+pub enum PostSort {
+    #[default]
+    Hot,
+    New,
+    Top,
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
 pub struct PostParams {
-    pub district_id: Option<i32>,
+    /// Comma-separated list of district IDs, e.g. "1,2,3"
+    pub district_ids: CommaSeparated<i32>,
     pub author_id: Option<i32>,
     pub search: Option<String>,
     pub pinned: Option<bool>,
+    pub sort: PostSort,
     pub page: Option<u64>,
     pub page_size: Option<u64>,
 }
