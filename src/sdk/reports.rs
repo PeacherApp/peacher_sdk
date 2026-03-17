@@ -107,7 +107,7 @@ impl ReportDetails {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ReportView {
     pub id: i32,
-    pub reporter: Option<MemberView>,
+    pub reporter: MemberView,
     pub report_reason: String,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,

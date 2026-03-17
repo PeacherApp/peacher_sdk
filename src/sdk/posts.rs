@@ -10,6 +10,7 @@ use crate::{paginated, prelude::*};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct RemovedPost {
+    pub title: String,
     pub district_id: i32,
     pub pinned: bool,
     pub content: RemovedContent,
@@ -18,6 +19,7 @@ pub struct RemovedPost {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PostUnderReview {
+    pub title: String,
     pub district_id: i32,
     pub pinned: bool,
     pub content: ContentUnderReview,
@@ -64,13 +66,13 @@ impl PostView {
             Self::UnderReview(c) => c.district_id,
         }
     }
-    // pub fn community(&self) -> &SmallCommunityView {
-    //     match self {
-    //         Self::Content(c) => &c.community,
-    //         Self::Removed(c) => &c.community,
-    //         Self::UnderReview(u) => &u.community,
-    //     }
-    // }
+    pub fn title(&self) -> &str {
+        match self {
+            Self::Content(c) => &c.title,
+            Self::Removed(c) => &c.title,
+            Self::UnderReview(c) => &c.title,
+        }
+    }
     pub fn pinned(&self) -> bool {
         match self {
             Self::Content(c) => c.pinned,

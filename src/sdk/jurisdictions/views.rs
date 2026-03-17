@@ -13,7 +13,7 @@ pub struct JurisdictionView {
     pub updated_at: DateTime<FixedOffset>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
 }
 impl JurisdictionView {
     pub fn into_get_view(
@@ -59,7 +59,7 @@ pub struct GetJurisdictionView {
     pub updated_at: DateTime<FixedOffset>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
     pub sessions: Vec<SessionView>,
     pub chambers: Vec<ChamberView>,
 }
@@ -101,6 +101,6 @@ pub struct JurisdictionWithChambers {
     pub updated_at: DateTime<FixedOffset>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
     pub chambers: Vec<ChamberView>,
 }
