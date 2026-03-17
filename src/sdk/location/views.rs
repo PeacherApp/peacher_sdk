@@ -24,6 +24,10 @@ pub struct RepresentativeMemberDetails {
     pub member: RepresentativeMember,
     pub session: SessionView,
     pub chamber: GetChamberView,
+    /// The activity of the member during this session.
+    ///
+    /// If the member has no activity, this is None.
+    pub activity: Option<MemberActivity>,
     pub is_following: bool,
 }
 
