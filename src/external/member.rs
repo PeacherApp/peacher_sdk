@@ -60,7 +60,7 @@ pub struct ExternalMember {
     pub url: Option<Url>,
     pub appointed_at: Option<NaiveDate>,
     pub vacated_at: Option<NaiveDate>,
-    pub district_number: Option<i32>,
+    pub district_id: Option<ExternalId>,
     pub party: String,
     pub photo: Option<Url>,
 }

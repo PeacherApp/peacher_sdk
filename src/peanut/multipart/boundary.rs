@@ -6,7 +6,8 @@
 // copied, modified, or distributed except according to those terms.
 //
 
-use rand::{Rng, SeedableRng, rngs::SmallRng};
+use getrandom::SysRng;
+use rand::{RngExt, SeedableRng, rngs::SmallRng};
 
 /// A `BoundaryGenerator` is a policy to generate a random string to use
 /// as a part boundary.
@@ -23,7 +24,7 @@ pub(crate) struct RandomAsciiGenerator;
 
 impl BoundaryGenerator for RandomAsciiGenerator {
     fn generate_boundary() -> String {
-        let mut rng = SmallRng::from_os_rng();
+        let mut rng = SmallRng::try_from_rng(&mut SysRng).unwrap();
 
         let a = rng.random::<u64>();
         let b = rng.random::<u64>();

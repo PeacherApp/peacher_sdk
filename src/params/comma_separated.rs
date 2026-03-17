@@ -83,6 +83,7 @@ commaparam!(String, "foo,bar,baz");
 /// Construct a [`CommaSeparated<T>`] from a list of values, similar to [`vec!`].
 ///
 /// ```
+/// use peacher_sdk::{prelude::*, commasep};
 /// let types = commasep![LegislationType::Bill, LegislationType::Resolution];
 /// let ids = commasep![1, 2, 3];
 /// let empty: CommaSeparated<i32> = commasep![];
@@ -101,6 +102,7 @@ macro_rules! commasep {
 ///
 /// The easiest way to create this struct is with the [`commasep`] macro:
 /// ```
+/// use peacher_sdk::{prelude::*, commasep};
 /// let types: CommaSeparated<LegislationType> = commasep![LegislationType::Bill, LegislationType::Resolution];
 /// let ids: CommaSeparated<i32> = commasep![1, 2, 3];
 /// let empty: CommaSeparated<i32> = commasep![];

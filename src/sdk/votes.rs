@@ -28,36 +28,7 @@ pub struct CreateVoteRequest {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub vote_type: VoteType,
-}
-
-impl CreateVoteRequest {
-    pub fn new(
-        name: impl Into<String>,
-        occurred_at: Option<DateTime<FixedOffset>>,
-        member_votes: Vec<MemberVoteInput>,
-        chamber: i32,
-        vote_type: VoteType,
-    ) -> Self {
-        Self {
-            name: name.into(),
-            occurred_at,
-            member_votes,
-            chamber,
-            vote_type,
-            external_id: None,
-            external_url: None,
-        }
-    }
-
-    pub fn external_id(mut self, id: impl Into<ExternalId>) -> Self {
-        self.external_id = Some(id.into());
-        self
-    }
-
-    pub fn external_url(mut self, url: Url) -> Self {
-        self.external_url = Some(url);
-        self
-    }
+    pub succeeded: bool,
 }
 
 /// Request to update an existing vote
@@ -290,26 +261,4 @@ pub struct MemberVoteValue {
 pub struct MemberVoteView {
     pub member: MemberView,
     pub vote: VoteView,
-}
-
-/// A vote event on legislation with only the user's representatives' votes
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct RepresentativeVoteEvent {
-    /// The legislation vote event (chamber, name, date)
-    pub legislation_vote: LegislationVote,
-    /// How each of the user's representatives voted
-    pub representative_votes: Vec<MemberVoteValue>,
-}
-
-/// A legislation-centric feed item showing all vote events with representative votes
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct LegislationUpdateItem {
-    /// The legislation being tracked
-    pub legislation: LegislationView,
-    /// All vote events on this legislation, ordered by most recent first
-    pub vote_events: Vec<RepresentativeVoteEvent>,
-    /// The most recent vote date (used for feed sorting)
-    pub latest_vote_at: Option<DateTime<FixedOffset>>,
 }

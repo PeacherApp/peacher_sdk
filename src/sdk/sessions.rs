@@ -10,7 +10,10 @@ use crate::{paginated, prelude::*};
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
 pub struct SessionParams {
+    /// List of IDs to filter on.
+    pub ids: CommaSeparated<i32>,
     /// Filter to only current sessions
     pub current: Option<bool>,
     /// Filter by jurisdiction ID
@@ -54,7 +57,7 @@ impl SessionParams {
 pub struct GetSession(pub i32);
 
 impl GetHandler for GetSession {
-    type ResponseBody = GetSessionResponse;
+    type ResponseBody = GetSessionView;
     fn path(&self) -> Cow<'_, str> {
         format!("/api/sessions/{}", self.0).into()
     }
@@ -65,7 +68,7 @@ impl GetHandler for GetSession {
 pub struct ListSessions(pub SessionParams);
 
 impl GetHandler for ListSessions {
-    type ResponseBody = Paginated<GetSessionResponse>;
+    type ResponseBody = Paginated<ListSessionView>;
     fn path(&self) -> Cow<'_, str> {
         "/api/sessions".into()
     }
@@ -74,18 +77,55 @@ impl GetHandler for ListSessions {
     }
 }
 
-/// Get members of a chamber for a specific session
-pub struct GetChamberSession {
+/// Get a chamber for a specific session
+pub struct GetSessionChamber {
     session_id: i32,
     chamber_id: i32,
 }
 
-impl GetChamberSession {
+impl GetSessionChamber {
+    pub fn new(chamber_id: i32, session_id: i32) -> Self {
+        Self {
+            chamber_id,
+            session_id,
+        }
+    }
+}
+
+impl GetHandler for GetSessionChamber {
+    type ResponseBody = GetSessionChamberResponse;
+    fn path(&self) -> Cow<'_, str> {
+        format!(
+            "/api/sessions/{}/chambers/{}",
+            self.session_id, self.chamber_id
+        )
+        .into()
+    }
+}
+
+/// Get members of a chamber for a specific session
+pub struct GetSessionChamberMembers {
+    session_id: i32,
+    chamber_id: i32,
+}
+
+impl GetSessionChamberMembers {
     pub fn new(chamber_id: i32, session_id: i32) -> Self {
         Self {
             session_id,
             chamber_id,
         }
+    }
+}
+
+impl GetHandler for GetSessionChamberMembers {
+    type ResponseBody = Vec<ChamberSessionMember>;
+    fn path(&self) -> Cow<'_, str> {
+        format!(
+            "/api/sessions/{}/chambers/{}/members",
+            self.session_id, self.chamber_id
+        )
+        .into()
     }
 }
 
@@ -98,17 +138,6 @@ impl Handler for DeleteSession {
     }
     fn path(&self) -> Cow<'_, str> {
         format!("/api/sessions/{}", self.0).into()
-    }
-}
-
-impl GetHandler for GetChamberSession {
-    type ResponseBody = ChamberSessionView;
-    fn path(&self) -> Cow<'_, str> {
-        format!(
-            "/api/sessions/{}/chambers/{}",
-            self.session_id, self.chamber_id
-        )
-        .into()
     }
 }
 
@@ -139,12 +168,12 @@ impl GetHandler for GetChamberSessionActivity {
 }
 
 /// Get the map for a chamber in a specific session
-pub struct GetChamberSessionMap {
+pub struct GetSessionChamberDistricts {
     session_id: i32,
     chamber_id: i32,
 }
 
-impl GetChamberSessionMap {
+impl GetSessionChamberDistricts {
     pub fn new(session_id: i32, chamber_id: i32) -> Self {
         Self {
             session_id,
@@ -153,7 +182,7 @@ impl GetChamberSessionMap {
     }
 }
 
-impl GetHandler for GetChamberSessionMap {
+impl GetHandler for GetSessionChamberDistricts {
     // Use serde_json::Value for flexibility with GeoJson types
     type ResponseBody = serde_json::Value;
     fn path(&self) -> Cow<'_, str> {
@@ -279,12 +308,12 @@ impl UpdateSessionRequest {
 /// Request to link a chamber to a session with an optional map id
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct LinkSessionToChamberRequest {
+pub struct LinkChamberToSessionRequest {
     pub chamber_id: i32,
     pub map_id: Option<i32>,
 }
 
-impl LinkSessionToChamberRequest {
+impl LinkChamberToSessionRequest {
     pub fn new(chamber_id: i32) -> Self {
         Self {
             chamber_id,
@@ -314,7 +343,7 @@ impl CreateSession {
 }
 
 impl Handler for CreateSession {
-    type ResponseBody = GetSessionResponse;
+    type ResponseBody = SessionView;
 
     fn method(&self) -> Method {
         Method::Post
@@ -342,7 +371,7 @@ impl UpdateSession {
 }
 
 impl Handler for UpdateSession {
-    type ResponseBody = GetSessionResponse;
+    type ResponseBody = SessionView;
 
     fn method(&self) -> Method {
         Method::Patch
@@ -360,11 +389,11 @@ impl Handler for UpdateSession {
 /// Handler for linking a chamber to a session
 pub struct LinkChamberToSession {
     session_id: i32,
-    body: LinkSessionToChamberRequest,
+    body: LinkChamberToSessionRequest,
 }
 
 impl LinkChamberToSession {
-    pub fn new(session_id: i32, body: LinkSessionToChamberRequest) -> Self {
+    pub fn new(session_id: i32, body: LinkChamberToSessionRequest) -> Self {
         Self { session_id, body }
     }
 }
@@ -388,19 +417,56 @@ impl Handler for LinkChamberToSession {
 /// A session view with jurisdiction and chamber details
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct GetSessionResponse {
+pub struct GetSessionView {
     pub id: i32,
     pub name: String,
     pub current: bool,
-    pub external_id: Option<ExternalId>,
-    pub external_url: Option<Url>,
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
-    pub jurisdiction: BasicJurisdictionView,
-    pub chambers: Vec<ChamberSessionView>,
+    pub jurisdiction: JurisdictionView,
+    pub chambers: Vec<ChamberViewWithPartyBreakdown>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: i32,
 }
 
+/// A session view with jurisdiction and chamber details
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ListSessionView {
+    pub id: i32,
+    pub name: String,
+    pub current: bool,
+    pub starts_at: Option<NaiveDate>,
+    pub ends_at: Option<NaiveDate>,
+    pub jurisdiction: JurisdictionView,
+    pub chambers: Vec<ChamberView>,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: i32,
+}
+
+/// A chamber within a session
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct GetSessionChamberResponse {
+    // the session has a top level jurisdiction view
+    pub chamber: GetChamberView,
+    pub session: SessionView,
+    pub map: Option<MapWithDistrictsView>,
+}
+
+/// A member within a chamber session
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ChamberSessionMember {
+    pub member: MemberWithPartyView,
+    pub appointed_at: Option<NaiveDate>,
+    pub vacated_at: Option<NaiveDate>,
+    pub district_id: Option<i32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SessionView {
     pub id: i32,
@@ -409,4 +475,48 @@ pub struct SessionView {
     pub starts_at: Option<NaiveDate>,
     pub ends_at: Option<NaiveDate>,
     pub jurisdiction_id: i32,
+    pub external_id: Option<ExternalId>,
+    pub external_url: Option<Url>,
+    pub created_by_id: i32,
+}
+impl SessionView {
+    pub fn into_list_session_view(
+        self,
+        jurisdiction: JurisdictionView,
+        chambers: impl IntoIterator<Item = ChamberView>,
+    ) -> ListSessionView {
+        debug_assert_eq!(self.jurisdiction_id, jurisdiction.id);
+        ListSessionView {
+            id: self.id,
+            name: self.name,
+            current: self.current,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            starts_at: self.starts_at,
+            ends_at: self.ends_at,
+            created_by_id: self.created_by_id,
+            jurisdiction,
+            chambers: chambers.into_iter().collect(),
+        }
+    }
+
+    pub fn into_get_session_view(
+        self,
+        jurisdiction: JurisdictionView,
+        chambers: impl IntoIterator<Item = ChamberViewWithPartyBreakdown>,
+    ) -> GetSessionView {
+        debug_assert_eq!(self.jurisdiction_id, jurisdiction.id);
+        GetSessionView {
+            id: self.id,
+            name: self.name,
+            current: self.current,
+            external_id: self.external_id,
+            external_url: self.external_url,
+            starts_at: self.starts_at,
+            ends_at: self.ends_at,
+            created_by_id: self.created_by_id,
+            jurisdiction,
+            chambers: chambers.into_iter().collect(),
+        }
+    }
 }

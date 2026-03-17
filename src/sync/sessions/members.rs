@@ -42,20 +42,17 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
             .list_members(self.session_external_id, self.chamber_external_id)
             .await?;
 
-        info!("here 1.5");
         // Get existing members - we need to check by external_id
         // Note: The current API doesn't have a session/chamber filter on ListMembers
         // We'll get all members and filter, or use the chamber session endpoint
-        let chamber_session = GetChamberSession::new(chamber.id, session.id)
+        let members = GetSessionChamberMembers::new(chamber.id, session.id)
             .request(self.mapper.client())
             .await?;
-        info!("here 2");
 
-        let known_members = chamber_session
-            .members
+        let known_members = members
             .into_iter()
             .filter_map(|m| {
-                let external_id = ExternalId::new(m.external_id.clone()?);
+                let external_id = ExternalId::new(m.member.external_id.clone()?);
 
                 Some((external_id, m))
             })
@@ -113,7 +110,15 @@ impl<'caller, 'chamber, 'client, E: ExternalClient, P: Client>
                     link_req = link_req
                         .appointed_at(ext_member.appointed_at)
                         .expunged_at(ext_member.vacated_at);
-                    link_req.set_district(ext_member.district_number);
+
+                    if let Some(district_ext_id) = &ext_member.district_id {
+                        let district = self
+                            .mapper
+                            .district(chamber.id, session.id, district_ext_id)
+                            .await?;
+                        link_req.set_district(Some(district.id));
+                    }
+
                     link_req.request(self.mapper.client()).await?;
 
                     if is_new {

@@ -1,12 +1,48 @@
 mod rate;
 pub use rate::*;
+use strum::{Display, EnumString, VariantArray};
 
 use std::borrow::Cow;
 
-use crate::prelude::*;
+use crate::{
+    commaparam,
+    prelude::*,
+    tippytappy::{self, DocumentView},
+};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+#[derive(
+    Serialize, Deserialize, Clone, Debug, PartialEq, Eq, EnumString, Display, Hash, VariantArray,
+)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub enum ReviewState {
+    Public,
+    UnderReview,
+    Reviewed,
+}
+commaparam!(ReviewState);
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case")]
+pub enum ContentStatus {
+    /// Indicates that the content has been posted
+    /// as public, but has not been placed under review
+    /// or approved.
+    Public,
+    /// Indicates that some content is currently under review.
+    ///
+    /// In this state, only the author of the content
+    /// and moderation will observe this value in [`ContentDetails`].
+    UnderReview,
+    /// Indicates that some content was explictly approved
+    /// by the moderation team
+    Approved,
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -14,9 +50,9 @@ pub struct ContentDetails {
     pub id: Uuid,
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
-    pub searchable_text: String,
-    pub document: serde_json::Value,
+    pub document: tippytappy::DocumentView,
     pub author: Option<MemberWithPartyView>,
+    pub status: ContentStatus,
     /// This is the sum of sentiments where
     /// +1 is a positive sentiment, and -1 is a negative sentiment.
     pub rating: i32,
@@ -31,9 +67,17 @@ pub struct RemoveContentRequest {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ContentUnderReview {
+    pub id: Uuid,
+    pub created_at: DateTime<FixedOffset>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct RemovedContent {
     pub id: Uuid,
     pub reason_removed: String,
+    pub created_at: DateTime<FixedOffset>,
     pub removed_at: DateTime<FixedOffset>,
 }
 
@@ -51,9 +95,9 @@ pub enum ContentType {
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ContentTypeId {
     /// Post ID
-    Post(i32),
+    Post,
     /// Comment ID
-    Comment(Uuid),
+    Comment,
     /// Legislation ID
     Summary(Option<i32>),
 }
@@ -65,7 +109,7 @@ pub struct AdminContentView {
     pub created_at: DateTime<FixedOffset>,
     pub updated_at: DateTime<FixedOffset>,
     pub searchable_text: String,
-    pub document: serde_json::Value,
+    pub document: DocumentView,
     pub kind: ContentTypeId,
     pub author: Option<i32>,
     pub reason_removed: Option<String>,
@@ -78,14 +122,21 @@ pub struct AdminContentView {
 #[serde(tag = "type", content = "content", rename_all = "snake_case")]
 #[expect(clippy::large_enum_variant)]
 pub enum ContentView {
+    /// Content that has been removed
     Removed(RemovedContent),
+    /// Viewable content based on the viewer
     Content(ContentDetails),
+    /// Some content that is currently under review.
+    ///
+    /// Viewers that see this variant are not part of the moderation team.
+    UnderReview(ContentUnderReview),
 }
 impl ContentView {
     pub fn id(&self) -> Uuid {
         match self {
             ContentView::Removed(removed) => removed.id,
             ContentView::Content(content) => content.id,
+            ContentView::UnderReview(content) => content.id,
         }
     }
 }
@@ -97,7 +148,7 @@ impl ContentView {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", content = "content", rename_all = "snake_case")]
 pub enum SetContentRequest {
-    Document(serde_json::Value),
+    Document(DocumentView),
     Markdown(String),
 }
 
@@ -115,7 +166,7 @@ impl UpdateContent {
         }
     }
 
-    pub fn document(content_id: Uuid, doc: serde_json::Value) -> Self {
+    pub fn document(content_id: Uuid, doc: DocumentView) -> Self {
         Self {
             content_id,
             body: SetContentRequest::Document(doc),
@@ -165,6 +216,54 @@ impl Handler for RemoveContent {
 
     fn path(&self) -> Cow<'_, str> {
         format!("/api/content/{}", self.content_id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
+/// Request to review (approve/reject) a summary as a moderator.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "content")]
+pub enum ReviewContentRequest {
+    Approve,
+    Remove(RemoveContentRequest),
+}
+/// Handler to review (approve/reject) a summary
+pub struct ReviewContent {
+    summary_id: uuid::Uuid,
+    body: ReviewContentRequest,
+}
+
+impl ReviewContent {
+    pub fn approve(summary_id: uuid::Uuid) -> Self {
+        Self {
+            summary_id,
+            body: ReviewContentRequest::Approve,
+        }
+    }
+
+    pub fn reject(summary_id: uuid::Uuid, reason: impl Into<String>) -> Self {
+        Self {
+            summary_id,
+            body: ReviewContentRequest::Remove(RemoveContentRequest {
+                reason: reason.into(),
+            }),
+        }
+    }
+}
+
+impl Handler for ReviewContent {
+    type ResponseBody = ContentView;
+
+    fn method(&self) -> Method {
+        Method::Post
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/content/{}/review", self.summary_id).into()
     }
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {

@@ -15,8 +15,8 @@ use crate::prelude::*;
 /// Result of syncing sessions
 #[derive(Debug, Clone)]
 pub struct SessionsSyncResult {
-    pub created: Vec<GetSessionResponse>,
-    pub updated: Vec<GetSessionResponse>,
+    pub created: Vec<SessionView>,
+    pub updated: Vec<SessionView>,
 }
 
 pub struct AllSessionsSync<'caller, 'client, E, P> {
@@ -50,7 +50,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
         ))
     }
 
-    pub async fn list(&mut self) -> SyncResult<Paginated<GetSessionResponse>> {
+    pub async fn list(&mut self) -> SyncResult<Paginated<ListSessionView>> {
         let ext = self.external.get_jurisdiction();
         let jurisdiction = self.mapper.jurisdiction(&ext.external_id).await?;
 
@@ -148,7 +148,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> AllSessionsSync<'caller, 'c
                     for chamber in &chambers.data {
                         match LinkChamberToSession::new(
                             response.id,
-                            LinkSessionToChamberRequest::new(chamber.id),
+                            LinkChamberToSessionRequest::new(chamber.id),
                         )
                         .request(self.mapper.client())
                         .await

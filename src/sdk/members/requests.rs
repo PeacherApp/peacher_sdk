@@ -19,6 +19,11 @@ pub struct MemberParams {
     /// Filter by external ID
     pub external_id: Option<ExternalId>,
 
+    /// Filter by a particular session
+    pub session_id: Option<i32>,
+    /// Filter by a particular chamber
+    pub chamber_id: Option<i32>,
+
     #[serde(default)]
     pub order_by: MemberOrder,
     #[serde(default)]
@@ -136,14 +141,14 @@ impl GetHandler for GetMemberByHandle {
 }
 
 /// Get districts for a specific member
-pub struct GetMemberDistricts(pub i32);
+pub struct GetRepresentativeDistricts(pub i32);
 
-impl GetHandler for GetMemberDistricts {
+impl GetHandler for GetRepresentativeDistricts {
     // Use Value for flexibility - actual type is MemberDistrictsResponse (defined in api crate)
-    type ResponseBody = serde_json::Value;
+    type ResponseBody = RepresentativeDistrictsResponse;
 
     fn path(&self) -> Cow<'_, str> {
-        format!("/api/members/{}/districts", self.0).into()
+        format!("/api/members/{}/representative/districts", self.0).into()
     }
 }
 
@@ -363,7 +368,7 @@ impl Handler for UpdateMember {
 /// Ban a member with a reason
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct BanMemberRequest {
+pub struct BanRequest {
     /// This is the reason for the ban
     pub reason: String,
 
@@ -377,14 +382,14 @@ pub struct BanMemberRequest {
 /// Handler to ban a member
 pub struct BanMember {
     member_id: i32,
-    body: BanMemberRequest,
+    body: BanRequest,
 }
 
 impl BanMember {
     pub fn new(member_id: i32, reason: impl Into<String>, context: impl Into<String>) -> Self {
         Self {
             member_id,
-            body: BanMemberRequest {
+            body: BanRequest {
                 reason: reason.into(),
                 context: context.into(),
             },
@@ -405,5 +410,46 @@ impl Handler for BanMember {
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
         builder.json(&self.body)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Default, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+pub struct MemberActivityParams {
+    pub content_type: Option<ContentType>,
+    pub page: Option<u64>,
+    pub page_size: Option<u64>,
+}
+paginated!(MemberActivityParams);
+
+/// Get a member's recent activity (posts, comments, summaries)
+pub struct GetMemberActivity {
+    member_id: i32,
+    params: MemberActivityParams,
+}
+
+impl GetMemberActivity {
+    pub fn new(member_id: i32) -> Self {
+        Self {
+            member_id,
+            params: MemberActivityParams::default(),
+        }
+    }
+
+    pub fn with_params(member_id: i32, params: MemberActivityParams) -> Self {
+        Self { member_id, params }
+    }
+}
+
+impl GetHandler for GetMemberActivity {
+    type ResponseBody = Paginated<MemberActivityItemView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/members/{}/activity", self.member_id).into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
     }
 }

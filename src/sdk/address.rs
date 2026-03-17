@@ -9,6 +9,7 @@ pub struct UpdateAccountRequest {
     pub bio: Option<String>,
     pub full_name: Option<String>,
     pub handle: Option<String>,
+    pub follow_representatives: bool,
     pub address: Option<SetLocation>,
     pub public: Option<bool>,
 }
@@ -23,15 +24,15 @@ pub struct AddressSearchParams {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct Vec2 {
-    pub x: f32,
-    pub y: f32,
+    pub x: f64,
+    pub y: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BoundingBox {
-    min: Vec2,
-    max: Vec2,
+    pub min: Vec2,
+    pub max: Vec2,
 }
 impl BoundingBox {
     pub fn new(p1: Vec2, p2: Vec2) -> Self {
@@ -48,14 +49,28 @@ impl BoundingBox {
     }
     pub fn from_nominatim_bb(bounding_box: [f32; 4]) -> Self {
         let p1 = Vec2 {
-            x: bounding_box[2],
-            y: bounding_box[0],
+            x: bounding_box[2] as f64,
+            y: bounding_box[0] as f64,
         };
         let p2 = Vec2 {
-            x: bounding_box[3],
-            y: bounding_box[1],
+            x: bounding_box[3] as f64,
+            y: bounding_box[1] as f64,
         };
         Self::new(p1, p2)
+    }
+
+    /// Expand this bounding box to also contain `other`.
+    pub fn union(&self, other: &BoundingBox) -> BoundingBox {
+        BoundingBox {
+            min: Vec2 {
+                x: self.min.x.min(other.min.x),
+                y: self.min.y.min(other.min.y),
+            },
+            max: Vec2 {
+                x: self.max.x.max(other.max.x),
+                y: self.max.y.max(other.max.y),
+            },
+        }
     }
 }
 

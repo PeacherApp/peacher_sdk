@@ -23,6 +23,16 @@ mod categories;
 #[cfg(feature = "categories")]
 pub use categories::*;
 
+#[cfg(feature = "comments")]
+mod comments;
+#[cfg(feature = "comments")]
+pub use comments::*;
+
+#[cfg(feature = "communities")]
+mod communities;
+#[cfg(feature = "communities")]
+pub use communities::*;
+
 #[cfg(feature = "chambers")]
 mod chambers;
 #[cfg(feature = "chambers")]
@@ -52,9 +62,9 @@ mod health;
 pub use health::*;
 
 #[cfg(feature = "jurisdiction")]
-mod jurisdiction;
+mod jurisdictions;
 #[cfg(feature = "jurisdiction")]
-pub use jurisdiction::*;
+pub use jurisdictions::*;
 
 #[cfg(feature = "legislation")]
 mod legislation;
@@ -111,6 +121,11 @@ mod reports;
 #[cfg(feature = "reports")]
 pub use reports::*;
 
+#[cfg(feature = "members")]
+mod representatives;
+#[cfg(feature = "members")]
+pub use representatives::*;
+
 #[cfg(feature = "sessions")]
 mod sessions;
 #[cfg(feature = "sessions")]
@@ -125,6 +140,11 @@ pub use sponsorships::*;
 mod tags;
 #[cfg(feature = "tags")]
 pub use tags::*;
+
+#[cfg(feature = "uploads")]
+mod uploads;
+#[cfg(feature = "uploads")]
+pub use uploads::*;
 
 #[cfg(feature = "votes")]
 mod votes;

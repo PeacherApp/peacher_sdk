@@ -19,7 +19,6 @@ pub struct LoginHistory {
 pub struct ModerationContentItem {
     pub id: Uuid,
     pub kind: ContentTypeId,
-    pub searchable_text: String,
     pub created_at: DateTime<FixedOffset>,
     pub removed_at: Option<DateTime<FixedOffset>>,
     pub reason_removed: Option<String>,
@@ -116,4 +115,12 @@ impl GetHandler for ListBans {
     fn params(&self) -> impl SdkParams {
         self.params.clone()
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "reason", rename_all = "snake_case")]
+pub enum ToggleAccountCreation {
+    Disable(String),
+    Enable,
 }

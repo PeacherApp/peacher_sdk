@@ -19,7 +19,7 @@ pub struct LegislationParams {
     pub freetext: Option<String>,
     pub legislation_type: CommaSeparated<LegislationType>,
 
-    pub external_id: Vec<ExternalId>,
+    pub external_id: CommaSeparated<ExternalId>,
     pub session_id: Option<i32>,
     pub chamber_id: Option<i32>,
 
@@ -170,6 +170,40 @@ impl GetHandler for GetLegislationVoteDetails {
     }
 }
 
+/// Handler to list posts that reference a piece of legislation
+pub struct ListLegislationPosts {
+    legislation_id: i32,
+    params: PostParams,
+}
+
+impl ListLegislationPosts {
+    pub fn new(legislation_id: i32) -> Self {
+        Self {
+            legislation_id,
+            params: PostParams::default(),
+        }
+    }
+
+    pub fn with_params(legislation_id: i32, params: PostParams) -> Self {
+        Self {
+            legislation_id,
+            params,
+        }
+    }
+}
+
+impl GetHandler for ListLegislationPosts {
+    type ResponseBody = Paginated<PostDetails>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/posts", self.legislation_id).into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
+    }
+}
+
 /// Request to create a new piece of legislation
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -269,14 +303,27 @@ pub struct UpdateLegislationRequest {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct AddSponsorRequest {
     pub member_id: i32,
-    pub sponsor_type: i32,
+    pub sponsor_type: SponsorshipType,
 }
 
 impl AddSponsorRequest {
-    pub fn new(member_id: i32, sponsor_type: i32) -> Self {
+    pub const fn primary(member_id: i32) -> Self {
         Self {
             member_id,
-            sponsor_type,
+            sponsor_type: SponsorshipType::Primary,
+        }
+    }
+    pub const fn cosponsor(member_id: i32) -> Self {
+        Self {
+            member_id,
+            sponsor_type: SponsorshipType::Cosponsor,
+        }
+    }
+
+    pub const fn other(member_id: i32) -> Self {
+        Self {
+            member_id,
+            sponsor_type: SponsorshipType::Other,
         }
     }
 }
@@ -398,7 +445,7 @@ fn test_query_params_behavior() {
     let params = Handler::params(&list_session_legislation)
         .into_params()
         .unwrap();
-    assert_eq!("order_by=id&order=desc&page=1&page_size=10", &params);
+    assert_eq!("order_by=id&order=desc&page=0&page_size=10", &params);
     let params = LegislationParams {
         page: Some(2),
         page_size: Some(13),
@@ -540,7 +587,7 @@ pub struct LegislationView {
     pub id: i32,
     pub name_id: String,
     pub title: String,
-    pub summary: Option<serde_json::Value>,
+    pub summary: Option<SummaryView>,
     /// Current outcome of the legislation
     pub status: Option<LegislationStatus>,
     /// Human-readable status text from external source
@@ -554,7 +601,7 @@ impl LegislationView {
     pub fn into_detailed(
         self,
         votes: impl IntoIterator<Item = LegislationViewVote>,
-        sponsors: impl IntoIterator<Item = LegislationViewSponsor>,
+        sponsors: impl IntoIterator<Item = LegislationSponsorView>,
     ) -> DetailedLegislationView {
         DetailedLegislationView {
             created_at: self.created_at,
@@ -586,7 +633,7 @@ pub struct DetailedLegislationView {
     pub id: i32,
     pub name_id: String,
     pub title: String,
-    pub summary: Option<serde_json::Value>,
+    pub summary: Option<SummaryView>,
     pub external_update_at: Option<DateTime<FixedOffset>>,
     pub legislation_type: LegislationType,
     /// Current outcome of the legislation
@@ -597,7 +644,7 @@ pub struct DetailedLegislationView {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub votes: Vec<LegislationViewVote>,
-    pub sponsors: Vec<LegislationViewSponsor>,
+    pub sponsors: Vec<LegislationSponsorView>,
 }
 
 impl DetailedLegislationView {
@@ -632,10 +679,10 @@ pub struct LegislationViewVote {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct LegislationViewSponsor {
+pub struct LegislationSponsorView {
     pub id: i32,
-    pub member_id: i32,
-    pub sponsor_type: i32,
+    pub member: CompactRepresentativeView,
+    pub sponsor_type: SponsorshipType,
     pub sponsored_at: Option<DateTime<FixedOffset>>,
 }
 
@@ -653,7 +700,7 @@ pub struct LegislationDetailsResponse {
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
     pub sponsors: Vec<SponsorInfo>,
-    pub chamber: Option<ChamberView>,
+    pub chamber: Option<GetChamberView>,
     pub session: Option<SessionView>,
 }
 
@@ -677,6 +724,7 @@ pub struct LegislationVoteView {
     pub id: i32,
     pub name: String,
     pub occurred_at: Option<DateTime<FixedOffset>>,
+    pub succeeded: bool,
     pub chamber: ChamberRef,
     pub yes_count: i32,
     pub no_count: i32,
@@ -693,7 +741,6 @@ pub struct VoteSummary {
     pub absent_count: i32,
     pub not_voting_count: i32,
     pub total: i32,
-    pub passed: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -701,6 +748,7 @@ pub struct VoteSummary {
 pub struct LegislationVoteDetailsResponse {
     pub vote_id: i32,
     pub vote_name: String,
+    pub succeeded: bool,
     pub occurred_at: Option<DateTime<FixedOffset>>,
     pub chamber: ChamberRef,
     pub legislation: LegislationView,
@@ -708,11 +756,11 @@ pub struct LegislationVoteDetailsResponse {
     pub summary: VoteSummary,
 }
 
-/// Legislation sponsored by a member in the feed
+/// A followed member who sponsored legislation, used in feed items.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct SponsoredLegislationView {
-    pub sponsor: MemberWithPartyView,
-    pub legislation: LegislationView,
+pub struct FeedSponsor {
+    pub member: MemberWithPartyView,
+    pub sponsor_type: SponsorshipType,
     pub sponsored_at: Option<DateTime<FixedOffset>>,
 }

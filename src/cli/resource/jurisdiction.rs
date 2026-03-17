@@ -20,10 +20,12 @@ impl JurisdictionCmd {
         match self {
             JurisdictionCmd::List => {
                 let ext_jurisdiction = sync.external().get_jurisdiction();
-                let existing_jurisdictions = ListJurisdictions::default()
-                    .with_external_id(ext_jurisdiction.external_id.val_str())
-                    .request(sync.peacher())
-                    .await?;
+                let existing_jurisdictions = ListJurisdictions(
+                    JurisdictionParams::default()
+                        .with_external_id(ext_jurisdiction.external_id.val_str()),
+                )
+                .request(sync.peacher())
+                .await?;
                 existing_jurisdictions.data.print();
                 Ok(())
             }

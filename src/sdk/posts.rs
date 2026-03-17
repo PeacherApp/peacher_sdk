@@ -3,110 +3,197 @@ use std::borrow::Cow;
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use url::Url;
+use uuid::Uuid;
 
 use crate::{paginated, prelude::*};
 
-/// List posts with optional filters
-#[derive(Default)]
-pub struct ListPosts(pub PostParams);
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct RemovedPost {
+    pub title: String,
+    pub district_id: i32,
+    pub pinned: bool,
+    pub content: RemovedContent,
+}
 
-impl GetHandler for ListPosts {
-    // Use Value for flexibility - actual type is Paginated<PostSummary<MemberView>>
-    type ResponseBody = Paginated<serde_json::Value>;
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PostUnderReview {
+    pub title: String,
+    pub district_id: i32,
+    pub pinned: bool,
+    pub content: ContentUnderReview,
+}
 
-    fn path(&self) -> Cow<'_, str> {
-        "/api/posts".into()
-    }
-
-    fn params(&self) -> impl SdkParams {
-        self.0.clone()
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PostDetails {
+    pub link: Option<PostLink>,
+    pub title: String,
+    pub district_id: i32,
+    pub num_comments: u32,
+    pub pinned: bool,
+    pub content: ContentDetails,
+    pub editable_until: Option<DateTime<FixedOffset>>,
+}
+impl PostDetails {
+    pub fn id(&self) -> Uuid {
+        self.content.id
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams, utoipa::ToSchema))]
-#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
-pub struct PostParams {
-    pub search: Option<String>,
-    pub status: Option<String>,
-    pub visibility: Option<String>,
-    pub sort: Option<String>,
-    pub legislation_id: Option<i32>,
-    pub member_id: Option<i32>,
-    pub district_id: Option<i32>,
-    pub jurisdiction_id: Option<i32>,
-    #[serde(skip)]
-    pub author: Option<i32>,
-    #[serde(skip)]
-    pub viewer: Option<i32>,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+#[expect(clippy::large_enum_variant)]
+pub enum PostView {
+    Content(PostDetails),
+    UnderReview(PostUnderReview),
+    Removed(RemovedPost),
+}
+impl PostView {
+    pub fn id(&self) -> Uuid {
+        match self {
+            Self::Content(c) => c.content.id,
+            Self::UnderReview(c) => c.content.id,
+            Self::Removed(c) => c.content.id,
+        }
+    }
+    pub fn district_id(&self) -> i32 {
+        match self {
+            Self::Content(c) => c.district_id,
+            Self::Removed(c) => c.district_id,
+            Self::UnderReview(c) => c.district_id,
+        }
+    }
+    pub fn title(&self) -> &str {
+        match self {
+            Self::Content(c) => &c.title,
+            Self::Removed(c) => &c.title,
+            Self::UnderReview(c) => &c.title,
+        }
+    }
+    pub fn pinned(&self) -> bool {
+        match self {
+            Self::Content(c) => c.pinned,
+            Self::Removed(r) => r.pinned,
+            Self::UnderReview(u) => u.pinned,
+        }
+    }
+}
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case", tag = "type", content = "value")]
+pub enum PostLink {
+    Article(Url),
+    Media(AttachmentResponse),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case")]
+pub enum PostSort {
+    #[default]
+    Hot,
+    New,
+    Top,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
+#[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
+#[serde(default)]
+pub struct PostParams {
+    /// Comma-separated list of district IDs, e.g. "1,2,3"
+    pub district_ids: CommaSeparated<i32>,
+    pub author_id: Option<i32>,
+    pub search: Option<String>,
+    pub pinned: Option<bool>,
+    pub sort: PostSort,
     pub page: Option<u64>,
     pub page_size: Option<u64>,
 }
 
 paginated!(PostParams);
 
-impl PostParams {
-    pub fn set_author(mut self, author: i32) -> Self {
-        self.author = Some(author);
-        self
-    }
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct CreatePostRequest {
+    pub media: Option<NewPostMedia>,
+    pub title: String,
+    pub district_id: i32,
+    pub body: SetContentRequest,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[serde(rename_all = "snake_case", tag = "type")]
+pub enum NewPostMedia {
+    Attachment { attachment_id: Uuid },
+    Article { href: Url },
+}
 
-    pub fn set_viewer(mut self, id: Option<i32>) -> Self {
-        self.viewer = id;
-        self
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct UpdatePostRequest {
+    pub title: Option<String>,
+    pub body: Option<SetContentRequest>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct PinPostRequest {
+    pub pinned: bool,
+}
+
+/// List posts with optional filters
+#[derive(Default)]
+pub struct ListPosts {
+    pub params: PostParams,
+}
+
+impl ListPosts {
+    pub fn new() -> Self {
+        Self::default()
     }
 }
 
-/// Get a single post by ID
-pub struct GetPost(pub i32);
+impl GetHandler for ListPosts {
+    type ResponseBody = Paginated<PostView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        "/api/posts".into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
+    }
+}
+
+/// Get a single post by content_item_id
+pub struct GetPost(pub Uuid);
 
 impl GetHandler for GetPost {
-    // Use Value for flexibility - actual type is ViewPostResponse
-    type ResponseBody = serde_json::Value;
+    type ResponseBody = PostView;
 
     fn path(&self) -> Cow<'_, str> {
         format!("/api/posts/{}", self.0).into()
     }
 }
 
-/// Create a new post (requires authentication)
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+/// Create a new post
 pub struct CreatePost {
-    pub title: String,
-    pub content: String,
-    pub publish: bool,
-    pub cover_image: Option<String>,
-    #[serde(default)]
-    pub legislation_ids: Vec<i32>,
-    #[serde(default)]
-    pub member_ids: Vec<i32>,
-    #[serde(default)]
-    pub district_ids: Vec<(i32, i32)>,
-    #[serde(default)]
-    pub jurisdiction_ids: Vec<i32>,
+    body: CreatePostRequest,
 }
 
 impl CreatePost {
-    pub fn new(title: impl Into<String>, content: impl Into<String>) -> Self {
-        Self {
-            title: title.into(),
-            content: content.into(),
-            publish: false,
-            ..Default::default()
-        }
-    }
-
-    pub fn publish(mut self) -> Self {
-        self.publish = true;
-        self
+    pub fn new(body: CreatePostRequest) -> Self {
+        Self { body }
     }
 }
 
 impl Handler for CreatePost {
-    // Use Value for flexibility - actual type is PostSummary<i32>
-    type ResponseBody = serde_json::Value;
+    type ResponseBody = PostView;
 
     fn method(&self) -> Method {
         Method::Post
@@ -117,54 +204,24 @@ impl Handler for CreatePost {
     }
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
-        builder.json(self)
+        builder.json(&self.body)
     }
 }
 
-/// Update a post (requires authentication)
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+/// Update a post (within editable window or admin)
 pub struct UpdatePost {
-    #[serde(skip)]
-    pub id: i32,
-    pub title: String,
-    pub content: String,
-    pub excerpt: Option<String>,
-    pub publish: bool,
-    #[serde(default)]
-    pub legislation_ids: Vec<i32>,
-    #[serde(default)]
-    pub member_ids: Vec<i32>,
-    #[serde(default)]
-    pub district_ids: Vec<(i32, i32)>,
-    #[serde(default)]
-    pub jurisdiction_ids: Vec<i32>,
+    id: Uuid,
+    body: UpdatePostRequest,
 }
 
 impl UpdatePost {
-    pub fn new(id: i32, title: impl Into<String>, content: impl Into<String>) -> Self {
-        Self {
-            id,
-            title: title.into(),
-            content: content.into(),
-            excerpt: None,
-            publish: false,
-            legislation_ids: vec![],
-            member_ids: vec![],
-            district_ids: vec![],
-            jurisdiction_ids: vec![],
-        }
-    }
-
-    pub fn publish(mut self) -> Self {
-        self.publish = true;
-        self
+    pub fn new(id: Uuid, body: UpdatePostRequest) -> Self {
+        Self { id, body }
     }
 }
 
 impl Handler for UpdatePost {
-    // Use Value for flexibility - actual type is PostContentResponse
-    type ResponseBody = serde_json::Value;
+    type ResponseBody = PostView;
 
     fn method(&self) -> Method {
         Method::Put
@@ -175,12 +232,12 @@ impl Handler for UpdatePost {
     }
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
-        builder.json(self)
+        builder.json(&self.body)
     }
 }
 
-/// Delete a post (requires authentication)
-pub struct DeletePost(pub i32);
+/// Delete a post
+pub struct DeletePost(pub Uuid);
 
 impl Handler for DeletePost {
     type ResponseBody = NoResponse;
@@ -194,135 +251,60 @@ impl Handler for DeletePost {
     }
 }
 
-/// Get post content for editing (requires authentication, must be author)
-pub struct GetPostContent(pub i32);
-
-impl GetHandler for GetPostContent {
-    // Use Value for flexibility - actual type is PostContentResponse
-    type ResponseBody = serde_json::Value;
-
-    fn path(&self) -> Cow<'_, str> {
-        format!("/api/posts/{}/content", self.0).into()
-    }
+/// Pin or unpin a post (community moderator or admin)
+pub struct PinPost {
+    id: Uuid,
+    body: PinPostRequest,
 }
 
-/// Summary view of a post (used in listings)
-/// Note: The author field uses MemberView when fetched via API
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct PostSummaryView {
-    pub created_at: DateTime<FixedOffset>,
-    pub updated_at: DateTime<FixedOffset>,
-    pub id: i32,
-    pub title: String,
-    pub published_at: Option<DateTime<FixedOffset>>,
-    pub cover_image: Option<Url>,
-    pub views: i32,
-    pub author: MemberView,
-    pub article_url: Option<Url>,
-    pub excerpt: String,
-    pub legislation_ids: Vec<i32>,
-    pub member_ids: Vec<i32>,
-    pub district_ids: Vec<(i32, i32)>,
-    pub jurisdiction_ids: Vec<i32>,
-}
-
-#[derive(Serialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct PostSummary<M> {
-    #[cfg_attr(feature = "utoipa", schema(value_type = String, format = DateTime, example = "2024-01-01T00:00:00Z"))]
-    pub created_at: DateTime<FixedOffset>,
-    #[cfg_attr(feature = "utoipa", schema(value_type = String, format = DateTime, example = "2024-01-01T00:00:00Z"))]
-    pub updated_at: DateTime<FixedOffset>,
-    pub id: i32,
-    pub title: String,
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<String>, format = DateTime))]
-    pub published_at: Option<DateTime<FixedOffset>>,
-    pub cover_image: Option<Url>,
-    pub views: i32,
-    pub author: M,
-    pub article_url: Option<Url>,
-    pub excerpt: String,
-    pub legislation_ids: Vec<i32>,
-    pub member_ids: Vec<i32>,
-    pub district_ids: Vec<(i32, i32)>,
-    pub jurisdiction_ids: Vec<i32>,
-}
-impl<M> PostSummary<M> {
-    pub fn update_author<N>(self, func: impl FnOnce(M) -> N) -> PostSummary<N> {
-        PostSummary {
-            created_at: self.created_at,
-            updated_at: self.updated_at,
-            id: self.id,
-            title: self.title,
-            published_at: self.published_at,
-            cover_image: self.cover_image,
-            views: self.views,
-            author: func(self.author),
-            excerpt: self.excerpt,
-            article_url: self.article_url,
-            legislation_ids: self.legislation_ids,
-            member_ids: self.member_ids,
-            district_ids: self.district_ids,
-            jurisdiction_ids: self.jurisdiction_ids,
+impl PinPost {
+    pub fn new(id: Uuid, pinned: bool) -> Self {
+        Self {
+            id,
+            body: PinPostRequest { pinned },
         }
     }
 }
 
-/// Full post view (used when viewing a single post)
-/// Note: Uses serde_json::Value for complex nested types that vary
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct ViewPostResponse {
-    #[cfg_attr(feature = "utoipa", schema(value_type = String, format = DateTime, example = "2024-01-01T00:00:00Z"))]
-    pub created_at: DateTime<FixedOffset>,
-    #[cfg_attr(feature = "utoipa", schema(value_type = String, format = DateTime, example = "2024-01-01T00:00:00Z"))]
-    pub updated_at: DateTime<FixedOffset>,
-    pub id: i32,
-    pub title: String,
-    pub content: String,
-    #[cfg_attr(feature = "utoipa", schema(value_type = Option<String>, format = DateTime))]
-    pub published_at: Option<DateTime<FixedOffset>>,
-    pub cover_image: Option<Url>,
-    pub author: MemberView,
-    pub excerpt: String,
-    pub views: i32,
-    pub likes: u64,
-    pub comments: u64,
-    pub user_sentiment: Option<UserSentiment>,
-    pub tags: Vec<TagResponse>,
-    pub attachments: Vec<AttachmentResponse>,
-    pub legislation_ids: Vec<i32>,
-    pub member_ids: Vec<i32>,
-    pub district_ids: Vec<(i32, i32)>,
-    pub jurisdiction_ids: Vec<i32>,
+impl Handler for PinPost {
+    type ResponseBody = NoResponse;
+
+    fn method(&self) -> Method {
+        Method::Put
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/posts/{}/pin", self.id).into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct UpdateCoverImageResponse {
-    pub cover_image: String,
+/// List posts for a specific community
+pub struct ListCommunityPosts {
+    community_id: i32,
+    pub params: PostParams,
 }
 
-/// Response for editing a post - includes the full content.
-///
-/// Does not utilize typical excerpt/content summarizing methodology.
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct PostContentResponse {
-    #[cfg_attr(feature = "utoipa", schema(value_type = String, format = DateTime, example = "2024-01-01T00:00:00Z"))]
-    pub created_at: DateTime<FixedOffset>,
-    #[cfg_attr(feature = "utoipa", schema(value_type = String, format = DateTime, example = "2024-01-01T00:00:00Z"))]
-    pub updated_at: DateTime<FixedOffset>,
-    pub id: i32,
-    pub title: String,
-    pub content: String,
-    pub excerpt: Option<String>,
-    pub published_at: Option<DateTime<FixedOffset>>,
-    pub cover_image: Option<String>,
-    pub author: i32,
-    pub legislation_ids: Vec<i32>,
-    pub member_ids: Vec<i32>,
-    pub district_ids: Vec<(i32, i32)>,
-    pub jurisdiction_ids: Vec<i32>,
+impl ListCommunityPosts {
+    pub fn new(community_id: i32) -> Self {
+        Self {
+            community_id,
+            params: PostParams::default(),
+        }
+    }
+}
+
+impl GetHandler for ListCommunityPosts {
+    type ResponseBody = Paginated<PostView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/communities/{}/posts", self.community_id).into()
+    }
+
+    fn params(&self) -> impl SdkParams {
+        self.params.clone()
+    }
 }

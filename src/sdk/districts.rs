@@ -6,8 +6,6 @@ use crate::prelude::*;
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct SimpleBoundaryView {
     pub id: i32,
-    pub map_id: i32,
-    pub geo_id: i32,
     pub name: String,
 }
 
@@ -15,8 +13,6 @@ pub struct SimpleBoundaryView {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BoundaryView {
     pub id: i32,
-    pub map_id: i32,
-    pub geo_id: i32,
     pub name: String,
     pub chambers: Vec<BoundaryChambers>,
 }
@@ -24,6 +20,13 @@ pub struct BoundaryView {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BoundaryChambers {
-    pub chamber: ChamberView,
-    pub members: Vec<MemberWithPartyView>,
+    pub chamber: GetChamberView,
+    pub session: SessionView,
+    /// members intersected with
+    pub members: Vec<ChamberSessionMember>,
 }
+/// A simple reference to a district.
+/// Used for serialization and passing between components.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct RegionId(pub i32);
