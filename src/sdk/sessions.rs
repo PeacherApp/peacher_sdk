@@ -427,7 +427,7 @@ pub struct GetSessionView {
     pub chambers: Vec<ChamberViewWithPartyBreakdown>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
 }
 
 /// A session view with jurisdiction and chamber details
@@ -443,7 +443,7 @@ pub struct ListSessionView {
     pub chambers: Vec<ChamberView>,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
 }
 
 /// A chamber within a session
@@ -477,7 +477,7 @@ pub struct SessionView {
     pub jurisdiction_id: i32,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
 }
 impl SessionView {
     pub fn into_list_session_view(

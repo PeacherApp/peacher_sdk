@@ -15,7 +15,7 @@ pub struct ChamberView {
     pub jurisdiction_id: i32,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
 }
 impl ChamberView {
     pub fn into_get_chamber_response(self, jurisdiction: JurisdictionView) -> GetChamberView {
@@ -61,7 +61,7 @@ pub struct GetChamberView {
     pub jurisdiction: JurisdictionView,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
 }
 impl GetChamberView {
     pub fn into_chamber_view(self) -> ChamberView {
@@ -88,7 +88,7 @@ pub struct ChamberViewWithPartyBreakdown {
     pub jurisdiction_id: i32,
     pub external_id: Option<ExternalId>,
     pub external_url: Option<Url>,
-    pub created_by_id: Option<i32>,
+    pub created_by_id: i32,
     pub party_breakdown: Vec<PartyBreakdown>,
 }
 
