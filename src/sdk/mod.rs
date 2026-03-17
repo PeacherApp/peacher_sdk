@@ -121,6 +121,11 @@ mod reports;
 #[cfg(feature = "reports")]
 pub use reports::*;
 
+#[cfg(feature = "members")]
+mod representatives;
+#[cfg(feature = "members")]
+pub use representatives::*;
+
 #[cfg(feature = "sessions")]
 mod sessions;
 #[cfg(feature = "sessions")]
