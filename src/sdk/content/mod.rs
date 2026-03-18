@@ -62,7 +62,9 @@ pub struct ContentDetails {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct RemoveContentRequest {
-    pub reason: String,
+    /// If some, this value is ignored if the author of the content is
+    /// deleting it
+    pub reason: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -96,8 +98,8 @@ pub enum ContentType {
 pub enum ContentTypeId {
     /// Post ID
     Post,
-    /// Comment ID
-    Comment,
+    /// Comment
+    Comment { post: Uuid, parent: Option<Uuid> },
     /// Legislation ID
     Summary(Option<i32>),
 }
@@ -139,6 +141,13 @@ impl ContentView {
             ContentView::UnderReview(content) => content.id,
         }
     }
+
+    pub fn removed_at(&self) -> Option<DateTime<FixedOffset>> {
+        match self {
+            ContentView::Removed(removed) => Some(removed.removed_at),
+            _ => None,
+        }
+    }
 }
 
 /// Request to create or update content.
@@ -152,37 +161,44 @@ pub enum SetContentRequest {
     Markdown(String),
 }
 
-/// Handler to update content (author or admin only)
-pub struct UpdateContent {
+/// Handler to update content (author or admin)
+pub struct UpdateSummary {
+    legislation_id: i32,
     content_id: Uuid,
     body: SetContentRequest,
 }
 
-impl UpdateContent {
-    pub fn markdown(content_id: Uuid, markdown: impl Into<String>) -> Self {
+impl UpdateSummary {
+    pub fn markdown(legislation_id: i32, content_id: Uuid, markdown: impl Into<String>) -> Self {
         Self {
+            legislation_id,
             content_id,
             body: SetContentRequest::Markdown(markdown.into()),
         }
     }
 
-    pub fn document(content_id: Uuid, doc: DocumentView) -> Self {
+    pub fn document(legislation_id: i32, content_id: Uuid, doc: DocumentView) -> Self {
         Self {
+            legislation_id,
             content_id,
             body: SetContentRequest::Document(doc),
         }
     }
 }
 
-impl Handler for UpdateContent {
-    type ResponseBody = ContentView;
+impl Handler for UpdateSummary {
+    type ResponseBody = SummaryView;
 
     fn method(&self) -> Method {
         Method::Put
     }
 
     fn path(&self) -> Cow<'_, str> {
-        format!("/api/content/{}", self.content_id).into()
+        format!(
+            "/api/legislation/{}/summaries/{}",
+            self.legislation_id, self.content_id
+        )
+        .into()
     }
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
@@ -191,31 +207,37 @@ impl Handler for UpdateContent {
 }
 
 /// Handler to remove content (author, moderator, or admin)
-pub struct RemoveContent {
+pub struct RemoveSummary {
+    legislation_id: i32,
     content_id: Uuid,
     body: RemoveContentRequest,
 }
 
-impl RemoveContent {
-    pub fn new(content_id: Uuid, reason: impl Into<String>) -> Self {
+impl RemoveSummary {
+    pub fn new(legislation_id: i32, content_id: Uuid, reason: impl Into<String>) -> Self {
         Self {
+            legislation_id,
             content_id,
             body: RemoveContentRequest {
-                reason: reason.into(),
+                reason: Some(reason.into()),
             },
         }
     }
 }
 
-impl Handler for RemoveContent {
-    type ResponseBody = ContentView;
+impl Handler for RemoveSummary {
+    type ResponseBody = SummaryView;
 
     fn method(&self) -> Method {
         Method::Delete
     }
 
     fn path(&self) -> Cow<'_, str> {
-        format!("/api/content/{}", self.content_id).into()
+        format!(
+            "/api/legislation/{}/summaries/{}",
+            self.legislation_id, self.content_id
+        )
+        .into()
     }
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
@@ -249,7 +271,7 @@ impl ReviewContent {
         Self {
             summary_id,
             body: ReviewContentRequest::Remove(RemoveContentRequest {
-                reason: reason.into(),
+                reason: Some(reason.into()),
             }),
         }
     }

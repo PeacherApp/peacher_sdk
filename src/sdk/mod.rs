@@ -150,3 +150,8 @@ pub use uploads::*;
 mod votes;
 #[cfg(feature = "votes")]
 pub use votes::*;
+
+#[cfg(feature = "sitemap")]
+mod sitemap;
+#[cfg(feature = "sitemap")]
+pub use sitemap::*;
