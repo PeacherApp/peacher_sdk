@@ -1,6 +1,6 @@
 [package]
 name = "peacher_sdk"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2024"
 description = "The rust request, response, and parameter types used by the peacher API"
 readme = "README.md"
@@ -85,11 +85,11 @@ all_routes = [
   "posts",
   "reports",
   "sessions",
+  "sitemap",
   "sponsorships",
   "tags",
   "uploads",
-  "votes",
-  "sitemap"
+  "votes"
 ]
 attachments = []
 auth = []
@@ -126,10 +126,10 @@ parties = []
 posts = []
 reports = []
 sessions = []
+sitemap = []
 sponsorships = []
 tags = []
 tippytappy = ["dep:markdown"]
 uploads = []
 utoipa = ["dep:utoipa"]
 votes = []
-sitemap = []
