@@ -1,6 +1,6 @@
 [package]
 name = "peacher_sdk"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2024"
 description = "The rust request, response, and parameter types used by the peacher API"
 readme = "README.md"

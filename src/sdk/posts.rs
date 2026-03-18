@@ -142,6 +142,13 @@ pub struct UpdatePostRequest {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct DeletePostRequest {
+    pub remove_title: bool,
+    pub reason: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct PinPostRequest {
     pub pinned: bool,
 }
