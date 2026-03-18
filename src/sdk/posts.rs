@@ -244,9 +244,28 @@ impl Handler for UpdatePost {
 }
 
 /// Delete a post
-pub struct DeletePost(pub Uuid);
+pub struct RemovePost {
+    pub id: Uuid,
+    pub request: DeletePostRequest,
+}
 
-impl Handler for DeletePost {
+impl RemovePost {
+    pub fn new(id: Uuid, remove_title: bool) -> Self {
+        Self {
+            id,
+            request: DeletePostRequest {
+                remove_title,
+                reason: None,
+            },
+        }
+    }
+    /// Only does something if you are a moderator and removing a post
+    pub fn with_reason(mut self, reason: impl Into<String>) -> Self {
+        self.request.reason = Some(reason.into());
+        self
+    }
+}
+impl Handler for RemovePost {
     type ResponseBody = NoResponse;
 
     fn method(&self) -> Method {
@@ -254,7 +273,10 @@ impl Handler for DeletePost {
     }
 
     fn path(&self) -> Cow<'_, str> {
-        format!("/api/posts/{}", self.0).into()
+        format!("/api/posts/{}", self.id).into()
+    }
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.request)
     }
 }
 
