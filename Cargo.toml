@@ -88,7 +88,8 @@ all_routes = [
   "sponsorships",
   "tags",
   "uploads",
-  "votes"
+  "votes",
+  "sitemap"
 ]
 attachments = []
 auth = []
@@ -131,3 +132,4 @@ tippytappy = ["dep:markdown"]
 uploads = []
 utoipa = ["dep:utoipa"]
 votes = []
+sitemap = []
