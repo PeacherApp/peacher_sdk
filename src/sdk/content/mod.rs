@@ -98,8 +98,8 @@ pub enum ContentType {
 pub enum ContentTypeId {
     /// Post ID
     Post,
-    /// Comment ID
-    Comment,
+    /// Comment
+    Comment { post: Uuid, parent: Option<Uuid> },
     /// Legislation ID
     Summary(Option<i32>),
 }
