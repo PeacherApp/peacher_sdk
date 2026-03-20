@@ -12,7 +12,7 @@ pub enum SyncType {
     All,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum SessionAction {
     /// Delete this session. May fail if you already have members and/or legislation associated
     /// with this session

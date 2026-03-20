@@ -94,7 +94,7 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                 );
 
                 let outcome =
-                    sync_legislation(self.mapper, session.id, &known_legislation, ext_leg).await?;
+                    sync_legislation(self.mapper, session.id, &mut known_legislation, ext_leg).await?;
                 match outcome.view {
                     LegislationViewOutcome::Created(val) => {
                         consecutive_known = 0;
@@ -166,7 +166,7 @@ pub struct LegislationUpdateOutcome {
 async fn sync_legislation<P: Client>(
     mapper: &mut ClientMapper<'_, P>,
     session_id: i32,
-    known_legislation: &HashMap<ExternalId, LegislationView>,
+    known_legislation: &mut HashMap<ExternalId, LegislationView>,
     ext_leg: ExternalLegislation,
 ) -> SyncResult<LegislationUpdateOutcome> {
     let votes = ext_leg.votes.clone();
@@ -202,6 +202,8 @@ async fn sync_legislation<P: Client>(
                 "Created legislation '{}' (id: {}, ext_id: {})",
                 leg.name_id, leg.id, ext_id
             );
+
+            known_legislation.insert(ext_id, leg.clone());
             LegislationViewOutcome::Created(leg)
         }
     };
