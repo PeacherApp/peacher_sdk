@@ -67,9 +67,7 @@ pub struct ExternalMember {
 
 impl ExternalMember {
     pub fn to_update_member_request(&self) -> UpdateMemberRequest {
-        let mut req = UpdateMemberRequest::new()
-            .bio(&self.bio)
-            .party(&self.party);
+        let mut req = UpdateMemberRequest::new().bio(&self.bio).party(&self.party);
 
         if let Some(full_name) = &self.full_name {
             req = req.full_name(full_name);

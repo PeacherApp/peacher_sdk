@@ -94,7 +94,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                 );
 
                 let outcome =
-                    sync_legislation(self.mapper, session.id, &mut known_legislation, ext_leg).await?;
+                    sync_legislation(self.mapper, session.id, &mut known_legislation, ext_leg)
+                        .await?;
                 match outcome.view {
                     LegislationViewOutcome::Created(val) => {
                         consecutive_known = 0;
