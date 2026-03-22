@@ -2931,7 +2931,7 @@ checksum = "4ec91767ecc0a0bbe558ce8c9da33c068066c57ecc8bb8477ef8c1ad3ef77c27"
 
 [[package]]
 name = "peacher_sdk"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "ahash 0.8.12",
  "anyhow",
