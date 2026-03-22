@@ -12,7 +12,7 @@ use clap::Subcommand;
 
 use crate::sync::{ApiSync, ExternalClient};
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum Resource {
     /// Commands to modify your config
     Config {

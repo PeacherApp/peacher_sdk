@@ -94,7 +94,8 @@ impl<'caller, 'client, E: ExternalClient, P: Client> LegislationSync<'caller, 'c
                 );
 
                 let outcome =
-                    sync_legislation(self.mapper, session.id, &known_legislation, ext_leg).await?;
+                    sync_legislation(self.mapper, session.id, &mut known_legislation, ext_leg)
+                        .await?;
                 match outcome.view {
                     LegislationViewOutcome::Created(val) => {
                         consecutive_known = 0;
@@ -166,7 +167,7 @@ pub struct LegislationUpdateOutcome {
 async fn sync_legislation<P: Client>(
     mapper: &mut ClientMapper<'_, P>,
     session_id: i32,
-    known_legislation: &HashMap<ExternalId, LegislationView>,
+    known_legislation: &mut HashMap<ExternalId, LegislationView>,
     ext_leg: ExternalLegislation,
 ) -> SyncResult<LegislationUpdateOutcome> {
     let votes = ext_leg.votes.clone();
@@ -202,6 +203,8 @@ async fn sync_legislation<P: Client>(
                 "Created legislation '{}' (id: {}, ext_id: {})",
                 leg.name_id, leg.id, ext_id
             );
+
+            known_legislation.insert(ext_id, leg.clone());
             LegislationViewOutcome::Created(leg)
         }
     };
@@ -270,18 +273,34 @@ async fn sync_legislation_votes<P: Client>(
                     && let Ok(err) = serde_json::from_str::<ErrorResponse>(&val)
                     && let Ok(id) = err.description.parse()
                 {
-                    info!("Updating vote");
-
                     let known_vote = GetLegislationVoteDetails::new(legislation.id, id)
                         .request(mapper.client())
                         .await?;
 
+                    let votes_match = known_vote.member_votes.len() == member_votes.len()
+                        && member_votes.iter().all(|mv| {
+                            known_vote
+                                .member_votes
+                                .iter()
+                                .any(|kv| kv.member.id == mv.member_id && kv.vote == mv.vote)
+                        });
+
                     if known_vote.vote_name == vote_name
-                        && known_vote.member_votes.len() == member_votes.len()
+                        && votes_match
                         && known_vote.occurred_at == ext_vote.date_occurred
                     {
+                        info!("Vote '{}' (id: {}) unchanged", vote_name, id);
                         unchanged.push(id);
                     } else {
+                        info!(
+                            "Updating vote '{}' (id: {}, name_match: {}, votes_match: {}, date_match: {})",
+                            vote_name,
+                            id,
+                            known_vote.vote_name == vote_name,
+                            votes_match,
+                            known_vote.occurred_at == ext_vote.date_occurred,
+                        );
+
                         let req = UpdateVoteRequest {
                             name: Some(vote_name),
                             occurred_at: ext_vote.date_occurred,

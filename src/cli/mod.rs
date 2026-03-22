@@ -16,23 +16,23 @@ use clap::Parser;
 use url::Url;
 
 /// The Peacher SDK CLI tool for external clients
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(version, about = "Peacher SDK CLI - Sync legislative data", long_about = None)]
 pub struct Args {
     #[command(subcommand)]
-    resource: Resource,
+    pub resource: Resource,
 
     /// Override the default path of the config
     #[arg(short, long, global = true)]
-    config: Option<String>,
+    pub config: Option<String>,
 
     /// Override your api key
     #[arg(short, long, global = true)]
-    api_key: Option<String>,
+    pub api_key: Option<String>,
 
     /// Override the API base URL (default: from config or https://api.peacher.app)
     #[arg(short, long, global = true)]
-    url: Option<String>,
+    pub url: Option<String>,
 }
 
 #[derive(Default)]
@@ -54,6 +54,14 @@ pub async fn cli<E: ExternalClient>(client: E) -> Result<()> {
 pub async fn cli_with_opts<E: ExternalClient>(client: E, options: CliOpts) -> Result<()> {
     let mut args = Args::parse();
 
+    cli_with_opts_and_args(client, options, args).await
+}
+
+pub async fn cli_with_opts_and_args<E: ExternalClient>(
+    client: E,
+    options: CliOpts,
+    mut args: Args,
+) -> Result<()> {
     if args.config.is_none()
         && let Some(config) = options.config
     {
@@ -102,7 +110,6 @@ pub async fn cli_with_opts<E: ExternalClient>(client: E, options: CliOpts) -> Re
         Resource::Config { cmd } => unreachable!(),
     }
 }
-
 pub async fn cli_with_client<E: ExternalClient>(
     external_client: E,
     peacher_client: &PeacherClient,

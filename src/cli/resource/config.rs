@@ -21,7 +21,7 @@ pub enum ConfigKey {
     Url,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum ConfigCmd {
     Show,
     Set {

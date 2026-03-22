@@ -6,7 +6,7 @@ use crate::prelude::*;
 use anyhow::Result;
 use clap::Subcommand;
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum SessionCmd {
     /// Lists the known sessions by Peacher
     List,

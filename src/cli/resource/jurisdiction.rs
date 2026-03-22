@@ -3,7 +3,7 @@ use crate::prelude::*;
 use anyhow::Result;
 use clap::Subcommand;
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Debug, Clone, Copy)]
 pub enum JurisdictionCmd {
     /// Lists the jurisdictions used by the client and its implementation
     List,
