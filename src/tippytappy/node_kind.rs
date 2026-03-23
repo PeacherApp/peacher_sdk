@@ -1,8 +1,3 @@
-pub trait ProcessNode<V> {
-    type Output;
-    fn process(self, visitor: &mut V) -> Self::Output;
-}
-
 pub trait NodeKind {
     /// Iterate through text.
     ///

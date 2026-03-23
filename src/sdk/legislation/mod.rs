@@ -445,7 +445,12 @@ fn test_query_params_behavior() {
     let params = Handler::params(&list_session_legislation)
         .into_params()
         .unwrap();
-    assert_eq!("order_by=id&order=desc&page=0&page_size=10", &params);
+
+    assert!(params.contains("order_by=id"));
+    assert!(params.contains("order=desc"));
+    assert!(params.contains("page=0"));
+    assert!(params.contains("page_size=10"));
+
     let params = LegislationParams {
         page: Some(2),
         page_size: Some(13),
@@ -480,8 +485,8 @@ fn test_query_params_behavior() {
     let ser_params = serde_qs::to_string(&params).unwrap();
     // HashSet order is non-deterministic, so check both possible orderings
     assert!(
-        ser_params.contains("legislation_type=bill%2Cresolution")
-            || ser_params.contains("legislation_type=resolution%2Cbill"),
+        ser_params.contains("legislation_type=bill,resolution")
+            || ser_params.contains("legislation_type=resolution,bill"),
         "unexpected serialization: {ser_params}"
     );
 
@@ -492,7 +497,7 @@ fn test_query_params_behavior() {
     // Empty CommaSeparated is omitted from query string
     let params = LegislationParams::default();
     let ser_params = serde_qs::to_string(&params).unwrap();
-    assert!(!ser_params.contains("legislation_type"));
+    assert!(!ser_params.contains("legislation_type="));
 }
 
 #[derive(

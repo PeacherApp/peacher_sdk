@@ -1,6 +1,9 @@
 mod error;
 pub use error::*;
 
+mod visitors;
+pub use visitors::*;
+
 mod node;
 pub use node::*;
 
@@ -15,9 +18,6 @@ pub use document_view::*;
 
 mod compiled_document;
 pub use compiled_document::*;
-
-mod relationships;
-pub use relationships::*;
 
 pub mod node_kind;
 
