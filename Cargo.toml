@@ -64,6 +64,7 @@ all_routes = [
   "address",
   "attachments",
   "auth",
+  "campaigns",
   "categories",
   "chambers",
   "comments",
@@ -94,6 +95,7 @@ all_routes = [
 attachments = []
 auth = []
 axum_test = ["dep:axum-test"]
+campaigns = []
 categories = []
 chambers = []
 cli = [

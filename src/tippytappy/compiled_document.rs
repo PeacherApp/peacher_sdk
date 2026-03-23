@@ -80,6 +80,9 @@ impl CompiledDocument {
                 .map(|node| node.process(relationships)),
         )
     }
+    pub fn into_value(self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap()
+    }
 }
 impl NodeKind for CompiledDocument {
     fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
