@@ -15,7 +15,7 @@ axum-test = { version = "17.3", optional = true }
 bytes = "1.11"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"], optional = true }
-console = { version = "0.15", optional = true }
+console = { version = "0.16.3", optional = true }
 dialoguer = { version = "0.12", optional = true }
 dirs = { version = "6", optional = true }
 futures-core = "0.3.31"
@@ -42,9 +42,9 @@ serde_json = { version = "1" }
 serde_qs = { version = "1.0" }
 serde_urlencoded = "0.7.1"
 strum = { version = "0.28", features = ["derive"] }
-tabled = { version = "0.17", optional = true }
+tabled = { version = "0.20", optional = true }
 thiserror = { version = "2" }
-toml = { version = "0.9", optional = true }
+toml = { version = "1.1", optional = true }
 tracing = { version = "0.1" }
 url = { version = "2", features = ["serde"] }
 utoipa = { version = "5.4", features = ["chrono", "url", "uuid"], optional = true }
