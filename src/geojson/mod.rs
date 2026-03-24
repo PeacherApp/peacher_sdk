@@ -265,10 +265,35 @@ impl Geometry {
 #[cfg(feature = "geo")]
 impl From<geo::Geometry> for Geometry {
     fn from(value: geo::Geometry) -> Self {
-        let value = geojson::Value::from(&value);
+        let value = geojson::GeometryValue::from(&value);
         match value {
-            geojson::Value::MultiPolygon(p) => Geometry::MultiPolygon(p),
-            geojson::Value::Polygon(p) => Geometry::Polygon(p),
+            geojson::GeometryValue::MultiPolygon { coordinates } => Geometry::MultiPolygon(
+                coordinates
+                    .into_iter()
+                    .map(|coord| {
+                        coord
+                            .into_iter()
+                            .map(|coord| {
+                                coord
+                                    .into_iter()
+                                    .map(|coord| vec![coord[0], coord[1]])
+                                    .collect()
+                            })
+                            .collect()
+                    })
+                    .collect(),
+            ),
+            geojson::GeometryValue::Polygon { coordinates } => Geometry::Polygon(
+                coordinates
+                    .into_iter()
+                    .map(|coord| {
+                        coord
+                            .into_iter()
+                            .map(|coord| vec![coord[0], coord[1]])
+                            .collect()
+                    })
+                    .collect(),
+            ),
             _ => panic!("hit unimplmeneted conversion"),
         }
     }
