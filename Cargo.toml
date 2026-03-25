@@ -25,7 +25,7 @@ geojson = { version = "1.0", optional = true }
 getrandom = { version = "0.4.1", features = ["std", "sys_rng"] }
 http = "1.4"
 indicatif = { version = "0.18", optional = true }
-loco-rs = { git = "https://github.com/PeacherApp/loco.git", optional = true }
+loco-rs = { git = "https://github.com/PeacherApp/loco.git", version = "0.16.4", optional = true }
 markdown = { version = "1.0.0", optional = true }
 mime = "0.3.17"
 rand = "0.10"
