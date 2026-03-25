@@ -21,14 +21,3 @@ impl From<markdown::message::Message> for ParseError {
         Self::Markdown(value)
     }
 }
-
-#[cfg(feature = "loco")]
-impl From<ParseError> for loco_rs::Error {
-    fn from(value: ParseError) -> Self {
-        match value {
-            ParseError::Json(_) => loco_rs::Error::BadRequest("Invalid Json!".to_string()),
-            ParseError::Markdown(_) => loco_rs::Error::BadRequest("Invalid Markdown!".to_string()),
-            ParseError::Msg(_) => loco_rs::Error::InternalServerError,
-        }
-    }
-}
