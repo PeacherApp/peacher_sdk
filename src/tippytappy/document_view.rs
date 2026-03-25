@@ -1,7 +1,4 @@
-use crate::tippytappy::{
-    node_kind::{ProcessNode, iter_node_children_text},
-    *,
-};
+use crate::tippytappy::{node_kind::iter_node_children_text, *};
 use markdown::{ParseOptions, mdast::Node as MdNode};
 use serde::{Deserialize, Serialize};
 

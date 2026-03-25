@@ -1,6 +1,8 @@
 use ahash::HashMap;
 use uuid::Uuid;
 
+use crate::tippytappy::*;
+
 /// Defines relationships to ids and labels for a [`DocumentView`](crate::tippytappy::DocumentView).
 ///
 ///
@@ -17,6 +19,17 @@ pub struct ContentRelationships {
 }
 
 impl ContentRelationships {
+    pub fn new(
+        legislation_nameids: HashMap<i32, String>,
+        member_handles: HashMap<i32, String>,
+        sibling_labels: HashMap<Uuid, String>,
+    ) -> Self {
+        Self {
+            legislation_nameids,
+            member_handles,
+            sibling_labels,
+        }
+    }
     pub fn from_iters(
         legislation: impl IntoIterator<Item = (i32, String)>,
         members: impl IntoIterator<Item = (i32, String)>,
@@ -60,5 +73,43 @@ impl ContentRelationships {
     /// returns a label associated with a member.
     pub fn get_content_label(&self, id: Uuid) -> Option<String> {
         self.sibling_labels.get(&id).cloned()
+    }
+}
+
+impl NodeVisitor<Compiled> for ContentRelationships {
+    type OutputState = View;
+    fn visit_text_node(&mut self, node: CompiledTextNode) -> TextNodeView {
+        match node {
+            CompiledTextNode::Text(text) => TextNodeView::Text(text),
+            CompiledTextNode::LegislationMention(id) => {
+                let label = self.get_legislation_nameid(id);
+
+                TextNodeView::LegislationMention {
+                    attrs: Mention {
+                        id,
+                        label: label.unwrap_or(format!("Legislation #{id}")),
+                    },
+                }
+            }
+            CompiledTextNode::MemberMention(member_id) => {
+                let label = self.get_member_handle(member_id);
+
+                TextNodeView::MemberMention {
+                    attrs: Mention {
+                        id: member_id,
+                        label: label.unwrap_or("@{UNKNOWN}".to_string()),
+                    },
+                }
+            }
+            CompiledTextNode::PostMention(id) => {
+                let label = self.get_content_label(id);
+                TextNodeView::PostMention {
+                    attrs: Mention {
+                        id,
+                        label: label.unwrap_or("UNKNOWN".to_string()),
+                    },
+                }
+            }
+        }
     }
 }

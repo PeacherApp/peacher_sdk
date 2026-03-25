@@ -1,7 +1,4 @@
-use crate::tippytappy::{
-    node_kind::{ProcessNode, iter_node_children_text},
-    *,
-};
+use crate::tippytappy::{node_kind::iter_node_children_text, *};
 use markdown::mdast::Node as MdNode;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -32,34 +29,6 @@ pub enum Node<S: State> {
         content: Vec<DetailNode<S>>,
     },
     HorizontalRule,
-}
-
-impl ProcessNode<CompileCarriage> for Node<View> {
-    type Output = Node<Compiled>;
-    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
-        match self {
-            Node::Image { attrs } => Node::Image {
-                attrs: attrs.process(visitor),
-            },
-            Node::OrderedList(oln) => Node::OrderedList(oln.process(visitor)),
-            Node::BulletList(bln) => Node::BulletList(bln.process(visitor)),
-            Node::Heading { attrs, content } => Node::Heading {
-                attrs,
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
-            },
-            Node::Paragraph { content } => Node::Paragraph {
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
-            },
-            Node::Blockquote { content } => Node::Blockquote {
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
-            },
-            Node::Details { attrs, content } => Node::Details {
-                attrs,
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
-            },
-            Node::HorizontalRule => Node::HorizontalRule,
-        }
-    }
 }
 
 impl Node<View> {
@@ -208,45 +177,113 @@ impl Node<View> {
     }
 }
 
-impl ProcessNode<ContentRelationships> for Node<Compiled> {
-    type Output = Node<View>;
-
-    fn process(self, relationships: &mut ContentRelationships) -> Self::Output {
+impl<S: State> Node<S> {
+    pub fn process<V: NodeVisitor<S>>(self, visitor: &mut V) -> Node<V::OutputState> {
         match self {
             Node::Image { attrs } => Node::Image { attrs },
-            Node::OrderedList(oln) => Node::OrderedList(oln.process(relationships)),
-            Node::BulletList(bln) => Node::BulletList(bln.process(relationships)),
+            Node::OrderedList(oln) => Node::OrderedList(oln.process(visitor)),
+            Node::BulletList(bln) => Node::BulletList(bln.process(visitor)),
             Node::Heading { attrs, content } => Node::Heading {
                 attrs,
                 content: content
                     .into_iter()
-                    .map(|c| c.process(relationships))
+                    .map(|c| visitor.visit_text_node(c))
                     .collect(),
             },
             Node::Paragraph { content } => Node::Paragraph {
                 content: content
                     .into_iter()
-                    .map(|c| c.process(relationships))
+                    .map(|c| visitor.visit_text_node(c))
                     .collect(),
             },
             Node::Blockquote { content } => Node::Blockquote {
-                content: content
-                    .into_iter()
-                    .map(|c| c.process(relationships))
-                    .collect(),
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
             },
             Node::Details { attrs, content } => Node::Details {
                 attrs,
-                content: content
-                    .into_iter()
-                    .map(|c| c.process(relationships))
-                    .collect(),
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
             },
             Node::HorizontalRule => Node::HorizontalRule,
         }
     }
 }
+// impl ProcessNode<ContentRelationships> for Node<Compiled> {
+//     type Output = Node<View>;
 
+//     fn process(self, relationships: &mut ContentRelationships) -> Self::Output {
+//         match self {
+//             Node::Image { attrs } => Node::Image { attrs },
+//             Node::OrderedList(oln) => Node::OrderedList(oln.process(relationships)),
+//             Node::BulletList(bln) => Node::BulletList(bln.process(relationships)),
+//             Node::Heading { attrs, content } => Node::Heading {
+//                 attrs,
+//                 content: content
+//                     .into_iter()
+//                     .map(|c| c.process(relationships))
+//                     .collect(),
+//             },
+//             Node::Paragraph { content } => Node::Paragraph {
+//                 content: content
+//                     .into_iter()
+//                     .map(|c| c.process(relationships))
+//                     .collect(),
+//             },
+//             Node::Blockquote { content } => Node::Blockquote {
+//                 content: content
+//                     .into_iter()
+//                     .map(|c| c.process(relationships))
+//                     .collect(),
+//             },
+//             Node::Details { attrs, content } => Node::Details {
+//                 attrs,
+//                 content: content
+//                     .into_iter()
+//                     .map(|c| c.process(relationships))
+//                     .collect(),
+//             },
+//             Node::HorizontalRule => Node::HorizontalRule,
+//         }
+//     }
+// }
+
+// impl ProcessNode<ContentDependencies> for Node<Compiled> {
+//     type Output = Node<View>;
+
+//     fn process(self, relationships: &mut ContentDependencies) -> Self::Output {
+//         match self {
+//             Node::Image { attrs } => Node::Image { attrs },
+//             Node::OrderedList(oln) => Node::OrderedList(oln.process(relationships)),
+//             Node::BulletList(bln) => Node::BulletList(bln.process(relationships)),
+//             Node::Heading { attrs, content } => Node::Heading {
+//                 attrs,
+//                 content: content
+//                     .into_iter()
+//                     .map(|c| c.process(relationships))
+//                     .collect(),
+//             },
+//             Node::Paragraph { content } => Node::Paragraph {
+//                 content: content
+//                     .into_iter()
+//                     .map(|c| c.process(relationships))
+//                     .collect(),
+//             },
+//             Node::Blockquote { content } => Node::Blockquote {
+//                 content: content
+//                     .into_iter()
+//                     .map(|c| c.process(relationships))
+//                     .collect(),
+//             },
+//             Node::Details { attrs, content } => Node::Details {
+//                 attrs,
+//                 content: content
+//                     .into_iter()
+//                     .map(|c| c.process(relationships))
+//                     .collect(),
+//             },
+//             Node::HorizontalRule => Node::HorizontalRule,
+//         }
+//     }
+// }
 impl<S: State> NodeKind for Node<S> {
     fn iter_text<'slf, F>(&'slf self, func: &mut F) -> bool
     where
@@ -297,26 +334,14 @@ impl<S: State> NodeKind for DetailNode<S> {
     }
 }
 
-impl ProcessNode<CompileCarriage> for DetailNode<View> {
-    type Output = DetailNode<Compiled>;
-    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
+impl<S: State> DetailNode<S> {
+    pub fn process<V: NodeVisitor<S>>(self, visitor: &mut V) -> DetailNode<V::OutputState> {
         match self {
             DetailNode::DetailsSummary { content } => DetailNode::DetailsSummary {
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
-            },
-            DetailNode::DetailsContent { content } => DetailNode::DetailsContent {
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
-            },
-        }
-    }
-}
-
-impl ProcessNode<ContentRelationships> for DetailNode<Compiled> {
-    type Output = DetailNode<View>;
-    fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
-        match self {
-            DetailNode::DetailsSummary { content } => DetailNode::DetailsSummary {
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
+                content: content
+                    .into_iter()
+                    .map(|c| visitor.visit_text_node(c))
+                    .collect(),
             },
             DetailNode::DetailsContent { content } => DetailNode::DetailsContent {
                 content: content.into_iter().map(|c| c.process(visitor)).collect(),
@@ -360,9 +385,8 @@ pub struct ImageAttributes {
     src: Option<Url>,
     title: Option<String>,
 }
-impl ProcessNode<CompileCarriage> for ImageAttributes {
-    type Output = Self;
-    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
+impl ImageAttributes {
+    pub fn process_compile(self, visitor: &mut CompileCarriage) -> Self {
         if let Some(alt) = &self.alt {
             visitor.push_str(alt);
         }

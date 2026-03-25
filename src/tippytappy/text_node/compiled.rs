@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::tippytappy::{node_kind::ProcessNode, *};
+use crate::tippytappy::{node_kind::NodeKind, *};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", content = "data", rename_all = "camelCase")]
@@ -22,44 +22,6 @@ impl NodeKind for CompiledTextNode {
             func(text)
         } else {
             true
-        }
-    }
-}
-
-impl ProcessNode<ContentRelationships> for CompiledTextNode {
-    type Output = TextNodeView;
-    fn process(self, relationships: &mut ContentRelationships) -> Self::Output {
-        match self {
-            CompiledTextNode::Text(text) => TextNodeView::Text(text),
-            CompiledTextNode::LegislationMention(id) => {
-                let label = relationships.get_legislation_nameid(id);
-
-                TextNodeView::LegislationMention {
-                    attrs: Mention {
-                        id,
-                        label: label.unwrap_or(format!("Legislation #{id}")),
-                    },
-                }
-            }
-            CompiledTextNode::MemberMention(member_id) => {
-                let label = relationships.get_member_handle(member_id);
-
-                TextNodeView::MemberMention {
-                    attrs: Mention {
-                        id: member_id,
-                        label: label.unwrap_or("@{UNKNOWN}".to_string()),
-                    },
-                }
-            }
-            CompiledTextNode::PostMention(id) => {
-                let label = relationships.get_content_label(id);
-                TextNodeView::PostMention {
-                    attrs: Mention {
-                        id,
-                        label: label.unwrap_or("UNKNOWN".to_string()),
-                    },
-                }
-            }
         }
     }
 }

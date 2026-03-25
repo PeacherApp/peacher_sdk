@@ -1,43 +1,5 @@
-use crate::tippytappy::{
-    node_kind::{ProcessNode, iter_node_children_text},
-    *,
-};
-use ahash::HashMap;
+use crate::tippytappy::{node_kind::iter_node_children_text, *};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-
-#[derive(Default)]
-pub struct CompileCarriage {
-    searchable_text: String,
-    legislation_ids: HashMap<i32, String>,
-    member_ids: HashMap<i32, String>,
-    sibling_content_ids: HashMap<Uuid, String>,
-}
-impl CompileCarriage {
-    pub fn push_str(&mut self, value: &str) {
-        self.searchable_text.push_str(value);
-    }
-    pub fn mentions_legislation(&mut self, legislation_id: i32, nameid: String) {
-        self.legislation_ids.insert(legislation_id, nameid);
-    }
-    pub fn mentions_member(&mut self, member_id: i32, handle: String) {
-        self.member_ids.insert(member_id, handle);
-    }
-    pub fn mentions_content(&mut self, post_id: Uuid, label: String) {
-        self.sibling_content_ids.insert(post_id, label);
-    }
-    pub fn finish(self, document: CompiledDocument) -> CompilationResult {
-        CompilationResult {
-            searchable_text: self.searchable_text,
-            relationships: ContentRelationships {
-                legislation_nameids: self.legislation_ids,
-                member_handles: self.member_ids,
-                sibling_labels: self.sibling_content_ids,
-            },
-            document,
-        }
-    }
-}
 
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct Compiled;
@@ -73,12 +35,31 @@ impl CompiledDocument {
         Ok(value)
     }
 
-    pub fn to_view(self, relationships: &mut ContentRelationships) -> DocumentView {
+    pub fn visit<V>(mut self, relationships: &mut V) -> Self
+    where
+        V: NodeVisitor<Compiled, OutputState = Compiled>,
+    {
+        self.content = self
+            .content
+            .into_iter()
+            .map(|node| node.process(relationships))
+            .collect();
+
+        self
+    }
+
+    pub fn visit_and_decompile<V>(self, relationships: &mut V) -> DocumentView
+    where
+        V: NodeVisitor<Compiled, OutputState = View>,
+    {
         DocumentView::from_nodes(
             self.content
                 .into_iter()
                 .map(|node| node.process(relationships)),
         )
+    }
+    pub fn into_value(self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap()
     }
 }
 impl NodeKind for CompiledDocument {

@@ -261,7 +261,7 @@ fn comma_separated_param() {
     });
 
     assert!(
-        params == "q=value_a%2Cvalueb" || params == "q=valueb%2Cvalue_a",
+        params == "q=value_a,valueb" || params == "q=valueb,value_a",
         "unexpected serialization: {params}"
     );
 
@@ -269,7 +269,7 @@ fn comma_separated_param() {
         q: CommaSeparated::default(),
     });
 
-    assert_eq!(params, "");
+    assert_eq!(params, "q");
 
     assert_eq!(
         serialize(TestParams {

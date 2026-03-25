@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::tippytappy::{
-    node_kind::{ProcessNode, iter_node_children_text},
-    *,
-};
+use crate::tippytappy::{node_kind::iter_node_children_text, *};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -21,34 +18,18 @@ impl<S: State> NodeKind for OrderedList<S> {
     }
 }
 
-impl ProcessNode<CompileCarriage> for OrderedList<View> {
-    type Output = OrderedList<Compiled>;
-    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
-        OrderedList {
-            attrs: self.attrs,
-            content: self
-                .content
-                .into_iter()
-                .map(|c| c.process(visitor))
-                .collect(),
-        }
-    }
-}
-impl ProcessNode<ContentRelationships> for OrderedList<Compiled> {
-    type Output = OrderedList<View>;
-    fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
-        OrderedList {
-            attrs: self.attrs,
-            content: self
-                .content
-                .into_iter()
-                .map(|c| c.process(visitor))
-                .collect(),
-        }
-    }
-}
-
 impl<S: State> OrderedList<S> {
+    pub fn process<V: NodeVisitor<S>>(self, visitor: &mut V) -> OrderedList<V::OutputState> {
+        OrderedList {
+            attrs: self.attrs,
+            content: self
+                .content
+                .into_iter()
+                .map(|c| c.process(visitor))
+                .collect(),
+        }
+    }
+
     pub fn new(start: u32, content: Vec<ListChild<S>>) -> Self {
         Self {
             attrs: ListAttributes {
@@ -77,29 +58,15 @@ impl<S: State> NodeKind for ListChild<S> {
         }
     }
 }
-
-impl ProcessNode<CompileCarriage> for ListChild<View> {
-    type Output = ListChild<Compiled>;
-    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
-        match self {
-            ListChild::ListItem { content } => ListChild::ListItem {
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
-            },
-        }
-    }
-}
-impl ProcessNode<ContentRelationships> for ListChild<Compiled> {
-    type Output = ListChild<View>;
-    fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
-        match self {
-            ListChild::ListItem { content } => ListChild::ListItem {
-                content: content.into_iter().map(|c| c.process(visitor)).collect(),
-            },
-        }
-    }
-}
-
 impl<S: State> ListChild<S> {
+    pub fn process<V: NodeVisitor<S>>(self, visitor: &mut V) -> ListChild<V::OutputState> {
+        match self {
+            ListChild::ListItem { content } => ListChild::ListItem {
+                content: content.into_iter().map(|c| c.process(visitor)).collect(),
+            },
+        }
+    }
+
     pub fn new(content: Vec<Node<S>>) -> Self {
         Self::ListItem { content }
     }
@@ -129,33 +96,17 @@ impl<S: State> NodeKind for BulletListNode<S> {
         iter_node_children_text(self.content.iter(), func)
     }
 }
-
-impl ProcessNode<CompileCarriage> for BulletListNode<View> {
-    type Output = BulletListNode<Compiled>;
-    fn process(self, visitor: &mut CompileCarriage) -> Self::Output {
-        BulletListNode {
-            content: self
-                .content
-                .into_iter()
-                .map(|c| c.process(visitor))
-                .collect(),
-        }
-    }
-}
-impl ProcessNode<ContentRelationships> for BulletListNode<Compiled> {
-    type Output = BulletListNode<View>;
-    fn process(self, visitor: &mut ContentRelationships) -> Self::Output {
-        BulletListNode {
-            content: self
-                .content
-                .into_iter()
-                .map(|c| c.process(visitor))
-                .collect(),
-        }
-    }
-}
-
 impl<S: State> BulletListNode<S> {
+    pub fn process<V: NodeVisitor<S>>(self, visitor: &mut V) -> BulletListNode<V::OutputState> {
+        BulletListNode {
+            content: self
+                .content
+                .into_iter()
+                .map(|c| c.process(visitor))
+                .collect(),
+        }
+    }
+
     pub fn new(content: Vec<ListChild<S>>) -> Self {
         Self { content }
     }

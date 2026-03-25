@@ -27,8 +27,9 @@ pub struct ExternalLegislationVote {
     /// You can use the [`VoteSuccess`] and [`VoteSuccessExt`] traits here for ease
     /// of use.
     /// ```rust
+    /// use peacher_sdk::prelude::{Vote, VoteSuccessExt, SimpleMajority};
     /// let votes = [Vote::Yes, Vote::Yes, Vote::No];
-    /// assert!(votes.succeeds(SimpleMajoriy));
+    /// assert!(votes.succeeds(SimpleMajority));
     /// ```
     pub succeeded: bool,
 }

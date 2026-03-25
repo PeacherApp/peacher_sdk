@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::tippytappy::{
-    CompileCarriage, CompiledTextNode, Text,
-    node_kind::{NodeKind, ProcessNode},
-};
+use crate::tippytappy::{Text, node_kind::NodeKind};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -27,33 +24,6 @@ impl NodeKind for TextNodeView {
             TextNodeView::MemberMention { attrs } => func(&attrs.label),
             TextNodeView::LegislationMention { attrs } => func(&attrs.label),
             TextNodeView::PostMention { attrs } => func(&attrs.label),
-        }
-    }
-}
-
-impl ProcessNode<CompileCarriage> for TextNodeView {
-    type Output = CompiledTextNode;
-
-    fn process(self, carriage: &mut CompileCarriage) -> CompiledTextNode {
-        match self {
-            TextNodeView::LegislationMention { attrs } => {
-                // carriage.push_str(&attrs.label);
-                carriage.mentions_legislation(attrs.id, attrs.label);
-                CompiledTextNode::LegislationMention(attrs.id)
-            }
-            TextNodeView::MemberMention { attrs } => {
-                // carriage.push_str(&attrs.label);
-                carriage.mentions_member(attrs.id, attrs.label);
-                CompiledTextNode::MemberMention(attrs.id)
-            }
-            TextNodeView::PostMention { attrs } => {
-                carriage.mentions_content(attrs.id, attrs.label);
-                CompiledTextNode::PostMention(attrs.id)
-            }
-            TextNodeView::Text(text) => {
-                carriage.push_str(&text.text);
-                CompiledTextNode::Text(text)
-            }
         }
     }
 }
