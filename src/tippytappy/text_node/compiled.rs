@@ -25,4 +25,3 @@ impl NodeKind for CompiledTextNode {
         }
     }
 }
-

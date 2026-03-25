@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::tippytappy::{
-    Text,
-    node_kind::NodeKind,
-};
+use crate::tippytappy::{Text, node_kind::NodeKind};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "camelCase")]
@@ -30,7 +27,6 @@ impl NodeKind for TextNodeView {
         }
     }
 }
-
 
 impl TextNodeView {
     pub fn text(&self) -> &str {
