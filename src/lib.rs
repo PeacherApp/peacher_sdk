@@ -7,6 +7,8 @@ pub mod peanut;
 pub mod sdk;
 pub mod slug;
 pub mod sync;
+#[cfg(feature = "webtransport")]
+pub mod webtransport;
 
 #[cfg(feature = "tippytappy")]
 pub mod tippytappy;
