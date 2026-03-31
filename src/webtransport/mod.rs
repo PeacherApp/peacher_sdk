@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[serde(tag = "type", content = "data")]
 pub enum ClientWebTransportMsg {
     Join(i32),
@@ -10,6 +12,8 @@ pub enum ClientWebTransportMsg {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[serde(tag = "type", content = "data")]
 pub enum ServerWebTransportMsg {
     Message { from: i32, content: String },
