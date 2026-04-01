@@ -1,5 +1,8 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+use crate::sdk::MemberView;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -7,6 +10,7 @@ use serde::{Deserialize, Serialize};
 pub enum ClientWebTransportMsg {
     Join(i32),
     Leave,
+    Iam(Uuid),
     Say { text: String },
     Nothing,
 }
@@ -34,9 +38,12 @@ impl ClientWebTransportMsg {
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[allow(clippy::large_enum_variant)]
 pub enum ServerWebTransportMsg {
     Message { from: i32, content: String },
     Error(String),
+    IdentifyYourself,
+    YouAre(MemberView),
 }
 
 impl ServerWebTransportMsg {
@@ -54,4 +61,5 @@ impl ServerWebTransportMsg {
 pub struct WebTransportInfo {
     pub url: String,
     pub cert_hash: Vec<u8>,
+    pub token: Uuid,
 }
