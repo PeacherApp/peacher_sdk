@@ -21,6 +21,7 @@ pub struct CampaignView {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "bevy", derive(bevy::ecs::component::Component))]
 pub struct CampaignDetails {
     pub id: Uuid,
     pub name: String,

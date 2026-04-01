@@ -12,8 +12,10 @@ keywords = ["sdk"]
 ahash = "0.8"
 anyhow = "1.0"
 axum-test = { version = "17.3", optional = true }
+bevy = { version = "0.18", default-features = false, optional = true }
 bytes = "1.11"
 chrono = { version = "0.4", features = ["serde"] }
+ciborium = "0.2.2"
 clap = { version = "4.5", features = ["derive"], optional = true }
 console = { version = "0.16.3", optional = true }
 dialoguer = { version = "0.12", optional = true }
@@ -30,7 +32,6 @@ indicatif = { version = "0.18", optional = true }
 # loco-rs = { git = "https://github.com/PeacherApp/loco.git", version = "0.16.4", optional = true }
 markdown = { version = "1.0.0", optional = true }
 mime = "0.3.17"
-postcard = { version = "1.1.3", default-features = false, features = ["alloc"], optional = true }
 rand = "0.10"
 rand_core = "0.10.0"
 reqwest = { version = "0.12", default-features = false, features = [
@@ -100,6 +101,7 @@ all_routes = [
 attachments = []
 auth = []
 axum_test = ["dep:axum-test"]
+bevy = ["dep:bevy"]
 campaigns = []
 categories = []
 chambers = []
@@ -150,4 +152,4 @@ web = [
   "getrandom/wasm_js",
   "uuid/rng-getrandom"
 ]
-webtransport = ["dep:postcard", "members"]
+webtransport = ["members"]
