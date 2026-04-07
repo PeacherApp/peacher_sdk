@@ -1,4 +1,8 @@
+mod element;
+pub use element::ElementUpdate;
+
 use anyhow::Context;
+use bevy::math::Vec2;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -7,12 +11,49 @@ use crate::sdk::{CampaignDetails, MemberView};
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct NewRectangle {
+    dimensions: Vec2,
+    offset: Vec2,
+}
+impl NewRectangle {
+    pub fn dimensions(&self) -> Vec2 {
+        self.dimensions
+    }
+    pub fn offset(&self) -> Vec2 {
+        self.offset
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum ElementAction {
+    Create(NewRectangle),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum CampaignMsg {
+    Join(Uuid),
+    Leave,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum RoomMsg {
+    Say(String),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum ClientWebTransportMsg {
-    JoinRoom(i32),
-    LeaveRoom,
     Iam(Uuid),
-    Say { text: String },
-    JoinCampaign(Uuid),
+    Campaign(CampaignMsg),
+    Room(RoomMsg),
+    Element(ElementAction),
     Nothing,
 }
 impl ClientWebTransportMsg {
@@ -40,12 +81,13 @@ impl ClientWebTransportMsg {
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 pub enum ServerWebTransportMsg {
     Message { from: i32, content: String },
     Error(String),
     IdentifyYourself,
     Campaign(CampaignDetails),
+    Element(ElementUpdate),
     YouAre(MemberView),
 }
 
