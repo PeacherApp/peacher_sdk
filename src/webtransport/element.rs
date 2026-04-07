@@ -1,6 +1,6 @@
-use bevy::math::{Vec2, Vec3};
+use bevy_ecs::entity::Entity;
+use bevy_math::{Vec2, Vec3};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -8,13 +8,17 @@ use uuid::Uuid;
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ElementUpdate {
     Changed(Change),
-    Removed(Uuid),
+    Removed(Entity),
 }
 impl ElementUpdate {
-    pub fn changed(id: Uuid, rect: Vec2, position: Vec3) -> Self {
-        Self::Changed(Change { id, rect, position })
+    pub fn changed(entity: Entity, rect: Vec2, position: Vec3) -> Self {
+        Self::Changed(Change {
+            entity,
+            rect,
+            position,
+        })
     }
-    pub fn removed(id: Uuid) -> Self {
+    pub fn removed(id: Entity) -> Self {
         Self::Removed(id)
     }
 }
@@ -24,7 +28,7 @@ impl ElementUpdate {
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[allow(clippy::large_enum_variant)]
 pub struct Change {
-    pub id: Uuid,
+    pub entity: Entity,
     pub rect: Vec2,
     pub position: Vec3,
 }

@@ -1,12 +1,23 @@
 mod element;
+use bevy_ecs::entity::Entity;
 pub use element::ElementUpdate;
 
 use anyhow::Context;
-use bevy::math::Vec2;
+use bevy_math::Vec2;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::sdk::{CampaignDetails, MemberView};
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum ElementAction {
+    Create(NewRectangle),
+    Update(UpdateRectangle),
+    Remove(Entity),
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -27,9 +38,21 @@ impl NewRectangle {
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum ElementAction {
-    Create(NewRectangle),
+pub struct UpdateRectangle {
+    entity: Entity,
+    dimensions: Vec2,
+    offset: Vec2,
+}
+impl UpdateRectangle {
+    pub fn entity(&self) -> Entity {
+        self.entity
+    }
+    pub fn dimensions(&self) -> Vec2 {
+        self.dimensions
+    }
+    pub fn offset(&self) -> Vec2 {
+        self.offset
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

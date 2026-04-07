@@ -12,7 +12,8 @@ keywords = ["sdk"]
 ahash = "0.8"
 anyhow = "1.0"
 axum-test = { version = "17.3", optional = true }
-bevy = { version = "0.18", default-features = false, optional = true }
+bevy_ecs = { version = "0.18", default-features = false, optional = true }
+bevy_math = { version = "0.18", default-features = false, optional = true }
 bytes = "1.11"
 chrono = { version = "0.4", features = ["serde"] }
 ciborium = "0.2.2"
@@ -101,7 +102,7 @@ all_routes = [
 attachments = []
 auth = []
 axum_test = ["dep:axum-test"]
-bevy = ["dep:bevy"]
+bevy = ["dep:bevy_ecs", "dep:bevy_math"]
 campaigns = []
 categories = []
 chambers = []
@@ -152,4 +153,10 @@ web = [
   "getrandom/wasm_js",
   "uuid/rng-getrandom"
 ]
-webtransport = ["dep:bevy", "members"]
+webtransport = [
+  "bevy_ecs/bevy_reflect",
+  "bevy_ecs/serialize",
+  "dep:bevy_ecs",
+  "dep:bevy_math",
+  "members"
+]
