@@ -152,4 +152,4 @@ web = [
   "getrandom/wasm_js",
   "uuid/rng-getrandom"
 ]
-webtransport = ["members"]
+webtransport = ["dep:bevy", "members"]

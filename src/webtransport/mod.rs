@@ -27,6 +27,7 @@ impl NewRectangle {
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ElementAction {
     Create(NewRectangle),
 }
@@ -34,6 +35,7 @@ pub enum ElementAction {
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum CampaignMsg {
     Join(Uuid),
     Leave,
@@ -42,6 +44,7 @@ pub enum CampaignMsg {
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum RoomMsg {
     Say(String),
 }
@@ -49,6 +52,7 @@ pub enum RoomMsg {
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ClientWebTransportMsg {
     Iam(Uuid),
     Campaign(CampaignMsg),
@@ -82,6 +86,7 @@ impl ClientWebTransportMsg {
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[expect(clippy::large_enum_variant)]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ServerWebTransportMsg {
     Message { from: i32, content: String },
     Error(String),
