@@ -26,6 +26,8 @@ futures-util = { version = "0.3.31", features = ["io"] }
 geo = { version = "0.32", optional = true }
 geojson = { version = "1.0", optional = true }
 getrandom = { version = "0.4.1" }
+# geo -> rand 0.8 -> rand_core 0.6 -> getrandom 0.2
+getrandom02 = { package = "getrandom", version = "0.2", optional = true }
 # ahash requires this
 getrandom03 = { package = "getrandom", version = "0.3", optional = true }
 http = "1.4"
@@ -38,9 +40,7 @@ rand_core = "0.10.0"
 reqwest = { version = "0.12", default-features = false, features = [
   "charset",
   "cookies",
-  "http2",
   "json",
-  "rustls-tls",
 ] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
@@ -116,6 +116,10 @@ cli = [
   "dep:toml",
   "sync"
 ]
+os = [
+"reqwest/http2",
+"reqwest/rustls-tls",
+]
 comments = []
 communities = []
 content = ["tippytappy"]
@@ -149,6 +153,7 @@ votes = ["external"]
 web = [
   "dep:tsify",
   "dep:wasm-bindgen",
+  "getrandom02/js",
   "getrandom03/wasm_js",
   "getrandom/wasm_js",
   "uuid/rng-getrandom"
