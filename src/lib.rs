@@ -1,4 +1,5 @@
 pub mod client;
+#[cfg(feature = "external")]
 pub mod external;
 pub mod geojson;
 pub mod paginate;
@@ -6,7 +7,10 @@ pub mod params;
 pub mod peanut;
 pub mod sdk;
 pub mod slug;
+#[cfg(feature = "sync")]
 pub mod sync;
+#[cfg(feature = "webtransport")]
+pub mod webtransport;
 
 #[cfg(feature = "tippytappy")]
 pub mod tippytappy;
@@ -18,6 +22,7 @@ pub use cli::{cli, cli_with_client};
 
 pub mod prelude {
     pub use crate::client::*;
+    #[cfg(feature = "external")]
     pub use crate::external::*;
     pub use crate::geojson::*;
     pub use crate::paginate::*;
@@ -25,5 +30,6 @@ pub mod prelude {
     pub use crate::peanut::prelude::*;
     pub use crate::sdk::*;
     pub use crate::slug::*;
+    #[cfg(feature = "sync")]
     pub use crate::sync::*;
 }

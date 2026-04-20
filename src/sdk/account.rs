@@ -41,6 +41,7 @@ impl Handler for UpdateAccount {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 pub struct AccountView {
     pub member: GetMemberDetailsResponse,
     pub member_location: Option<ViewerLocationResponse>,
@@ -48,6 +49,12 @@ pub struct AccountView {
     #[cfg_attr(feature = "utoipa", schema(value_type = Option<String>, format = DateTime))]
     pub email_verified_at: Option<DateTime<FixedOffset>>,
     pub pending_email: Option<String>,
+}
+
+impl AccountView {
+    pub fn id(&self) -> i32 {
+        self.member.id
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

@@ -1,6 +1,6 @@
 [package]
 name = "peacher_sdk"
-version = "0.9.1"
+version = "0.10.0-dev.0"
 edition = "2024"
 description = "The rust request, response, and parameter types used by the peacher API"
 readme = "README.md"
@@ -12,8 +12,11 @@ keywords = ["sdk"]
 ahash = "0.8"
 anyhow = "1.0"
 axum-test = { version = "17.3", optional = true }
+bevy_ecs = { version = "0.18", default-features = false, optional = true }
+bevy_math = { version = "0.18", default-features = false, optional = true }
 bytes = "1.11"
 chrono = { version = "0.4", features = ["serde"] }
+ciborium = "0.2.2"
 clap = { version = "4.5", features = ["derive"], optional = true }
 console = { version = "0.16.3", optional = true }
 dialoguer = { version = "0.12", optional = true }
@@ -22,7 +25,11 @@ futures-core = "0.3.31"
 futures-util = { version = "0.3.31", features = ["io"] }
 geo = { version = "0.32", optional = true }
 geojson = { version = "1.0", optional = true }
-getrandom = { version = "0.4.1", features = ["std", "sys_rng"] }
+getrandom = { version = "0.4.1" }
+# geo -> rand 0.8 -> rand_core 0.6 -> getrandom 0.2
+getrandom02 = { package = "getrandom", version = "0.2", optional = true }
+# ahash requires this
+getrandom03 = { package = "getrandom", version = "0.3", optional = true }
 http = "1.4"
 indicatif = { version = "0.18", optional = true }
 # loco-rs = { git = "https://github.com/PeacherApp/loco.git", version = "0.16.4", optional = true }
@@ -33,9 +40,7 @@ rand_core = "0.10.0"
 reqwest = { version = "0.12", default-features = false, features = [
   "charset",
   "cookies",
-  "http2",
   "json",
-  "rustls-tls",
 ] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
@@ -46,9 +51,11 @@ tabled = { version = "0.20", optional = true }
 thiserror = { version = "2" }
 toml = { version = "1.1", optional = true }
 tracing = { version = "0.1" }
+tsify = { version = "0.5.6", optional = true }
 url = { version = "2", features = ["serde"] }
 utoipa = { version = "5.4", features = ["chrono", "url", "uuid"], optional = true }
-uuid = { version = "1.6", features = ["serde", "v4"] }
+uuid = { version = "1.23", features = ["serde", "v4"] }
+wasm-bindgen = { version = "0.2.114", optional = true }
 
 [dev-dependencies]
 pretty_assertions = { version = "1.4" }
@@ -56,7 +63,7 @@ tokio = { version = "1", features = ["full"] }
 
 [features]
 # default features enable all structs
-default = ["all_routes"]
+default = ["all_routes", "external", "sync"]
 account = []
 address = []
 all_routes = [
@@ -95,6 +102,7 @@ all_routes = [
 attachments = []
 auth = []
 axum_test = ["dep:axum-test"]
+bevy = ["dep:bevy_ecs", "dep:bevy_math"]
 campaigns = []
 categories = []
 chambers = []
@@ -105,32 +113,55 @@ cli = [
   "dep:dirs",
   "dep:indicatif",
   "dep:tabled",
-  "dep:toml"
+  "dep:toml",
+  "sync"
 ]
 comments = []
 communities = []
 content = ["tippytappy"]
 districts = []
+external = ["legislation", "sessions"]
 feed = []
 geo = ["dep:geo", "dep:geojson"]
 health = []
 jurisdiction = []
-legislation = []
+legislation = ["content", "sponsorships", "tippytappy", "votes"]
 likes = []
 location = []
 maps = []
-members = []
+members = ["external"]
 messages = []
 moderation = []
 notifications = []
+os = [
+  "reqwest/http2",
+  "reqwest/rustls-tls",
+]
 parties = []
 posts = []
 reports = []
 sessions = []
 sitemap = []
 sponsorships = []
+std = ["getrandom/std", "getrandom/sys_rng"]
+sync = []
 tags = []
 tippytappy = ["dep:markdown"]
 uploads = []
 utoipa = ["dep:utoipa"]
-votes = []
+votes = ["external"]
+web = [
+  "dep:tsify",
+  "dep:wasm-bindgen",
+  "getrandom02/js",
+  "getrandom03/wasm_js",
+  "getrandom/wasm_js",
+  "uuid/rng-getrandom"
+]
+webtransport = [
+  "bevy_ecs/bevy_reflect",
+  "bevy_ecs/serialize",
+  "dep:bevy_ecs",
+  "dep:bevy_math",
+  "members"
+]

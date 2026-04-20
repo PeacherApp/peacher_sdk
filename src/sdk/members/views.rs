@@ -214,6 +214,7 @@ pub enum Trust {
     Moderator,
     Admin,
 }
+#[cfg(feature = "content")]
 impl Trust {
     pub fn initial_summary_review_state(&self) -> ReviewState {
         match self {
