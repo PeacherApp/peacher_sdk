@@ -1,6 +1,6 @@
 [package]
 name = "peacher_sdk"
-version = "0.9.1"
+version = "0.10.0-dev.0"
 edition = "2024"
 description = "The rust request, response, and parameter types used by the peacher API"
 readme = "README.md"
@@ -116,10 +116,6 @@ cli = [
   "dep:toml",
   "sync"
 ]
-os = [
-"reqwest/http2",
-"reqwest/rustls-tls",
-]
 comments = []
 communities = []
 content = ["tippytappy"]
@@ -137,6 +133,10 @@ members = ["external"]
 messages = []
 moderation = []
 notifications = []
+os = [
+  "reqwest/http2",
+  "reqwest/rustls-tls",
+]
 parties = []
 posts = []
 reports = []
