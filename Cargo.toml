@@ -71,6 +71,7 @@ all_routes = [
   "address",
   "attachments",
   "auth",
+  "awards",
   "campaigns",
   "categories",
   "chambers",
@@ -101,6 +102,7 @@ all_routes = [
 ]
 attachments = []
 auth = []
+awards = ["members"]
 axum_test = ["dep:axum-test"]
 bevy = ["dep:bevy_ecs", "dep:bevy_math"]
 campaigns = []
