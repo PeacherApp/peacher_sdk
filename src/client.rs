@@ -7,16 +7,6 @@ use crate::{
 use reqwest::header::{AUTHORIZATION, HeaderValue};
 use url::Url;
 
-impl Default for PeacherClient {
-    fn default() -> Self {
-        Self {
-            base: Url::from_str("https://api.peacher.app/").unwrap(),
-            api_key: None,
-            client: reqwest::Client::new(),
-        }
-    }
-}
-
 #[derive(Clone)]
 pub struct PeacherClient {
     /// The URL where peacher is located
@@ -43,6 +33,16 @@ impl PeacherClient {
     pub fn with_base_url(mut self, url: Url) -> Self {
         self.base = url;
         self
+    }
+}
+
+impl Default for PeacherClient {
+    fn default() -> Self {
+        Self {
+            base: Url::from_str("https://api.peacher.app/").unwrap(),
+            api_key: None,
+            client: reqwest::Client::new(),
+        }
     }
 }
 

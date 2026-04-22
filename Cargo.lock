@@ -1860,6 +1860,7 @@ dependencies = [
  "ahash",
  "anyhow",
  "axum-test",
+ "base64",
  "bevy_ecs",
  "bevy_math",
  "bytes",

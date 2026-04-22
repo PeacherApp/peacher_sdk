@@ -41,6 +41,23 @@ impl BodyBuilder {
         self
     }
 
+    /// Form body using bracket-notation nesting (`foo[bar]=baz`).
+    ///
+    /// Use this for Stripe's REST API, which expects nested parameters in
+    /// `application/x-www-form-urlencoded` with bracket syntax rather than flat keys.
+    pub fn qs<T: Serialize>(mut self, form: &T) -> Self {
+        match serde_qs::to_string(form) {
+            Ok(body) => {
+                self.inner = Some(Ok((
+                    "application/x-www-form-urlencoded".into(),
+                    body.into(),
+                )));
+            }
+            Err(err) => self.inner = Some(Err(BodyError::Serialize(Box::new(err)))),
+        }
+        self
+    }
+
     /// Set a multipart body with a custom content type (e.g., "multipart/form-data; boundary=...")
     pub fn multipart(mut self, form: MultipartForm) -> Self {
         // TODO: we can go back and stream body potentially. In the event of reqwest,
