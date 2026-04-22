@@ -7,6 +7,8 @@ pub mod params;
 pub mod peanut;
 pub mod sdk;
 pub mod slug;
+#[cfg(feature = "stripe")]
+pub mod stripe;
 #[cfg(feature = "sync")]
 pub mod sync;
 #[cfg(feature = "webtransport")]
