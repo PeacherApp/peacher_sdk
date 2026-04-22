@@ -6,9 +6,9 @@ use strum::{Display, EnumString};
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum CheckoutSessionMode {
-	Payment,
-	Setup,
-	Subscription,
+    Payment,
+    Setup,
+    Subscription,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -16,9 +16,9 @@ pub enum CheckoutSessionMode {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum CheckoutSessionStatus {
-	Complete,
-	Expired,
-	Open,
+    Complete,
+    Expired,
+    Open,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -26,9 +26,9 @@ pub enum CheckoutSessionStatus {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum CheckoutPaymentStatus {
-	NoPaymentRequired,
-	Paid,
-	Unpaid,
+    NoPaymentRequired,
+    Paid,
+    Unpaid,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -36,8 +36,8 @@ pub enum CheckoutPaymentStatus {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum CheckoutBillingAddressCollection {
-	Auto,
-	Required,
+    Auto,
+    Required,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -45,8 +45,8 @@ pub enum CheckoutBillingAddressCollection {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum CheckoutCustomerCreation {
-	Always,
-	IfRequired,
+    Always,
+    IfRequired,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -54,8 +54,8 @@ pub enum CheckoutCustomerCreation {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum PaymentMethodCollection {
-	Always,
-	IfRequired,
+    Always,
+    IfRequired,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -63,11 +63,11 @@ pub enum PaymentMethodCollection {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum SubmitType {
-	Auto,
-	Book,
-	Donate,
-	Pay,
-	Subscribe,
+    Auto,
+    Book,
+    Donate,
+    Pay,
+    Subscribe,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -75,14 +75,14 @@ pub enum SubmitType {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum UiMode {
-	Elements,
-	EmbeddedPage,
-	HostedPage,
-	/// Legacy value for older integrations.
-	Embedded,
-	/// Legacy value for older integrations.
-	Hosted,
-	Custom,
+    Elements,
+    EmbeddedPage,
+    HostedPage,
+    /// Legacy value for older integrations.
+    Embedded,
+    /// Legacy value for older integrations.
+    Hosted,
+    Custom,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -90,9 +90,9 @@ pub enum UiMode {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum RedirectOnCompletion {
-	Always,
-	IfRequired,
-	Never,
+    Always,
+    IfRequired,
+    Never,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -100,8 +100,8 @@ pub enum RedirectOnCompletion {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum ConsentPromotions {
-	OptIn,
-	OptOut,
+    OptIn,
+    OptOut,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -109,7 +109,7 @@ pub enum ConsentPromotions {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum TermsOfService {
-	Accepted,
+    Accepted,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -117,9 +117,9 @@ pub enum TermsOfService {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum AutomaticTaxStatus {
-	Complete,
-	Failed,
-	RequiresLocationInputs,
+    Complete,
+    Failed,
+    RequiresLocationInputs,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -127,10 +127,10 @@ pub enum AutomaticTaxStatus {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum LiabilityType {
-	Account,
-	#[serde(rename = "self")]
-	#[strum(serialize = "self")]
-	SelfAccount,
+    Account,
+    #[serde(rename = "self")]
+    #[strum(serialize = "self")]
+    SelfAccount,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -138,9 +138,9 @@ pub enum LiabilityType {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum TaxBehavior {
-	Exclusive,
-	Inclusive,
-	Unspecified,
+    Exclusive,
+    Inclusive,
+    Unspecified,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -148,11 +148,11 @@ pub enum TaxBehavior {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum DeliveryUnit {
-	BusinessDay,
-	Day,
-	Hour,
-	Month,
-	Week,
+    BusinessDay,
+    Day,
+    Hour,
+    Month,
+    Week,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -160,7 +160,7 @@ pub enum DeliveryUnit {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum ShippingRateType {
-	FixedAmount,
+    FixedAmount,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -168,10 +168,10 @@ pub enum ShippingRateType {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum RecurringInterval {
-	Day,
-	Week,
-	Month,
-	Year,
+    Day,
+    Week,
+    Month,
+    Year,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -179,9 +179,9 @@ pub enum RecurringInterval {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum CustomFieldType {
-	Dropdown,
-	Numeric,
-	Text,
+    Dropdown,
+    Numeric,
+    Text,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -189,7 +189,7 @@ pub enum CustomFieldType {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum CustomFieldLabelType {
-	Custom,
+    Custom,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -197,8 +197,8 @@ pub enum CustomFieldLabelType {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum ConsentPosition {
-	Auto,
-	Hidden,
+    Auto,
+    Hidden,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -206,8 +206,8 @@ pub enum ConsentPosition {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum TaxIdRequired {
-	IfSupported,
-	Never,
+    IfSupported,
+    Never,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Display, EnumString, PartialEq, Eq, Hash)]
@@ -215,6 +215,6 @@ pub enum TaxIdRequired {
 #[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum OriginContext {
-	MobileApp,
-	Web,
+    MobileApp,
+    Web,
 }

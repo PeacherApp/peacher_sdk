@@ -382,10 +382,7 @@ fn create_checkout_session_matches_stripe_curl_example() {
 
     // Fields we never set must not leak into the body.
     assert!(!encoded.contains("cancel_url"), "got: {encoded}");
-    assert!(
-        !encoded.contains("payment_intent_data"),
-        "got: {encoded}"
-    );
+    assert!(!encoded.contains("payment_intent_data"), "got: {encoded}");
 }
 
 #[test]
