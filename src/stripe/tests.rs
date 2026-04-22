@@ -1,4 +1,5 @@
 use super::*;
+use crate::prelude::{GetHandler, Handler, Method};
 use ahash::HashMap;
 
 #[test]
@@ -139,7 +140,7 @@ fn create_body_matches_stripe_curl_example() {
     //   -d amount=2000
     //   -d currency=usd
     //   -d "automatic_payment_methods[enabled]=true"
-    let mut body = CreatePaymentIntentBody::new(2000, "usd");
+    let mut body = CreatePaymentIntent::new(2000, "usd");
     body.automatic_payment_methods = Some(CreateAutomaticPaymentMethods {
         enabled: true,
         allow_redirects: None,
@@ -162,7 +163,7 @@ fn create_body_matches_stripe_curl_example() {
 
 #[test]
 fn create_body_nests_payment_method_data_under_type_key() {
-    let mut body = CreatePaymentIntentBody::new(5000, "usd");
+    let mut body = CreatePaymentIntent::new(5000, "usd");
     body.payment_method_data = Some(CreatePaymentMethodData {
         data_type: PaymentMethodType::SepaDebit,
         sepa_debit: Some(CreatePaymentMethodDataSepaDebit {
@@ -234,5 +235,198 @@ fn create_body_nests_payment_method_data_under_type_key() {
     assert!(
         encoded.contains("payment_method_data[sepa_debit][iban]=DE89370400440532013000"),
         "got: {encoded}"
+    );
+}
+
+#[test]
+fn deserializes_checkout_session_example_payload() {
+    let raw = r#"{
+        "id": "cs_test_a11YYufWQzNY63zpQ6QSNRQhkUpVph4WRmzW0zWJO2znZKdVujZ0N0S22u",
+        "object": "checkout.session",
+        "after_expiration": null,
+        "allow_promotion_codes": null,
+        "amount_subtotal": 2198,
+        "amount_total": 2198,
+        "automatic_tax": {
+            "enabled": false,
+            "liability": null,
+            "status": null
+        },
+        "billing_address_collection": null,
+        "cancel_url": null,
+        "client_reference_id": null,
+        "consent": null,
+        "consent_collection": null,
+        "created": 1679600215,
+        "currency": "usd",
+        "custom_fields": [],
+        "custom_text": {
+            "shipping_address": null,
+            "submit": null
+        },
+        "customer": null,
+        "customer_creation": "if_required",
+        "customer_details": null,
+        "customer_email": null,
+        "expires_at": 1679686615,
+        "invoice": null,
+        "invoice_creation": {
+            "enabled": false,
+            "invoice_data": {
+                "account_tax_ids": null,
+                "custom_fields": null,
+                "description": null,
+                "footer": null,
+                "issuer": null,
+                "metadata": {},
+                "rendering_options": null
+            }
+        },
+        "livemode": false,
+        "locale": null,
+        "metadata": {},
+        "mode": "payment",
+        "payment_intent": null,
+        "payment_link": null,
+        "payment_method_collection": "always",
+        "payment_method_options": {},
+        "payment_method_types": ["card"],
+        "payment_status": "unpaid",
+        "phone_number_collection": {
+            "enabled": false
+        },
+        "recovered_from": null,
+        "setup_intent": null,
+        "shipping_address_collection": null,
+        "shipping_cost": null,
+        "shipping_details": null,
+        "shipping_options": [],
+        "status": "open",
+        "submit_type": null,
+        "subscription": null,
+        "success_url": "https://example.com/success",
+        "total_details": {
+            "amount_discount": 0,
+            "amount_shipping": 0,
+            "amount_tax": 0
+        },
+        "url": "https://checkout.stripe.com/c/pay/cs_test_a11YYufWQzNY63zpQ6QSNRQhkUpVph4WRmzW0zWJO2znZKdVujZ0N0S22u"
+    }"#;
+
+    let session: CheckoutSession = serde_json::from_str(raw).expect("should deserialize");
+    assert_eq!(
+        session.id,
+        "cs_test_a11YYufWQzNY63zpQ6QSNRQhkUpVph4WRmzW0zWJO2znZKdVujZ0N0S22u"
+    );
+    assert_eq!(session.amount_total, Some(2198));
+    assert_eq!(session.amount_subtotal, Some(2198));
+    assert_eq!(session.currency, Some("usd".to_string()));
+    assert_eq!(session.mode, CheckoutSessionMode::Payment);
+    assert_eq!(session.status, CheckoutSessionStatus::Open);
+    assert_eq!(session.payment_status, CheckoutPaymentStatus::Unpaid);
+    assert_eq!(
+        session.payment_method_collection,
+        Some(PaymentMethodCollection::Always)
+    );
+    assert_eq!(
+        session.customer_creation,
+        Some(CheckoutCustomerCreation::IfRequired)
+    );
+    assert_eq!(session.payment_method_types, vec!["card".to_string()]);
+    assert!(!session.automatic_tax.enabled);
+
+    let totals = session.total_details.expect("total_details present");
+    assert_eq!(totals.amount_discount, 0);
+    assert_eq!(totals.amount_shipping, 0);
+    assert_eq!(totals.amount_tax, 0);
+
+    let invoice_creation = session.invoice_creation.expect("invoice_creation present");
+    assert!(!invoice_creation.enabled);
+}
+
+#[test]
+fn create_checkout_session_matches_stripe_curl_example() {
+    // Mirrors the docs example:
+    //   --data-urlencode "success_url=https://example.com/success"
+    //   -d "line_items[0][price]={{PRICE_ID}}"
+    //   -d "line_items[0][quantity]=2"
+    //   -d mode=payment
+    let mut body = CreateCheckoutSession::new(CheckoutSessionMode::Payment);
+    body.success_url = Some("https://example.com/success".into());
+    body.line_items = Some(vec![CreateLineItem {
+        adjustable_quantity: None,
+        dynamic_tax_rates: None,
+        metadata: HashMap::default(),
+        price: Some("price_123".into()),
+        price_data: None,
+        quantity: Some(2),
+        tax_rates: None,
+    }]);
+
+    let encoded = serde_qs::to_string(&body).expect("serializes as form-qs");
+
+    assert!(encoded.contains("mode=payment"), "got: {encoded}");
+    assert!(
+        encoded.contains("success_url=https://example.com/success")
+            || encoded.contains("success_url=https%3A%2F%2Fexample.com%2Fsuccess"),
+        "got: {encoded}"
+    );
+    assert!(
+        encoded.contains("line_items[0][price]=price_123"),
+        "got: {encoded}"
+    );
+    assert!(
+        encoded.contains("line_items[0][quantity]=2"),
+        "got: {encoded}"
+    );
+
+    // Fields we never set must not leak into the body.
+    assert!(!encoded.contains("cancel_url"), "got: {encoded}");
+    assert!(
+        !encoded.contains("payment_intent_data"),
+        "got: {encoded}"
+    );
+}
+
+#[test]
+fn create_checkout_session_nests_subscription_data() {
+    let mut body = CreateCheckoutSession::new(CheckoutSessionMode::Subscription);
+    body.subscription_data = Some(CreateSubscriptionData {
+        trial_period_days: Some(14),
+        description: Some("monthly plan".into()),
+        ..Default::default()
+    });
+
+    let encoded = serde_qs::to_string(&body).expect("serializes as form-qs");
+    assert!(
+        encoded.contains("subscription_data[trial_period_days]=14"),
+        "got: {encoded}"
+    );
+    assert!(
+        encoded.contains("subscription_data[description]=monthly%20plan")
+            || encoded.contains("subscription_data[description]=monthly+plan"),
+        "got: {encoded}"
+    );
+}
+
+#[test]
+fn retrieve_and_expire_checkout_session_paths() {
+    let retrieve = RetrieveCheckoutSession::new("cs_test_abc");
+    assert_eq!(
+        GetHandler::path(&retrieve),
+        "/v1/checkout/sessions/cs_test_abc"
+    );
+
+    let expire = ExpireCheckoutSession::new("cs_test_abc");
+    assert_eq!(expire.path(), "/v1/checkout/sessions/cs_test_abc/expire");
+    assert_eq!(expire.method(), Method::Post);
+}
+
+#[test]
+fn list_checkout_session_line_items_path_has_id() {
+    let list = ListCheckoutSessionLineItems::new("cs_test_123");
+    assert_eq!(
+        GetHandler::path(&list),
+        "/v1/checkout/sessions/cs_test_123/line_items"
     );
 }

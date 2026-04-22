@@ -45,7 +45,7 @@ impl Client for StripeClient {
         let mut buf = b"Basic ".to_vec();
         {
             let mut encoder = EncoderWriter::new(&mut buf, &BASE64_STANDARD);
-            let _ = write!(encoder, "{}", &self.secret);
+            let _ = write!(encoder, "{}:", &self.secret);
         }
         let mut header = HeaderValue::from_maybe_shared(bytes::Bytes::from(buf))
             .expect("base64 is always valid HeaderValue");

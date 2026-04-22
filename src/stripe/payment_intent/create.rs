@@ -2,10 +2,16 @@ use ahash::HashMap;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-use crate::stripe::payment_intent::{
-    Address, AllowRedirects, AmountDetailsLineItemPaymentMethodOptionsPaypalCategory, CaptureMethod,
-    ConfirmationMethod, CreatePaymentMethodData, CreatePaymentMethodOptions, Hooks, PaymentDetails,
-    PaymentMethodType, SetupFutureUsage, TransferData,
+use crate::{
+    prelude::{BodyBuilder, Handler, Method},
+    stripe::{
+        PaymentIntent,
+        payment_intent::{
+            Address, AllowRedirects, AmountDetailsLineItemPaymentMethodOptionsPaypalCategory,
+            CaptureMethod, ConfirmationMethod, CreatePaymentMethodData, CreatePaymentMethodOptions,
+            Hooks, PaymentDetails, PaymentMethodType, SetupFutureUsage, TransferData,
+        },
+    },
 };
 
 /// Parameters accepted by `POST /v1/payment_intents`.
@@ -13,7 +19,7 @@ use crate::stripe::payment_intent::{
 /// See: <https://docs.stripe.com/api/payment_intents/create>
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct CreatePaymentIntentBody {
+pub struct CreatePaymentIntent {
     pub amount: i64,
     pub currency: String,
 
@@ -87,7 +93,7 @@ pub struct CreatePaymentIntentBody {
     pub use_stripe_sdk: Option<bool>,
 }
 
-impl CreatePaymentIntentBody {
+impl CreatePaymentIntent {
     /// Minimal constructor for the two required parameters.
     pub fn new(amount: i64, currency: impl Into<String>) -> Self {
         Self {
@@ -128,6 +134,19 @@ impl CreatePaymentIntentBody {
             transfer_group: None,
             use_stripe_sdk: None,
         }
+    }
+}
+
+impl Handler for CreatePaymentIntent {
+    type ResponseBody = PaymentIntent;
+    fn method(&self) -> Method {
+        Method::Post
+    }
+    fn path(&self) -> std::borrow::Cow<'_, str> {
+        "/v1/payment_intents".into()
+    }
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.qs(self)
     }
 }
 
