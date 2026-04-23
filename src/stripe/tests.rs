@@ -427,3 +427,145 @@ fn list_checkout_session_line_items_path_has_id() {
         "/v1/checkout/sessions/cs_test_123/line_items"
     );
 }
+
+#[test]
+fn webhook_event_deserializes_checkout_session_completed() {
+    let raw = r#"{
+        "id": "evt_1PXYZ",
+        "object": "event",
+        "api_version": "2020-08-27",
+        "created": 1679600215,
+        "data": {
+            "object": {
+                "id": "cs_test_abc",
+                "object": "checkout.session",
+                "amount_subtotal": 2000,
+                "amount_total": 2000,
+                "automatic_tax": { "enabled": false, "liability": null, "status": null },
+                "created": 1679600000,
+                "currency": "usd",
+                "custom_fields": [],
+                "livemode": false,
+                "metadata": {},
+                "mode": "payment",
+                "payment_intent": "pi_test_123",
+                "payment_method_types": ["card"],
+                "payment_status": "paid",
+                "status": "complete",
+                "success_url": "https://example.com/success",
+                "url": "https://checkout.stripe.com/c/pay/cs_test_abc"
+            }
+        },
+        "livemode": false,
+        "pending_webhooks": 1,
+        "request": { "id": null, "idempotency_key": null },
+        "type": "checkout.session.completed"
+    }"#;
+
+    let event: WebhookEvent = serde_json::from_str(raw).expect("should deserialize");
+    assert_eq!(event.id, "evt_1PXYZ");
+    assert_eq!(event.api_version.as_deref(), Some("2020-08-27"));
+    assert_eq!(event.created, 1679600215);
+    assert!(!event.livemode);
+    assert_eq!(event.kind.type_name(), "checkout.session.completed");
+
+    match event.kind {
+        WebhookEventKind::CheckoutSessionCompleted(session) => {
+            assert_eq!(session.id, "cs_test_abc");
+            assert_eq!(session.payment_intent.as_deref(), Some("pi_test_123"));
+            assert_eq!(session.payment_status, CheckoutPaymentStatus::Paid);
+            assert_eq!(session.status, CheckoutSessionStatus::Complete);
+        }
+        other => panic!("expected CheckoutSessionCompleted, got {:?}", other),
+    }
+}
+
+#[test]
+fn webhook_event_deserializes_payment_intent_payment_failed() {
+    let raw = r#"{
+        "id": "evt_failed",
+        "object": "event",
+        "created": 1679600215,
+        "data": {
+            "object": {
+                "id": "pi_test_fail",
+                "object": "payment_intent",
+                "amount": 5000,
+                "amount_capturable": 0,
+                "amount_received": 0,
+                "capture_method": "automatic",
+                "confirmation_method": "automatic",
+                "created": 1679600000,
+                "currency": "usd",
+                "last_payment_error": {
+                    "code": "card_declined",
+                    "message": "Your card was declined.",
+                    "type": "card_error"
+                },
+                "livemode": false,
+                "metadata": {},
+                "payment_method_types": ["card"],
+                "status": "requires_payment_method"
+            }
+        },
+        "livemode": false,
+        "pending_webhooks": 1,
+        "type": "payment_intent.payment_failed"
+    }"#;
+
+    let event: WebhookEvent = serde_json::from_str(raw).expect("should deserialize");
+    match event.kind {
+        WebhookEventKind::PaymentIntentPaymentFailed(intent) => {
+            assert_eq!(intent.id, "pi_test_fail");
+            let err = intent.last_payment_error.expect("has last_payment_error");
+            assert_eq!(err.code.as_deref(), Some("card_declined"));
+            assert_eq!(err.error_type, ErrorType::CardError);
+        }
+        other => panic!("expected PaymentIntentPaymentFailed, got {:?}", other),
+    }
+}
+
+#[test]
+fn webhook_event_preserves_unknown_event_type_as_raw_object() {
+    let raw = r#"{
+        "id": "evt_other",
+        "object": "event",
+        "created": 1679600215,
+        "data": { "object": { "id": "ch_test", "object": "charge" } },
+        "livemode": false,
+        "pending_webhooks": 0,
+        "type": "charge.refunded"
+    }"#;
+
+    let event: WebhookEvent = serde_json::from_str(raw).expect("should deserialize");
+    match event.kind {
+        WebhookEventKind::Unknown { type_name, object } => {
+            assert_eq!(type_name, "charge.refunded");
+            assert_eq!(object["id"].as_str(), Some("ch_test"));
+        }
+        other => panic!("expected Unknown, got {:?}", other),
+    }
+}
+
+#[test]
+fn webhook_event_surfaces_nested_parse_errors() {
+    // `mode` is required on CheckoutSession — missing it should bubble up a
+    // descriptive error rather than silently falling back to Unknown.
+    let raw = r#"{
+        "id": "evt_broken",
+        "object": "event",
+        "created": 1,
+        "data": { "object": { "id": "cs_x", "object": "checkout.session" } },
+        "livemode": false,
+        "pending_webhooks": 0,
+        "type": "checkout.session.completed"
+    }"#;
+
+    let err = serde_json::from_str::<WebhookEvent>(raw)
+        .expect_err("missing required CheckoutSession fields should fail");
+    let msg = err.to_string();
+    assert!(
+        msg.contains("checkout.session.completed"),
+        "error should name the event type, got: {msg}"
+    );
+}

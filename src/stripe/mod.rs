@@ -4,6 +4,9 @@ pub use payment_intent::*;
 mod checkout_session;
 pub use checkout_session::*;
 
+mod webhook;
+pub use webhook::*;
+
 pub mod client;
 
 #[cfg(test)]
