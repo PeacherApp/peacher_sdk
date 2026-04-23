@@ -313,7 +313,11 @@ pub struct CustomerDetails {
     pub phone: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tax_exempt: Option<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(
+        default,
+        deserialize_with = "crate::stripe::null_as_default",
+        skip_serializing_if = "Vec::is_empty"
+    )]
     pub tax_ids: Vec<TaxId>,
 }
 
