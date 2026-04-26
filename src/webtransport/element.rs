@@ -11,13 +11,9 @@ pub enum ElementUpdate {
     Changed(Change),
     Removed(Entity),
 }
+
 impl ElementUpdate {
-    pub fn changed(
-        entity: Entity,
-        rect: Vec2,
-        position: Vec3,
-        client_nonce: Option<Uuid>,
-    ) -> Self {
+    pub fn changed(entity: Entity, rect: Vec2, position: Vec3, client_nonce: Option<Uuid>) -> Self {
         Self::Changed(Change {
             entity,
             rect,
