@@ -1,6 +1,6 @@
 mod element;
 use bevy_ecs::entity::Entity;
-pub use element::ElementUpdate;
+pub use element::{Change, ElementUpdate};
 
 use anyhow::Context;
 use bevy_math::Vec2;
@@ -23,10 +23,21 @@ pub enum ElementAction {
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct NewRectangle {
+    client_nonce: Uuid,
     dimensions: Vec2,
     offset: Vec2,
 }
 impl NewRectangle {
+    pub fn new(client_nonce: Uuid, dimensions: Vec2, offset: Vec2) -> Self {
+        Self {
+            client_nonce,
+            dimensions,
+            offset,
+        }
+    }
+    pub fn client_nonce(&self) -> Uuid {
+        self.client_nonce
+    }
     pub fn dimensions(&self) -> Vec2 {
         self.dimensions
     }
