@@ -1,13 +1,14 @@
-mod element;
-use bevy_ecs::entity::Entity;
-pub use element::ElementUpdate;
+mod client;
+pub use client::*;
 
-use anyhow::Context;
-use bevy_math::Vec2;
+mod server;
+pub use server::*;
+
+use bevy_ecs::entity::Entity;
+
+use bevy_math::{Vec2, Vec3};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use crate::sdk::{CampaignDetails, MemberView};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -72,62 +73,6 @@ pub enum RoomMsg {
     Say(String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum ClientWebTransportMsg {
-    Iam(Uuid),
-    Campaign(CampaignMsg),
-    Room(RoomMsg),
-    Element(ElementAction),
-    Nothing,
-}
-impl ClientWebTransportMsg {
-    /// this method allocated an internal vector and then extends the passed in buffer.
-    ///
-    /// This isn't fantastic. It's just a quick impl.
-    ///
-    /// Does not clear the buffer. extends it.
-    pub fn append_into(&self, buf: &mut Vec<u8>) {
-        let mut allocvec = Vec::with_capacity(size_of::<Self>());
-        ciborium::into_writer(self, &mut allocvec).unwrap();
-
-        let needed_cap = 4 + allocvec.len();
-
-        if buf.capacity() < needed_cap {
-            let additional_to_reserve = needed_cap - buf.capacity();
-            _ = buf.try_reserve(additional_to_reserve);
-        }
-
-        buf.extend_from_slice(&(allocvec.len() as u32).to_be_bytes());
-        buf.extend_from_slice(&allocvec);
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-#[expect(clippy::large_enum_variant)]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum ServerWebTransportMsg {
-    Message { from: i32, content: String },
-    Error(String),
-    IdentifyYourself,
-    Campaign(CampaignDetails),
-    Element(ElementUpdate),
-    YouAre(MemberView),
-}
-
-impl ServerWebTransportMsg {
-    pub fn decode(buf: &[u8]) -> anyhow::Result<Self> {
-        let payload = buf.get(4..).context("Buffer too short")?;
-        let this = ciborium::from_reader(payload)?;
-
-        Ok(this)
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -136,4 +81,35 @@ pub struct WebTransportInfo {
     pub url: String,
     pub cert_hash: Vec<u8>,
     pub token: Uuid,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum ElementUpdate {
+    Changed(Change),
+    Removed(Entity),
+}
+impl ElementUpdate {
+    pub fn changed(entity: Entity, rect: Vec2, position: Vec3) -> Self {
+        Self::Changed(Change {
+            entity,
+            rect,
+            position,
+        })
+    }
+    pub fn removed(id: Entity) -> Self {
+        Self::Removed(id)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[allow(clippy::large_enum_variant)]
+pub struct Change {
+    pub entity: Entity,
+    pub rect: Vec2,
+    pub position: Vec3,
 }

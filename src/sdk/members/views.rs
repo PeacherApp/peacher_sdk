@@ -29,17 +29,10 @@ pub struct MemberView {
     pub auth_level: AuthLevel,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct CompactRepresentativeView {
-    pub id: i32,
-    pub display_name: String,
-    pub handle: Slug,
-    pub photo: Option<Url>,
-    pub party: Option<PartyView>,
-}
-
 impl MemberView {
+    pub fn id(&self) -> i32 {
+        self.id
+    }
     pub fn with_party(self, party: Option<PartyView>) -> MemberWithPartyView {
         debug_assert_eq!(self.party_id, party.as_ref().map(|p| p.id));
         MemberWithPartyView {
@@ -54,6 +47,16 @@ impl MemberView {
             auth_level: self.auth_level,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct CompactRepresentativeView {
+    pub id: i32,
+    pub display_name: String,
+    pub handle: Slug,
+    pub photo: Option<Url>,
+    pub party: Option<PartyView>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
