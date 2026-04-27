@@ -9,6 +9,7 @@ use crate::{
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
 #[expect(clippy::large_enum_variant)]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ServerWebTransportMsg {

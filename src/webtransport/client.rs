@@ -3,9 +3,10 @@ use uuid::Uuid;
 
 use crate::webtransport::{CampaignMsg, ElementAction, RoomMsg};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ClientWebTransportMsg {
     Iam(Uuid),

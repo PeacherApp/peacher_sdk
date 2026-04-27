@@ -10,7 +10,7 @@ use bevy_math::{Vec2, Vec3};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
@@ -20,7 +20,7 @@ pub enum ElementAction {
     Remove(Entity),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct NewRectangle {
@@ -36,7 +36,7 @@ impl NewRectangle {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct UpdateRectangle {
@@ -56,7 +56,7 @@ impl UpdateRectangle {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
@@ -65,7 +65,7 @@ pub enum CampaignMsg {
     Leave,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
@@ -77,15 +77,29 @@ pub enum RoomMsg {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::resource::Resource))]
 pub struct WebTransportInfo {
     pub url: String,
     pub cert_hash: Vec<u8>,
     pub token: Uuid,
 }
+impl WebTransportInfo {
+    pub fn token(&self) -> Uuid {
+        self.token
+    }
 
-#[derive(Debug, Serialize, Deserialize)]
+    pub fn cert_hash(&self) -> &[u8] {
+        &self.cert_hash
+    }
+    pub fn url(&self) -> &str {
+        &self.url
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::event::Event))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ElementUpdate {
     Changed(Change),
@@ -104,7 +118,7 @@ impl ElementUpdate {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[allow(clippy::large_enum_variant)]
