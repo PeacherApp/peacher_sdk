@@ -16,6 +16,7 @@ pub struct FollowResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct MemberView {
     pub id: i32,

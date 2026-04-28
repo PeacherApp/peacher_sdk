@@ -1,6 +1,9 @@
 mod client;
 pub use client::*;
 
+mod global;
+pub use global::*;
+
 mod shared;
 pub use shared::*;
 

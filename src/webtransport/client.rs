@@ -4,21 +4,35 @@ use uuid::Uuid;
 
 use crate::webtransport::{CampaignMsg, RoomMsg, SharedEntity};
 
+// #[derive(Debug, Serialize, Deserialize, Clone)]
+// #[cfg_attr(feature = "web", derive(tsify::Tsify))]
+// #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+// #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
+// pub struct ClientMessage {
+//     entity: SharedEntity,
+//     event: ClientEvent,
+// }
+// impl ClientMessage {
+//     pub fn new(entity: SharedEntity, event: ClientEvent) -> Self {
+//         Self { entity, event }
+//     }
+//     pub fn target(&self) -> SharedEntity {
+//         self.entity
+//     }
+//     pub fn event(&self) -> &ClientEvent {
+//         &self.event
+//     }
+// }
+
+/// While this derives bevy message, the shared lib does not add it as an event.
+///
+/// clients should use this to process messages.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
-pub struct ClientMessage {
-    pub entity: SharedEntity,
-    pub event: ClientEvent,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-// #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum ClientEvent {
+pub enum ClientMessage {
     Iam(Uuid),
     Campaign(CampaignMsg),
     Room(RoomMsg),
@@ -26,7 +40,7 @@ pub enum ClientEvent {
     Nothing,
 }
 
-impl ClientEvent {
+impl ClientMessage {
     /// this method allocated an internal vector and then extends the passed in buffer.
     ///
     /// This isn't fantastic. It's just a quick impl.

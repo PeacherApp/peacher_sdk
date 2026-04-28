@@ -3,27 +3,37 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     sdk::{CampaignDetails, MemberView},
-    webtransport::{ClientElementAction, SharedEntity},
+    webtransport::{
+        ClientElementAction, SharedEntity,
+        global::{CampaignAction, CampaignEvent, SharedEvent, UserAction, UserEvent},
+    },
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
-pub struct ServerMessage {
-    entity: SharedEntity,
-    event: ServerEvent,
+// #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
+pub enum ServerMessage {
+    /// Clients will only recieve this message for themselves.
+    /// The provided sharedentity is the clients entity to record.
+    IdentifyYourself(SharedEntity),
+    /// This is an event that should be passed into the ECS for the client.
+    Global(SharedEvent),
+    Error(String),
 }
 
 impl ServerMessage {
-    pub fn new(entity: SharedEntity, event: ServerEvent) -> Self {
-        Self { entity, event }
+    pub fn user(entity: SharedEntity, action: UserAction) -> Self {
+        Self::Global(SharedEvent::User(UserEvent { entity, action }))
     }
-    pub fn target(&self) -> SharedEntity {
-        self.entity
+    pub fn campaign(entity: SharedEntity, action: CampaignAction) -> Self {
+        Self::Global(SharedEvent::Campaign(CampaignEvent { entity, action }))
     }
-    pub fn event(&self) -> &ServerEvent {
-        &self.event
+    pub fn decode(buf: &[u8]) -> anyhow::Result<Self> {
+        let payload = buf.get(4..).context("Buffer too short")?;
+        let this = ciborium::from_reader(payload)?;
+
+        Ok(this)
     }
 }
 
@@ -44,16 +54,7 @@ pub enum ServerEvent {
     IdentifyYourself,
     Campaign(CampaignDetails),
     Element(ServerElementAction),
-    YouAre(MemberView),
-}
-
-impl ServerEvent {
-    pub fn decode(buf: &[u8]) -> anyhow::Result<Self> {
-        let payload = buf.get(4..).context("Buffer too short")?;
-        let this = ciborium::from_reader(payload)?;
-
-        Ok(this)
-    }
+    ThisIs(MemberView),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
