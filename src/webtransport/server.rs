@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     sdk::{CampaignDetails, MemberView},
-    webtransport::ElementUpdate,
+    webtransport::ClientElementAction,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -17,7 +17,7 @@ pub enum ServerWebTransportMsg {
     Error(String),
     IdentifyYourself,
     Campaign(CampaignDetails),
-    Element(ElementUpdate),
+    Element(ServerElementAction),
     YouAre(MemberView),
 }
 
@@ -27,5 +27,21 @@ impl ServerWebTransportMsg {
         let this = ciborium::from_reader(payload)?;
 
         Ok(this)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::event::Event))]
+pub struct ServerElementAction {
+    action: ClientElementAction,
+}
+impl ServerElementAction {
+    pub fn new(action: ClientElementAction) -> Self {
+        Self { action }
+    }
+    pub fn action(&self) -> &ClientElementAction {
+        &self.action
     }
 }
