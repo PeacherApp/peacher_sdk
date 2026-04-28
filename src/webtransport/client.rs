@@ -8,15 +8,25 @@ use crate::webtransport::{CampaignMsg, RoomMsg, SharedEntity};
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
+pub struct ClientMessage {
+    pub entity: SharedEntity,
+    pub event: ClientEvent,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+// #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum ClientWebTransportMsg {
+pub enum ClientEvent {
     Iam(Uuid),
     Campaign(CampaignMsg),
     Room(RoomMsg),
     Element(ClientElementAction),
     Nothing,
 }
-impl ClientWebTransportMsg {
+
+impl ClientEvent {
     /// this method allocated an internal vector and then extends the passed in buffer.
     ///
     /// This isn't fantastic. It's just a quick impl.
