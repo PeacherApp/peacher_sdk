@@ -13,6 +13,32 @@ pub enum SharedEvent {
     User(UserEvent),
     Campaign(CampaignEvent),
 }
+impl SharedEvent {
+    pub fn identify_user(entity: SharedEntity, view: MemberView) -> Self {
+        Self::User(UserEvent {
+            entity,
+            action: UserAction::IdentifiedAs(view),
+        })
+    }
+    pub fn join_campaign(member: SharedEntity, campaign: SharedEntity) -> Self {
+        Self::User(UserEvent {
+            entity: member,
+            action: UserAction::JoinedCampaign(campaign),
+        })
+    }
+    pub fn provide_campaign_details(campaign: SharedEntity, details: CampaignDetails) -> Self {
+        Self::Campaign(CampaignEvent {
+            entity: campaign,
+            action: CampaignAction::Details(details),
+        })
+    }
+    pub fn campaign_error(campaign: SharedEntity, msg: impl Into<String>) -> Self {
+        Self::Campaign(CampaignEvent {
+            entity: campaign,
+            action: CampaignAction::Error(msg.into()),
+        })
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserEvent {
@@ -38,4 +64,5 @@ pub struct CampaignEvent {
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum CampaignAction {
     Details(CampaignDetails),
+    Error(String),
 }
