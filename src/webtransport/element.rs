@@ -5,6 +5,7 @@ use crate::webtransport::SharedEntity;
 
 /// Wraps an element event with the actioner of the event
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::event::Event))]
 pub struct UserElementEvent {
     user: SharedEntity,
     element_event: ElementEvent,

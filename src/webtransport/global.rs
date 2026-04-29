@@ -21,6 +21,14 @@ impl SharedEvent {
             action: UserAction::IdentifiedAs(view),
         })
     }
+
+    pub fn disconnected(entity: SharedEntity) -> Self {
+        Self::User(UserEvent {
+            entity,
+            action: UserAction::Disconnected,
+        })
+    }
+
     pub fn join_campaign(member: SharedEntity, campaign: SharedEntity) -> Self {
         Self::User(UserEvent {
             entity: member,
@@ -57,6 +65,7 @@ pub enum UserAction {
     IdentifiedAs(MemberView),
     JoinedCampaign(SharedEntity),
     LeftCampaign(SharedEntity),
+    Disconnected,
     Says(String),
 }
 
