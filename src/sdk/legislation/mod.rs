@@ -607,6 +607,7 @@ impl LegislationView {
         self,
         votes: impl IntoIterator<Item = LegislationViewVote>,
         sponsors: impl IntoIterator<Item = LegislationSponsorView>,
+        categories: impl IntoIterator<Item = Category>,
     ) -> DetailedLegislationView {
         DetailedLegislationView {
             created_at: self.created_at,
@@ -625,6 +626,7 @@ impl LegislationView {
             external_url: self.external_url,
             votes: votes.into_iter().collect(),
             sponsors: sponsors.into_iter().collect(),
+            categories: categories.into_iter().collect(),
         }
     }
 }
@@ -650,6 +652,7 @@ pub struct DetailedLegislationView {
     pub external_url: Option<Url>,
     pub votes: Vec<LegislationViewVote>,
     pub sponsors: Vec<LegislationSponsorView>,
+    pub categories: Vec<Category>,
 }
 
 impl DetailedLegislationView {
