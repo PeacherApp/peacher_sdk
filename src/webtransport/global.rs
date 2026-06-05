@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     sdk::{CampaignDetails, MemberView},
-    webtransport::{ServerMessage, SharedEntity, UserElementEvent},
+    webtransport::{ServerMessage, UserElementEvent},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -15,37 +15,25 @@ pub enum SharedEvent {
     Element(UserElementEvent),
 }
 impl SharedEvent {
-    pub fn identify_user(entity: SharedEntity, view: MemberView) -> Self {
+    pub fn user_joined(view: MemberView) -> Self {
         Self::User(UserEvent {
-            entity,
+            id: view.id,
             action: UserAction::IdentifiedAs(view),
         })
     }
 
-    pub fn disconnected(entity: SharedEntity) -> Self {
+    pub fn user_disconnected(id: i32) -> Self {
         Self::User(UserEvent {
-            entity,
+            id,
             action: UserAction::Disconnected,
         })
     }
 
-    pub fn join_campaign(member: SharedEntity, campaign: SharedEntity) -> Self {
-        Self::User(UserEvent {
-            entity: member,
-            action: UserAction::JoinedCampaign(campaign),
-        })
+    pub fn campaign_details(details: CampaignDetails) -> Self {
+        Self::Campaign(CampaignEvent::Details(details))
     }
-    pub fn provide_campaign_details(campaign: SharedEntity, details: CampaignDetails) -> Self {
-        Self::Campaign(CampaignEvent {
-            entity: campaign,
-            action: CampaignAction::Details(details),
-        })
-    }
-    pub fn campaign_error(campaign: SharedEntity, msg: impl Into<String>) -> Self {
-        Self::Campaign(CampaignEvent {
-            entity: campaign,
-            action: CampaignAction::Error(msg.into()),
-        })
+    pub fn campaign_error(msg: impl Into<String>) -> Self {
+        Self::Campaign(CampaignEvent::Error(msg.into()))
     }
 }
 impl From<SharedEvent> for ServerMessage {
@@ -56,28 +44,20 @@ impl From<SharedEvent> for ServerMessage {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserEvent {
-    pub entity: SharedEntity,
+    pub id: i32,
     pub action: UserAction,
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum UserAction {
     IdentifiedAs(MemberView),
-    JoinedCampaign(SharedEntity),
-    LeftCampaign(SharedEntity),
     Disconnected,
     Says(String),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct CampaignEvent {
-    pub entity: SharedEntity,
-    pub action: CampaignAction,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum CampaignAction {
+pub enum CampaignEvent {
     Details(CampaignDetails),
     Error(String),
 }
