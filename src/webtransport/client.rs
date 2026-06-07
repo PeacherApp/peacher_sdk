@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::webtransport::{CampaignMsg, ElementEvent, RoomMsg};
+use crate::webtransport::{CampaginMessage, ElementEvent, RoomMsg};
 
 /// While this derives bevy message, the shared lib does not add it as an event.
 ///
@@ -13,7 +13,7 @@ use crate::webtransport::{CampaignMsg, ElementEvent, RoomMsg};
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ClientMessage {
     Iam(Uuid),
-    Campaign(CampaignMsg),
+    Campaign(CampaginMessage),
     Room(RoomMsg),
     Element(ElementEvent),
     Nothing,

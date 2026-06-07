@@ -20,42 +20,36 @@ impl UserElementEvent {
         self.user
     }
     pub fn element(&self) -> Uuid {
-        self.element_event.entity()
+        self.element_event.id
     }
     pub fn action(&self) -> &ElementAction {
-        self.element_event.action()
+        &self.element_event.action
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ElementEvent {
-    element_entity: Uuid,
-    action: ElementAction,
+    pub id: Uuid,
+    pub action: ElementAction,
 }
 impl ElementEvent {
-    pub fn create(element_entity: Uuid, dimensions: Vec2, offset: Vec3) -> Self {
+    pub fn create(id: Uuid, dimensions: Vec2, offset: Vec3) -> Self {
         Self {
-            element_entity,
+            id,
             action: ElementAction::Create(NewRectangle { dimensions, offset }),
         }
     }
-    pub fn update(element_entity: Uuid, dimensions: Vec2, offset: Vec3) -> Self {
+    pub fn update(id: Uuid, dimensions: Vec2, offset: Vec3) -> Self {
         Self {
-            element_entity,
+            id,
             action: ElementAction::Update(UpdateRectangle { dimensions, offset }),
         }
     }
-    pub fn remove(element_entity: Uuid) -> Self {
+    pub fn remove(id: Uuid) -> Self {
         Self {
-            element_entity,
+            id,
             action: ElementAction::Remove,
         }
-    }
-    pub fn entity(&self) -> Uuid {
-        self.element_entity
-    }
-    pub fn action(&self) -> &ElementAction {
-        &self.action
     }
 }
 
