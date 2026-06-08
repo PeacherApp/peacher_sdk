@@ -2,8 +2,8 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    sdk::MemberView,
-    webtransport::global::{CampaignEvent, SharedEvent, UserAction, UserEvent},
+    sdk::{CampaignDetails, MemberView},
+    webtransport::global::SharedEvent,
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -23,24 +23,50 @@ impl From<GatekeeperMessage> for ServerMessage {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum IndividualEvent {
+    Welcome(CampaignDetails),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum RoomMessage {
+    /// Events sent to a specific client
+    Client(IndividualEvent),
+    /// Events broadcast to members of a room
+    Broadcast(SharedEvent),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 // #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
 pub enum ServerMessage {
-    /// Clients will only recieve this message for themselves.
-    /// The provided sharedentity is the clients entity to record.
+    /// The authorization message state machine
     Gatekeeper(GatekeeperMessage),
-
-    /// This is an event that should be passed into the ECS for the client.
-    Broadcast(SharedEvent),
+    /// Events sent to members of a room. Only received after passing the gate keeper
+    Room(RoomMessage),
+    /// Global errors
     Error(String),
 }
 
 impl ServerMessage {
-    pub fn user(id: i32, action: UserAction) -> Self {
-        Self::Broadcast(SharedEvent::User(UserEvent { id, action }))
+    pub fn broadcast(shared_event: SharedEvent) -> Self {
+        Self::Room(RoomMessage::Broadcast(shared_event))
     }
-    pub fn campaign(event: CampaignEvent) -> Self {
-        Self::Broadcast(SharedEvent::Campaign(event))
+    pub fn client(indiv_event: IndividualEvent) -> Self {
+        Self::Room(RoomMessage::Client(indiv_event))
     }
+
+    // pub fn user(id: i32, action: UserAction) -> Self {
+    //     Self::Room(RoomMessage::Broadcast(SharedEvent::User(UserEvent {
+    //         id,
+    //         action,
+    //     })))
+    // }
+    // pub fn campaign(event: CampaignEvent) -> Self {
+    //     Self::Room(RoomMessage::Broadcast(SharedEvent::Campaign(event)))
+    // }
     pub fn decode(buf: &[u8]) -> anyhow::Result<Self> {
         let payload = buf.get(4..).context("Buffer too short")?;
         let this = ciborium::from_reader(payload)?;

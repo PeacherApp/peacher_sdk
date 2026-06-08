@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     sdk::{CampaignDetails, MemberView},
-    webtransport::{ServerMessage, UserElementEvent},
+    webtransport::{RoomMessage, ServerMessage, UserElementEvent},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -38,7 +38,7 @@ impl SharedEvent {
 }
 impl From<SharedEvent> for ServerMessage {
     fn from(value: SharedEvent) -> Self {
-        Self::Broadcast(value)
+        Self::Room(RoomMessage::Broadcast(value))
     }
 }
 

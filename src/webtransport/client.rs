@@ -18,7 +18,7 @@ pub enum GatekeeperClientMessage {
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum RoomMessage {
+pub enum RoomClientMessage {
     Say(String),
     Element(ElementEvent),
     Leave,
@@ -34,7 +34,7 @@ pub enum RoomMessage {
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ClientMessage {
     Gatekeeper(GatekeeperClientMessage),
-    Room(RoomMessage),
+    Room(RoomClientMessage),
 }
 
 impl ClientMessage {
