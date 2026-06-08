@@ -30,16 +30,16 @@ pub enum ServerMessage {
     Gatekeeper(GatekeeperMessage),
 
     /// This is an event that should be passed into the ECS for the client.
-    Global(SharedEvent),
+    Broadcast(SharedEvent),
     Error(String),
 }
 
 impl ServerMessage {
     pub fn user(id: i32, action: UserAction) -> Self {
-        Self::Global(SharedEvent::User(UserEvent { id, action }))
+        Self::Broadcast(SharedEvent::User(UserEvent { id, action }))
     }
     pub fn campaign(event: CampaignEvent) -> Self {
-        Self::Global(SharedEvent::Campaign(event))
+        Self::Broadcast(SharedEvent::Campaign(event))
     }
     pub fn decode(buf: &[u8]) -> anyhow::Result<Self> {
         let payload = buf.get(4..).context("Buffer too short")?;

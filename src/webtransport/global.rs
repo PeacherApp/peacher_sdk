@@ -38,7 +38,7 @@ impl SharedEvent {
 }
 impl From<SharedEvent> for ServerMessage {
     fn from(value: SharedEvent) -> Self {
-        Self::Global(value)
+        Self::Broadcast(value)
     }
 }
 

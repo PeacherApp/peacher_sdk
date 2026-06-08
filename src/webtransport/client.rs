@@ -1,7 +1,28 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::webtransport::{CampaginMessage, ElementEvent, RoomMsg};
+use crate::webtransport::ElementEvent;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum GatekeeperClientMessage {
+    Iam(Uuid),
+    JoinCampaign(Uuid),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum RoomMessage {
+    Say(String),
+    Element(ElementEvent),
+    Leave,
+}
 
 /// While this derives bevy message, the shared lib does not add it as an event.
 ///
@@ -12,11 +33,8 @@ use crate::webtransport::{CampaginMessage, ElementEvent, RoomMsg};
 #[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ClientMessage {
-    Iam(Uuid),
-    Campaign(CampaginMessage),
-    Room(RoomMsg),
-    Element(ElementEvent),
-    Nothing,
+    Gatekeeper(GatekeeperClientMessage),
+    Room(RoomMessage),
 }
 
 impl ClientMessage {

@@ -19,22 +19,22 @@ pub use server::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum CampaginMessage {
-    Join(Uuid),
-    Leave,
-}
+// #[derive(Debug, Serialize, Deserialize, Clone)]
+// #[cfg_attr(feature = "web", derive(tsify::Tsify))]
+// #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+// #[serde(tag = "type", content = "value", rename_all = "snake_case")]
+// pub enum CampaginMessage {
+//     Join(Uuid),
+//     Leave,
+// }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum RoomMsg {
-    Say(String),
-}
+// #[derive(Debug, Serialize, Deserialize, Clone)]
+// #[cfg_attr(feature = "web", derive(tsify::Tsify))]
+// #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+// #[serde(tag = "type", content = "value", rename_all = "snake_case")]
+// pub enum RoomMsg {
+//     Say(String),
+// }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
