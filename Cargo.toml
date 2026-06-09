@@ -13,7 +13,6 @@ ahash = "0.8"
 anyhow = "1.0"
 axum-test = { version = "17.3", optional = true }
 base64 = "0.22.1"
-bevy_ecs = { version = "0.18", default-features = false, optional = true }
 bevy_math = { version = "0.18", default-features = false, features = [
   "serialize",
   "std"
@@ -106,7 +105,6 @@ all_routes = [
 attachments = []
 auth = []
 axum_test = ["dep:axum-test"]
-bevy = ["dep:bevy_ecs", "dep:bevy_math"]
 campaigns = []
 categories = []
 chambers = []
@@ -163,10 +161,4 @@ web = [
   "getrandom/wasm_js",
   "uuid/rng-getrandom"
 ]
-webtransport = [
-  "bevy_ecs/bevy_reflect",
-  "bevy_ecs/serialize",
-  "dep:bevy_ecs",
-  "dep:bevy_math",
-  "members"
-]
+webtransport = ["dep:bevy_math", "members"]

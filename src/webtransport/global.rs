@@ -8,7 +8,6 @@ use crate::{
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "bevy", derive(bevy_ecs::message::Message))]
 pub enum SharedEvent {
     User(UserEvent),
     Campaign(CampaignEvent),

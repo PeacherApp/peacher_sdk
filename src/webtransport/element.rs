@@ -4,7 +4,6 @@ use uuid::Uuid;
 
 /// Wraps an element event with the actioner of the event
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "bevy", derive(bevy_ecs::event::Event))]
 pub struct UserElementEvent {
     user: i32,
     element_event: ElementEvent,
