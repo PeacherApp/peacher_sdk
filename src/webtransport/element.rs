@@ -1,62 +1,54 @@
 use bevy_math::{Vec2, Vec3};
 use serde::{Deserialize, Serialize};
-
-use crate::webtransport::SharedEntity;
+use uuid::Uuid;
 
 /// Wraps an element event with the actioner of the event
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "bevy", derive(bevy_ecs::event::Event))]
 pub struct UserElementEvent {
-    user: SharedEntity,
+    user: i32,
     element_event: ElementEvent,
 }
 impl UserElementEvent {
-    pub fn wrap(user: SharedEntity, element_event: ElementEvent) -> Self {
+    pub fn wrap(user: i32, element_event: ElementEvent) -> Self {
         Self {
             user,
             element_event,
         }
     }
-    pub fn user(&self) -> SharedEntity {
+    pub fn user(&self) -> i32 {
         self.user
     }
-    pub fn element(&self) -> SharedEntity {
-        self.element_event.entity()
+    pub fn element(&self) -> Uuid {
+        self.element_event.id
     }
     pub fn action(&self) -> &ElementAction {
-        self.element_event.action()
+        &self.element_event.action
     }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ElementEvent {
-    element_entity: SharedEntity,
-    action: ElementAction,
+    pub id: Uuid,
+    pub action: ElementAction,
 }
 impl ElementEvent {
-    pub fn create(element_entity: SharedEntity, dimensions: Vec2, offset: Vec3) -> Self {
+    pub fn create(id: Uuid, dimensions: Vec2, offset: Vec3) -> Self {
         Self {
-            element_entity,
+            id,
             action: ElementAction::Create(NewRectangle { dimensions, offset }),
         }
     }
-    pub fn update(element_entity: SharedEntity, dimensions: Vec2, offset: Vec3) -> Self {
+    pub fn update(id: Uuid, dimensions: Vec2, offset: Vec3) -> Self {
         Self {
-            element_entity,
+            id,
             action: ElementAction::Update(UpdateRectangle { dimensions, offset }),
         }
     }
-    pub fn remove(element_entity: SharedEntity) -> Self {
+    pub fn remove(id: Uuid) -> Self {
         Self {
-            element_entity,
+            id,
             action: ElementAction::Remove,
         }
-    }
-    pub fn entity(&self) -> SharedEntity {
-        self.element_entity
-    }
-    pub fn action(&self) -> &ElementAction {
-        &self.action
     }
 }
 

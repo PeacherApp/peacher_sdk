@@ -41,7 +41,6 @@ impl Handler for UpdateAccount {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[cfg_attr(feature = "bevy", derive(bevy_ecs::component::Component))]
 pub struct AccountView {
     pub member: GetMemberDetailsResponse,
     pub member_location: Option<ViewerLocationResponse>,
