@@ -58,15 +58,6 @@ impl ServerMessage {
         Self::Room(RoomMessage::Client(indiv_event))
     }
 
-    // pub fn user(id: i32, action: UserAction) -> Self {
-    //     Self::Room(RoomMessage::Broadcast(SharedEvent::User(UserEvent {
-    //         id,
-    //         action,
-    //     })))
-    // }
-    // pub fn campaign(event: CampaignEvent) -> Self {
-    //     Self::Room(RoomMessage::Broadcast(SharedEvent::Campaign(event)))
-    // }
     pub fn decode(buf: &[u8]) -> anyhow::Result<Self> {
         let payload = buf.get(4..).context("Buffer too short")?;
         let this = ciborium::from_reader(payload)?;
