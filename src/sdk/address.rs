@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::prelude::*;
+use crate::{geometry::BoundingBox, prelude::*};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]

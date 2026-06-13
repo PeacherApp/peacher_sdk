@@ -28,6 +28,11 @@ mod campaigns;
 #[cfg(feature = "campaigns")]
 pub use campaigns::*;
 
+#[cfg(feature = "campaigns")]
+mod action_items;
+#[cfg(feature = "campaigns")]
+pub use action_items::*;
+
 #[cfg(feature = "comments")]
 mod comments;
 #[cfg(feature = "comments")]

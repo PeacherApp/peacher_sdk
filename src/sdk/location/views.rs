@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::{geometry::BoundingBox, prelude::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

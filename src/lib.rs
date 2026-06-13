@@ -2,6 +2,7 @@ pub mod client;
 #[cfg(feature = "external")]
 pub mod external;
 pub mod geojson;
+pub mod geometry;
 pub mod paginate;
 pub mod params;
 pub mod peanut;
