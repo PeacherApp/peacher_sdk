@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::webtransport::ElementEvent;
+use crate::webtransport::ClientElementEvent;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -18,7 +18,7 @@ pub enum GatekeeperClientMessage {
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum RoomClientMessage {
     Say(String),
-    Element(ElementEvent),
+    Element(ClientElementEvent),
     Leave,
 }
 

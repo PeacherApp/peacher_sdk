@@ -2,7 +2,27 @@ use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::geometry::Vec2;
+use crate::geometry::{Vec2, Vec3};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct NewActionItem {
+    pub dimensions: Vec2,
+    pub offset: Vec3,
+    pub details: ActionItemDetails,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct MoveActionItem {
+    pub id: Uuid,
+    pub dimensions: Vec2,
+    pub offset: Vec3,
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -12,8 +32,8 @@ pub struct ActionItem {
     pub updated_at: DateTime<FixedOffset>,
     pub created_by: i32,
     pub updated_by: i32,
-    pub offset: Vec2,
-    pub extent: Vec2,
+    pub dimensions: Vec2,
+    pub offset: Vec3,
     pub parent_item: Option<Uuid>,
     pub details: ActionItemDetails,
 }
