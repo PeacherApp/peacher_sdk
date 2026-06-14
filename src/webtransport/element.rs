@@ -7,10 +7,10 @@ use crate::sdk::{ActionItem, MoveActionItem, NewActionItem};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserElementEvent {
     user: i32,
-    element_event: ClientElementEvent,
+    element_event: ElementEvent,
 }
 impl UserElementEvent {
-    pub fn wrap(user: i32, element_event: ClientElementEvent) -> Self {
+    pub fn wrap(user: i32, element_event: ElementEvent) -> Self {
         Self {
             user,
             element_event,
@@ -22,7 +22,7 @@ impl UserElementEvent {
     // pub fn element(&self) -> Uuid {
     //     self.element_event.id
     // }
-    pub fn event(&self) -> &ClientElementEvent {
+    pub fn event(&self) -> &ElementEvent {
         &self.element_event
     }
 }

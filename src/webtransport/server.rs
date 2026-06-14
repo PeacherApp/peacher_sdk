@@ -1,5 +1,7 @@
+use ahash::HashMap;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     sdk::{ActionItem, CampaignDetails, MemberView},
@@ -33,7 +35,7 @@ pub enum IndividualEvent {
 pub struct CampaignState {
     pub campaign: CampaignDetails,
     /// individuals need this initial context always
-    pub action_items: Vec<ActionItem>,
+    pub action_items: HashMap<Uuid, ActionItem>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

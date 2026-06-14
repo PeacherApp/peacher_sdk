@@ -24,6 +24,14 @@ pub struct MoveActionItem {
     pub offset: Vec3,
 }
 
+impl MoveActionItem {
+    pub fn update(&self, item: &mut ActionItem) {
+        debug_assert_eq!(self.id, item.id);
+        item.offset = self.offset.clone();
+        item.dimensions = self.dimensions.clone();
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ActionItem {
