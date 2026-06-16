@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::sdk::{ActionItem, MoveActionItem, NewActionItem};
+use crate::sdk::{ActionItem, EditCampaignTask, MoveCampaignTask, NewCampaignTask};
 
 /// Wraps an element event with the actioner of the event
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -57,8 +57,9 @@ impl UserElementEvent {
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ClientElementEvent {
-    Create(NewActionItem),
-    Update(MoveActionItem),
+    Create(NewCampaignTask),
+    Update(MoveCampaignTask),
+    Edit(EditCampaignTask),
     Remove(Uuid),
 }
 
@@ -68,7 +69,8 @@ pub enum ClientElementEvent {
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ElementEvent {
     Created(ActionItem),
-    Updated(MoveActionItem),
+    Updated(MoveCampaignTask),
+    Edited(EditCampaignTask),
     Removed(RemovedActionItem),
 }
 

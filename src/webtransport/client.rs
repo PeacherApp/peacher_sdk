@@ -22,6 +22,12 @@ pub enum RoomClientMessage {
     Leave,
 }
 
+impl From<ClientElementEvent> for RoomClientMessage {
+    fn from(value: ClientElementEvent) -> Self {
+        RoomClientMessage::Element(value)
+    }
+}
+
 /// While this derives bevy message, the shared lib does not add it as an event.
 ///
 /// clients should use this to process messages.
