@@ -1,6 +1,7 @@
-use bevy_math::{Vec2, Vec3};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use crate::sdk::{ActionItem, EditCampaignTask, MoveCampaignTask, NewCampaignTask};
 
 /// Wraps an element event with the actioner of the event
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -15,40 +16,13 @@ impl UserElementEvent {
             element_event,
         }
     }
+
     pub fn user(&self) -> i32 {
         self.user
     }
-    pub fn element(&self) -> Uuid {
-        self.element_event.id
-    }
-    pub fn action(&self) -> &ElementAction {
-        &self.element_event.action
-    }
-}
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ElementEvent {
-    pub id: Uuid,
-    pub action: ElementAction,
-}
-impl ElementEvent {
-    pub fn create(id: Uuid, dimensions: Vec2, offset: Vec3) -> Self {
-        Self {
-            id,
-            action: ElementAction::Create(NewRectangle { dimensions, offset }),
-        }
-    }
-    pub fn update(id: Uuid, dimensions: Vec2, offset: Vec3) -> Self {
-        Self {
-            id,
-            action: ElementAction::Update(UpdateRectangle { dimensions, offset }),
-        }
-    }
-    pub fn remove(id: Uuid) -> Self {
-        Self {
-            id,
-            action: ElementAction::Remove,
-        }
+    pub fn event(&self) -> &ElementEvent {
+        &self.element_event
     }
 }
 
@@ -57,40 +31,28 @@ impl ElementEvent {
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum ElementAction {
-    Create(NewRectangle),
-    Update(UpdateRectangle),
-    Remove,
+pub enum ClientElementEvent {
+    Create(NewCampaignTask),
+    Update(MoveCampaignTask),
+    Edit(EditCampaignTask),
+    Remove(Uuid),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub struct NewRectangle {
-    dimensions: Vec2,
-    offset: Vec3,
-}
-impl NewRectangle {
-    pub fn dimensions(&self) -> Vec2 {
-        self.dimensions
-    }
-    pub fn offset(&self) -> Vec3 {
-        self.offset
-    }
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum ElementEvent {
+    Created(ActionItem),
+    Updated(MoveCampaignTask),
+    Edited(EditCampaignTask),
+    Removed(RemovedActionItem),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub struct UpdateRectangle {
-    dimensions: Vec2,
-    offset: Vec3,
-}
-impl UpdateRectangle {
-    pub fn dimensions(&self) -> Vec2 {
-        self.dimensions
-    }
-    pub fn offset(&self) -> Vec3 {
-        self.offset
-    }
+pub struct RemovedActionItem {
+    pub user: Uuid,
+    pub action_item_id: Uuid,
 }

@@ -1,6 +1,18 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct Vec3 {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct Vec2 {
     pub x: f64,
@@ -8,6 +20,8 @@ pub struct Vec2 {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct BoundingBox {
     pub min: Vec2,

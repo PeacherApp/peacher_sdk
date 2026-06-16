@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    sdk::{CampaignDetails, MemberView},
+    sdk::MemberView,
     webtransport::{RoomMessage, ServerMessage, UserElementEvent},
 };
 
@@ -10,8 +10,17 @@ use crate::{
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum SharedEvent {
     User(UserEvent),
-    Campaign(CampaignEvent),
     Element(UserElementEvent),
+}
+impl From<UserEvent> for SharedEvent {
+    fn from(value: UserEvent) -> Self {
+        SharedEvent::User(value)
+    }
+}
+impl From<UserElementEvent> for SharedEvent {
+    fn from(value: UserElementEvent) -> Self {
+        SharedEvent::Element(value)
+    }
 }
 impl SharedEvent {
     pub fn user_joined(view: MemberView) -> Self {
@@ -26,13 +35,6 @@ impl SharedEvent {
             id,
             action: UserAction::Disconnected,
         })
-    }
-
-    pub fn campaign_details(details: CampaignDetails) -> Self {
-        Self::Campaign(CampaignEvent::Details(details))
-    }
-    pub fn campaign_error(msg: impl Into<String>) -> Self {
-        Self::Campaign(CampaignEvent::Error(msg.into()))
     }
 }
 impl From<SharedEvent> for ServerMessage {
@@ -52,11 +54,4 @@ pub enum UserAction {
     IdentifiedAs(MemberView),
     Disconnected,
     Says(String),
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum CampaignEvent {
-    Details(CampaignDetails),
-    Error(String),
 }

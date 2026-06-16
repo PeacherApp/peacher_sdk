@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::webtransport::ElementEvent;
+use crate::webtransport::ClientElementEvent;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -18,8 +18,14 @@ pub enum GatekeeperClientMessage {
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum RoomClientMessage {
     Say(String),
-    Element(ElementEvent),
+    Element(ClientElementEvent),
     Leave,
+}
+
+impl From<ClientElementEvent> for RoomClientMessage {
+    fn from(value: ClientElementEvent) -> Self {
+        RoomClientMessage::Element(value)
+    }
 }
 
 /// While this derives bevy message, the shared lib does not add it as an event.

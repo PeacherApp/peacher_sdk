@@ -1,8 +1,10 @@
+use ahash::HashMap;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
-    sdk::{CampaignDetails, MemberView},
+    sdk::{ActionItem, CampaignDetails, MemberView},
     webtransport::global::SharedEvent,
 };
 
@@ -24,7 +26,16 @@ impl From<GatekeeperMessage> for ServerMessage {
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum IndividualEvent {
-    Welcome(CampaignDetails),
+    Welcome(CampaignState),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct CampaignState {
+    pub campaign: CampaignDetails,
+    /// individuals need this initial context always
+    pub action_items: HashMap<Uuid, ActionItem>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

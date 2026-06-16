@@ -1,11 +1,11 @@
 pub mod props_iter;
 
-mod bounding_box;
-pub use bounding_box::*;
-
 use serde::{Deserialize, Serialize};
 
-use crate::geojson::props_iter::RefPropsIter;
+use crate::{
+    geojson::props_iter::RefPropsIter,
+    geometry::{BoundingBox, Vec2},
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
