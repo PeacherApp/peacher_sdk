@@ -10,7 +10,6 @@ use crate::{
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum SharedEvent {
     User(UserEvent),
-    // Campaign(CampaignEvent),
     Element(UserElementEvent),
 }
 impl From<UserEvent> for SharedEvent {
