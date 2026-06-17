@@ -59,7 +59,73 @@ pub struct ActionItem {
     pub dimensions: Vec2,
     pub offset: Vec3,
     pub parent_item: Option<Uuid>,
+    pub status: TaskStatus,
     pub details: ActionItemDetails,
+}
+
+/// A task's workflow status. A fixed, static set (no per-campaign customization).
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[serde(rename_all = "snake_case")]
+pub enum TaskStatus {
+    #[default]
+    Todo,
+    InProgress,
+    Blocked,
+    Done,
+}
+
+/// Set a task's status.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct SetTaskStatus {
+    pub id: Uuid,
+    pub status: TaskStatus,
+}
+
+impl SetTaskStatus {
+    pub fn update(&self, item: &mut ActionItem) {
+        debug_assert_eq!(self.id, item.id);
+        item.status = self.status;
+    }
+}
+
+/// The kind of link between two tasks (drawn node-to-node on the canvas).
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+#[serde(rename_all = "snake_case")]
+pub enum TaskEdgeKind {
+    Dependency,
+    Subtask,
+}
+
+/// A persisted edge between two tasks.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct TaskEdgeView {
+    pub id: Uuid,
+    pub from_task: Uuid,
+    pub to_task: Uuid,
+    pub kind: TaskEdgeKind,
+}
+
+/// Request to create a task edge.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct NewTaskEdge {
+    pub from_task: Uuid,
+    pub to_task: Uuid,
+    pub kind: TaskEdgeKind,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

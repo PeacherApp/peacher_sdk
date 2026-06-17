@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    sdk::{ActionItem, CampaignDetails, MemberView},
-    webtransport::global::SharedEvent,
+    sdk::{ActionItem, CampaignDetails, MemberView, TaskEdgeView},
+    webtransport::{ChannelEvent, global::TaskboardEvent},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -36,16 +36,22 @@ pub struct CampaignState {
     pub campaign: CampaignDetails,
     /// individuals need this initial context always
     pub action_items: HashMap<Uuid, ActionItem>,
+    /// drawn task-to-task links
+    pub edges: Vec<TaskEdgeView>,
+    /// who is currently on the board, so a joiner sees the existing roster
+    pub participants: Vec<MemberView>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum RoomMessage {
-    /// Events sent to a specific client
+    /// Events sent to a specific client (e.g. the initial Welcome snapshot).
     Client(IndividualEvent),
-    /// Events broadcast to members of a room
-    Broadcast(SharedEvent),
+    /// Taskboard events broadcast to every client in the room.
+    Taskboard(TaskboardEvent),
+    /// Channel (chat) events, routed only to the channel's current subscribers.
+    Channel(ChannelEvent),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -62,8 +68,8 @@ pub enum ServerMessage {
 }
 
 impl ServerMessage {
-    pub fn broadcast(shared_event: SharedEvent) -> Self {
-        Self::Room(RoomMessage::Broadcast(shared_event))
+    pub fn taskboard(event: TaskboardEvent) -> Self {
+        Self::Room(RoomMessage::Taskboard(event))
     }
     pub fn client(indiv_event: IndividualEvent) -> Self {
         Self::Room(RoomMessage::Client(indiv_event))

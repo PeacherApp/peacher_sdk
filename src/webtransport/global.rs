@@ -2,56 +2,44 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     sdk::MemberView,
-    webtransport::{RoomMessage, ServerMessage, UserElementEvent},
+    webtransport::{RoomMessage, ServerMessage, UserCursor, UserElementEvent},
 };
 
+/// Events broadcast to every client in a room's **taskboard** domain. Presence
+/// and element changes are reliable (stream); `Cursor` is delivered over an
+/// unreliable datagram by the transport layer.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub enum SharedEvent {
-    User(UserEvent),
+pub enum TaskboardEvent {
+    Presence(PresenceEvent),
     Element(UserElementEvent),
+    Cursor(UserCursor),
 }
-impl From<UserEvent> for SharedEvent {
-    fn from(value: UserEvent) -> Self {
-        SharedEvent::User(value)
-    }
+
+/// Who is on the board right now.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub enum PresenceEvent {
+    Joined(MemberView),
+    Left(i32),
 }
-impl From<UserElementEvent> for SharedEvent {
+
+impl From<UserElementEvent> for TaskboardEvent {
     fn from(value: UserElementEvent) -> Self {
-        SharedEvent::Element(value)
-    }
-}
-impl SharedEvent {
-    pub fn user_joined(view: MemberView) -> Self {
-        Self::User(UserEvent {
-            id: view.id,
-            action: UserAction::IdentifiedAs(view),
-        })
-    }
-
-    pub fn user_disconnected(id: i32) -> Self {
-        Self::User(UserEvent {
-            id,
-            action: UserAction::Disconnected,
-        })
-    }
-}
-impl From<SharedEvent> for ServerMessage {
-    fn from(value: SharedEvent) -> Self {
-        Self::Room(RoomMessage::Broadcast(value))
+        TaskboardEvent::Element(value)
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct UserEvent {
-    pub id: i32,
-    pub action: UserAction,
+impl From<PresenceEvent> for TaskboardEvent {
+    fn from(value: PresenceEvent) -> Self {
+        TaskboardEvent::Presence(value)
+    }
 }
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum UserAction {
-    IdentifiedAs(MemberView),
-    Disconnected,
-    Says(String),
+
+impl From<TaskboardEvent> for ServerMessage {
+    fn from(value: TaskboardEvent) -> Self {
+        Self::Room(RoomMessage::Taskboard(value))
+    }
 }
