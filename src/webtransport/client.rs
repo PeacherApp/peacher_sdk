@@ -123,11 +123,15 @@ mod tests {
     fn client_message_nested_domains_roundtrip() {
         let id = Uuid::from_u128(1);
         let cases = vec![
-            ClientMessage::Room(RoomClientMessage::Taskboard(TaskboardClientMessage::Element(
-                ClientElementEvent::Remove(id),
+            ClientMessage::Room(RoomClientMessage::Taskboard(
+                TaskboardClientMessage::Element(ClientElementEvent::Remove(id)),
+            )),
+            ClientMessage::Room(RoomClientMessage::Channel(ChannelClientMessage::Subscribe(
+                id,
             ))),
-            ClientMessage::Room(RoomClientMessage::Channel(ChannelClientMessage::Subscribe(id))),
-            ClientMessage::Room(RoomClientMessage::Channel(ChannelClientMessage::Unsubscribe)),
+            ClientMessage::Room(RoomClientMessage::Channel(
+                ChannelClientMessage::Unsubscribe,
+            )),
             ClientMessage::Room(RoomClientMessage::Channel(ChannelClientMessage::Say(
                 ChannelSay {
                     channel_id: id,
