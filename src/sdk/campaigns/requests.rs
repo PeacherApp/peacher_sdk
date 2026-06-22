@@ -10,6 +10,7 @@ pub struct CreateCampaignRequest {
     pub body: SetContentRequest,
     pub primary_color: String,
     pub secondary_color: String,
+    pub visibility: CampaignVisibility,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]

@@ -58,7 +58,6 @@ pub struct ActionItem {
     pub updated_by: i32,
     pub dimensions: Vec2,
     pub offset: Vec3,
-    pub parent_item: Option<Uuid>,
     pub details: ActionItemDetails,
 }
 
