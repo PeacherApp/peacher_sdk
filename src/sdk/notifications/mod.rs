@@ -11,6 +11,9 @@ use crate::{
     sdk::{BulkReviewReportsRequest, MemberView, ReviewStatus},
 };
 
+#[cfg(feature = "awards")]
+use crate::sdk::AwardTier;
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
@@ -118,6 +121,20 @@ pub enum Notification {
     BulkReviews(NotifyBulkReview),
     ReportReviewed(NotifyReportReviewed),
     NewReports(Vec<ReportCreated>),
+    #[cfg(feature = "awards")]
+    AwardReceived(NotifyAwardReceived),
+}
+
+#[cfg(feature = "awards")]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct NotifyAwardReceived {
+    pub award_id: i32,
+    pub tier: AwardTier,
+    pub content_item_id: Uuid,
+    /// `None` when the giver chose to be anonymous.
+    pub giver: Option<MemberView>,
+    pub awarded_at: DateTime<FixedOffset>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]

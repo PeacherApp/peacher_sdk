@@ -18,6 +18,11 @@ mod auth;
 #[cfg(feature = "auth")]
 pub use auth::*;
 
+#[cfg(feature = "awards")]
+mod awards;
+#[cfg(feature = "awards")]
+pub use awards::*;
+
 #[cfg(feature = "categories")]
 mod categories;
 #[cfg(feature = "categories")]
