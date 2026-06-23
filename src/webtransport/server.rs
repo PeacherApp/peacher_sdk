@@ -12,8 +12,20 @@ use crate::{
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum GatekeeperMessage {
+    /// Asks for identification.
+    ///
+    /// Provides a unique ID of the connection.
     IdentifyYourself(u64),
-    AuthenticatedAs(MemberView),
+    /// The user has been identified and is being transferred to the campaign room
+    MovingToRoom,
+    /// Token was invalid
+    InvalidToken,
+    /// User does not exist?
+    InvalidUser,
+    /// Campaign doesn't exist?
+    InvalidCampaign,
+    /// Catchall error
+    Error(String),
 }
 
 impl From<GatekeeperMessage> for ServerMessage {
@@ -25,8 +37,18 @@ impl From<GatekeeperMessage> for ServerMessage {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct WelcomeMessage {
+    /// The current campaign state
+    pub state: CampaignState,
+    /// The user's identification
+    pub identified_as: MemberView,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum IndividualEvent {
-    Welcome(CampaignState),
+    Welcome(WelcomeMessage),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -9,7 +9,6 @@ use crate::webtransport::ClientElementEvent;
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum GatekeeperClientMessage {
     Iam(Uuid),
-    JoinCampaign(Uuid),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
