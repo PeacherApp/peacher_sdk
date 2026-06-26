@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::webtransport::ClientElementEvent;
+use crate::webtransport::{ChannelSay, ClientElementEvent};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -18,6 +18,7 @@ pub enum GatekeeperClientMessage {
 pub enum RoomClientMessage {
     Say(String),
     Element(ClientElementEvent),
+    Channel(ChannelSay),
     Leave,
 }
 
@@ -58,5 +59,11 @@ impl ClientMessage {
 
         buf.extend_from_slice(&(allocvec.len() as u32).to_be_bytes());
         buf.extend_from_slice(&allocvec);
+    }
+}
+
+impl From<ClientElementEvent> for ClientMessage {
+    fn from(value: ClientElementEvent) -> Self {
+        ClientMessage::Room(RoomClientMessage::Element(value))
     }
 }

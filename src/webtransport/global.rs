@@ -2,15 +2,21 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     sdk::MemberView,
-    webtransport::{RoomMessage, ServerMessage, UserElementEvent},
+    webtransport::{ChannelEvent, RoomMessage, ServerMessage, UserCursor, UserElementEvent},
 };
 
+/// An event broadcast to every client in a room. `Cursor` is delivered over an
+/// unreliable datagram by the transport layer; everything else rides the
+/// reliable stream. `Channel` (chat) fans out to the whole room, tagged by
+/// `channel_id`, so each client routes it to the right thread locally.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub enum SharedEvent {
     User(UserEvent),
     Element(UserElementEvent),
+    Cursor(UserCursor),
+    Channel(ChannelEvent),
 }
 impl From<UserEvent> for SharedEvent {
     fn from(value: UserEvent) -> Self {
@@ -20,6 +26,16 @@ impl From<UserEvent> for SharedEvent {
 impl From<UserElementEvent> for SharedEvent {
     fn from(value: UserElementEvent) -> Self {
         SharedEvent::Element(value)
+    }
+}
+impl From<UserCursor> for SharedEvent {
+    fn from(value: UserCursor) -> Self {
+        SharedEvent::Cursor(value)
+    }
+}
+impl From<ChannelEvent> for SharedEvent {
+    fn from(value: ChannelEvent) -> Self {
+        SharedEvent::Channel(value)
     }
 }
 impl SharedEvent {

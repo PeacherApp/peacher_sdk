@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    sdk::{ActionItem, CampaignDetails, MemberView},
+    sdk::{ActionItem, CampaignDetails, MemberView, TaskEdgeView},
     webtransport::global::SharedEvent,
 };
 
@@ -58,6 +58,10 @@ pub struct CampaignState {
     pub campaign: CampaignDetails,
     /// individuals need this initial context always
     pub action_items: HashMap<Uuid, ActionItem>,
+    /// drawn task-to-task links
+    pub edges: Vec<TaskEdgeView>,
+    /// who is currently on the board, so a joiner sees the existing roster
+    pub participants: Vec<MemberView>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
