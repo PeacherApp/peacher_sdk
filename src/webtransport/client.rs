@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::webtransport::{ChannelSay, ClientElementEvent};
+use crate::webtransport::{ChannelSay, ClientElementEvent, CursorUpdate};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -19,6 +19,7 @@ pub enum RoomClientMessage {
     Say(String),
     Element(ClientElementEvent),
     Channel(ChannelSay),
+    Cursor(CursorUpdate),
     Leave,
 }
 
