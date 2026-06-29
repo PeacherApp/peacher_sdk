@@ -1,12 +1,6 @@
 mod client;
 pub use client::*;
 
-mod global;
-pub use global::*;
-
-// mod shared;
-// pub use shared::*;
-
 mod element;
 pub use element::*;
 
@@ -18,9 +12,6 @@ pub use channel::*;
 
 mod server;
 pub use server::*;
-
-// mod element;
-// pub use element::*;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

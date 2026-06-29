@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// A client's cursor position in canvas/world coordinates. Sent client → server
-/// as a bare-CBOR **datagram** (unreliable, self-framed — no length prefix), so
-/// high-frequency cursor traffic never head-of-line-blocks the reliable stream.
+/// A client's cursor position in canvas/world coordinates. client -> server
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
@@ -11,10 +9,7 @@ pub struct CursorUpdate {
     pub y: f32,
 }
 
-/// Another user's cursor, broadcast server → client. Travels over a datagram on
-/// the wire; within the room it rides [`super::SharedEvent::Cursor`]. Carries
-/// only the member id (not a full view) to stay small enough for a datagram —
-/// the client resolves the display name from the room participants.
+/// A client's cursor position in canvas/world coordinates. Server -> Client.
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
