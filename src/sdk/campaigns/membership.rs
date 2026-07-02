@@ -4,20 +4,6 @@ use uuid::Uuid;
 
 use crate::prelude::*;
 
-/// Who is allowed to join a campaign and how.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Default)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(rename_all = "snake_case")]
-pub enum CampaignVisibility {
-    /// Anyone may find the campaign and join instantly.
-    #[default]
-    PublicOpen,
-    /// Anyone may find the campaign and request to join; an organizer approves.
-    PublicRequest,
-    /// Only invited members may join.
-    InviteOnly,
-}
-
 /// A member's role within a campaign.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
@@ -27,37 +13,35 @@ pub enum CampaignRole {
     Organizer,
 }
 
-/// Request body for joining a campaign. `invite_token` is required for
-/// `invite_only` campaigns; `message` is attached to a pending request for
-/// `public_request` campaigns.
+/// Request body for committing to a campaign. While a campaign is building,
+/// committing is the private act of support that counts toward the reveal
+/// threshold. `invite_token` marks the commitment as arriving through an
+/// organizer's recruitment link.
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct JoinCampaignRequest {
+pub struct CommitToCampaignRequest {
     pub invite_token: Option<Uuid>,
-    pub message: Option<String>,
 }
 
-/// The result of attempting to join a campaign.
+/// The result of committing to a campaign.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-#[serde(tag = "outcome", rename_all = "snake_case")]
-pub enum JoinOutcome {
-    /// The caller is now a member.
-    Joined,
-    /// A join request was recorded and awaits organizer approval.
-    RequestPending,
-    /// The campaign is invite-only and a valid invite is required.
-    NeedsInvite,
+pub struct CommitOutcome {
+    /// Active supporters after this commitment.
+    pub supporters: u64,
+    pub threshold: i32,
+    /// True once the campaign has revealed — possibly triggered by this very
+    /// commitment.
+    pub revealed: bool,
 }
 
-/// A pending join request, shown to organizers.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+/// The caller's own standing in a campaign.
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct JoinRequestView {
-    pub id: Uuid,
-    pub member: MemberView,
-    pub message: Option<String>,
-    pub created_at: DateTime<FixedOffset>,
+pub struct CommitmentStatus {
+    pub committed: bool,
+    pub role: Option<CampaignRole>,
+    pub banned: bool,
 }
 
 /// Request body for creating an invite. With no `invited_handle` the invite is
@@ -99,7 +83,7 @@ pub struct SetRoleRequest {
 }
 
 /// Request body for banning a member from a campaign. A ban removes the member
-/// and blocks them from rejoining, even with an invite. The `reason` is
+/// and blocks them from recommitting, even with an invite. The `reason` is
 /// optional and shown to organizers.
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
