@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::sdk::{
-    ActionItem, EditCampaignTask, MoveCampaignTask, NewCampaignTask, NewTaskEdge, SetTaskStatus,
-    TaskEdgeRef, TaskEdgeView,
+    ActionItem, AssignTask, EditCampaignTask, MoveCampaignTask, NewCampaignTask, NewTaskEdge,
+    SetTaskStatus, TaskEdgeRef, TaskEdgeView,
 };
 
 /// Wraps an element event with the actioner of the event
@@ -40,6 +40,7 @@ pub enum ClientElementEvent {
     Edit(EditCampaignTask),
     Remove(Uuid),
     SetStatus(SetTaskStatus),
+    Assign(AssignTask),
     CreateEdge(NewTaskEdge),
     RemoveEdge(TaskEdgeRef),
 }
@@ -54,6 +55,7 @@ pub enum ElementEvent {
     Edited(EditCampaignTask),
     Removed(RemovedActionItem),
     StatusChanged(SetTaskStatus),
+    Assigned(AssignTask),
     EdgeCreated(TaskEdgeView),
     EdgeRemoved(TaskEdgeRef),
 }

@@ -9,9 +9,11 @@ use crate::geometry::{Vec2, Vec3};
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct NewCampaignTask {
+    pub title: String,
     pub dimensions: Vec2,
     pub offset: Vec3,
     pub details: ActionItemDetails,
+    pub due_at: Option<DateTime<FixedOffset>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -38,13 +40,17 @@ impl MoveCampaignTask {
 #[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct EditCampaignTask {
     pub id: Uuid,
+    pub title: String,
     pub details: ActionItemDetails,
+    pub due_at: Option<DateTime<FixedOffset>>,
 }
 
 impl EditCampaignTask {
     pub fn update(&self, item: &mut ActionItem) {
         debug_assert_eq!(self.id, item.id);
+        item.title = self.title.clone();
         item.details = self.details.clone();
+        item.due_at = self.due_at;
     }
 }
 
@@ -58,6 +64,14 @@ pub struct ActionItem {
     pub updated_at: DateTime<FixedOffset>,
     pub created_by: i32,
     pub updated_by: i32,
+    pub title: String,
+    /// Member id of the task's owner. Resolve names against the campaign roster.
+    pub assignee_id: Option<i32>,
+    pub due_at: Option<DateTime<FixedOffset>>,
+    /// Member ids who checked in ("I did this") — visible follow-through,
+    /// distinct from assignment.
+    #[serde(default)]
+    pub participants: Vec<i32>,
     pub dimensions: Vec2,
     pub offset: Vec3,
     pub status: TaskStatus,
@@ -93,6 +107,57 @@ impl SetTaskStatus {
         debug_assert_eq!(self.id, item.id);
         item.status = self.status;
     }
+}
+
+/// (Re)assign a task, realtime form. `None` unassigns. Written synchronously
+/// (like status) — assignment is validated against the campaign roster, so it
+/// must not ride the debounced edit path.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
+pub struct AssignTask {
+    pub id: Uuid,
+    pub assignee_id: Option<i32>,
+}
+
+impl AssignTask {
+    pub fn update(&self, item: &mut ActionItem) {
+        debug_assert_eq!(self.id, item.id);
+        item.assignee_id = self.assignee_id;
+    }
+}
+
+/// REST body: (re)assign a task. `None` unassigns.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct AssignTaskRequest {
+    pub assignee_id: Option<i32>,
+}
+
+/// REST body: replace a task card's contents (everything editable in place;
+/// assignment and status have their own endpoints).
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct UpdateTaskRequest {
+    pub title: String,
+    pub details: ActionItemDetails,
+    pub due_at: Option<DateTime<FixedOffset>>,
+}
+
+/// REST body: set a task's status.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct SetTaskStatusRequest {
+    pub status: TaskStatus,
+}
+
+/// The war room's work graph: every task plus the edges between them.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct WarRoomTasks {
+    pub tasks: Vec<ActionItem>,
+    pub edges: Vec<TaskEdgeView>,
 }
 
 /// The kind of link between two tasks (drawn node-to-node on the canvas).

@@ -14,13 +14,6 @@ pub struct ChannelView {
     pub action_item_id: Option<Uuid>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
-pub struct NewChannelRequest {
-    pub name: String,
-    pub action_item_id: Option<Uuid>,
-}
-
 /// A chat message. Crosses both the REST history boundary and the realtime
 /// (wasm) boundary, so it carries both derives.
 #[derive(Serialize, Deserialize, Debug, Clone)]
