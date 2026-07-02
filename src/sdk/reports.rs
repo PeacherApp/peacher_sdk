@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantArray};
 use uuid::Uuid;
 
-use crate::sdk::{AdminContentView, MemberView};
+use crate::sdk::{
+    AdminContentView, CampaignReportReason, CampaignView, CreateCampaignReportRequest, MemberView,
+};
 use crate::{commaparam, paginated, prelude::*};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -49,6 +51,7 @@ pub struct CreateReportRequest {
 pub enum ReportType {
     Content,
     Member,
+    Campaign,
 }
 commaparam!(ReportType);
 
@@ -81,12 +84,16 @@ commaparam!(ReviewStatus);
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CreateReportResponse {}
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(tag = "type", content = "content", rename_all = "snake_case")]
 pub enum ReportDetails {
     Content(AdminContentView),
     Member(MemberView),
+    Campaign {
+        campaign: CampaignView,
+        reason: CampaignReportReason,
+    },
     Undisplayable(serde_json::Value),
 }
 impl ReportDetails {
@@ -98,12 +105,13 @@ impl ReportDetails {
         match self {
             ReportDetails::Content(_) => Some(ReportType::Content),
             ReportDetails::Member(_) => Some(ReportType::Member),
+            ReportDetails::Campaign { .. } => Some(ReportType::Campaign),
             ReportDetails::Undisplayable(_) => None,
         }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct ReportView {
     pub id: i32,
@@ -211,6 +219,44 @@ impl Handler for CreateReport {
             }
         }
         .into()
+    }
+
+    fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {
+        builder.json(&self.body)
+    }
+}
+
+/// Handler to report a campaign
+pub struct ReportCampaign {
+    pub campaign_id: Uuid,
+    pub body: CreateCampaignReportRequest,
+}
+
+impl ReportCampaign {
+    pub fn new(
+        campaign_id: Uuid,
+        reason: CampaignReportReason,
+        details: impl Into<String>,
+    ) -> Self {
+        Self {
+            campaign_id,
+            body: CreateCampaignReportRequest {
+                reason,
+                details: details.into(),
+            },
+        }
+    }
+}
+
+impl Handler for ReportCampaign {
+    type ResponseBody = CreateReportResponse;
+
+    fn method(&self) -> Method {
+        Method::Post
+    }
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/campaigns/{}/report", self.campaign_id).into()
     }
 
     fn request_body(&self, builder: BodyBuilder) -> BodyBuilder {

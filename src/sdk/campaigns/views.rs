@@ -28,7 +28,7 @@ pub enum CampaignPhase {
     Archived,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub struct CampaignView {
     pub id: Uuid,
