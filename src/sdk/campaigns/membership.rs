@@ -97,3 +97,21 @@ pub struct CampaignMemberView {
 pub struct SetRoleRequest {
     pub role: CampaignRole,
 }
+
+/// Request body for banning a member from a campaign. A ban removes the member
+/// and blocks them from rejoining, even with an invite. The `reason` is
+/// optional and shown to organizers.
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct BanCampaignMemberRequest {
+    pub reason: Option<String>,
+}
+
+/// A member who has been banned from a campaign, shown to organizers.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct CampaignBanView {
+    pub member: MemberView,
+    pub reason: Option<String>,
+    pub banned_at: DateTime<FixedOffset>,
+}

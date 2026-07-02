@@ -13,6 +13,17 @@ pub struct CreateCampaignRequest {
     pub visibility: CampaignVisibility,
 }
 
+/// Partial update of a campaign's settings. Only the `Some(_)` fields are
+/// applied; the rest are left unchanged. Organizers only.
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct UpdateCampaignRequest {
+    pub name: Option<String>,
+    pub primary_color: Option<String>,
+    pub secondary_color: Option<String>,
+    pub visibility: Option<CampaignVisibility>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::IntoParams))]
 #[cfg_attr(feature = "utoipa", into_params(parameter_in = Query))]
