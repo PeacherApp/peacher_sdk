@@ -69,6 +69,8 @@ pub enum CampaignAuditAction {
     MemberBanned,
     MemberUnbanned,
     DemandEdited,
+    /// The bill anchor was set, changed, or cleared.
+    AnchorChanged,
 }
 
 /// One entry in a campaign's audit history.

@@ -6,6 +6,25 @@ use uuid::Uuid;
 
 use crate::prelude::*;
 
+/// An officeholder's official, published office contact info (Capitol
+/// office, district office, ...). This is the authoritative source for
+/// "contact your rep" actions — sourced from ingestion, never free text
+/// entered by users.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct MemberOfficeView {
+    pub id: i32,
+    pub member_id: i32,
+    /// Which office this is ("Capitol Office", "District Office").
+    pub label: String,
+    pub phone: Option<String>,
+    pub email: Option<String>,
+    pub address: Option<String>,
+    /// Where this data came from (e.g. "openstates", "manual").
+    pub source: String,
+    pub source_url: Option<String>,
+}
+
 /// Response for follow/unfollow operations
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]

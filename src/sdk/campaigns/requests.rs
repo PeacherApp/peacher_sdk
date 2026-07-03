@@ -32,6 +32,14 @@ pub struct UpdateCampaignRequest {
     pub name: Option<String>,
     pub primary_color: Option<String>,
     pub secondary_color: Option<String>,
+    /// Anchor changes are two-state (set to a bill / clear), so a bare
+    /// `Option` can't express "leave unchanged" — this flag gates it.
+    #[serde(default)]
+    pub legislation_id_set: bool,
+    /// Only applied if `legislation_id_set` is true. `None` clears the
+    /// anchor.
+    #[serde(default)]
+    pub legislation_id: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
