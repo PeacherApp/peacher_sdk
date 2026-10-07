@@ -1,3 +1,7 @@
+# THIS SDK IS OUT OF DATE
+
+This SDK has been temporarily moved to an internal repository to be refactored.
+
 # SDK code for [Peacher](https://peacher.app)
 [<img alt="github" src="https://img.shields.io/badge/github-Peacher/peacher_sdk?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/PeacherApp/peacher_sdk)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/peacher_sdk.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/peacher_sdk)
