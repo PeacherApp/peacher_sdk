@@ -152,6 +152,17 @@ impl GetHandler for GetRepresentativeDistricts {
     }
 }
 
+/// List a member's official office contact info.
+pub struct ListMemberOffices(pub i32);
+
+impl GetHandler for ListMemberOffices {
+    type ResponseBody = Vec<MemberOfficeView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/members/{}/offices", self.0).into()
+    }
+}
+
 /// Follow a member (requires authentication)
 pub struct FollowMember(pub i32);
 

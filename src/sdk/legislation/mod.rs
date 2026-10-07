@@ -132,6 +132,33 @@ impl GetHandler for GetLegislationDetails {
     }
 }
 
+/// One event in a bill's history — a status change, committee referral, a
+/// vote, executive action. The timeline of these is what makes an anchored
+/// campaign "living": each recorded event is also an action moment for the
+/// campaigns anchored to the bill.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct LegislationHistoryView {
+    pub id: i32,
+    pub legislation_id: i32,
+    /// Human-readable status text ("Referred to Committee on Finance").
+    pub status_text: String,
+    /// The outcome this event moved the bill to, when it changed one.
+    pub outcome: Option<LegislationStatus>,
+    pub occurred_at: DateTime<FixedOffset>,
+}
+
+/// List a bill's history timeline, newest first.
+pub struct GetLegislationHistory(pub i32);
+
+impl GetHandler for GetLegislationHistory {
+    type ResponseBody = Vec<LegislationHistoryView>;
+
+    fn path(&self) -> Cow<'_, str> {
+        format!("/api/legislation/{}/history", self.0).into()
+    }
+}
+
 /// Get votes for a specific piece of legislation
 pub struct GetLegislationVotes(pub i32);
 

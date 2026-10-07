@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::{
     paginated,
-    sdk::{BulkReviewReportsRequest, MemberView, ReviewStatus},
+    sdk::{BulkReviewReportsRequest, LegislationStatus, MemberView, ReviewStatus},
 };
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default, Eq)]
@@ -118,6 +118,37 @@ pub enum Notification {
     BulkReviews(NotifyBulkReview),
     ReportReviewed(NotifyReportReviewed),
     NewReports(Vec<ReportCreated>),
+    /// The bill a campaign is anchored to moved — an action moment for its
+    /// supporters. Multiple events on the same campaign merge into one
+    /// notification.
+    ActionMoment(NotifyActionMoment),
+}
+
+/// A campaign's anchored bill did something legislatively relevant. This is
+/// the moment the campaign asks its supporters to act — the notification
+/// links back to the campaign, not just the bill.
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct NotifyActionMoment {
+    pub campaign_id: Uuid,
+    /// The demand, so the notification reads without a fetch.
+    pub campaign_name: String,
+    pub legislation_id: i32,
+    /// The bill's short identifier ("SB 401").
+    pub legislation_name_id: String,
+    pub legislation_title: String,
+    /// Events on this bill, oldest first within the notification.
+    pub events: Vec<ActionMomentEvent>,
+}
+
+/// One bill-history event inside an action-moment notification.
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
+pub struct ActionMomentEvent {
+    pub status_text: String,
+    /// The outcome the event moved the bill to, when it changed one.
+    pub outcome: Option<LegislationStatus>,
+    pub occurred_at: DateTime<FixedOffset>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
